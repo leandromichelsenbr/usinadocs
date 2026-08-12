@@ -37,6 +37,12 @@ php artisan user:make-admin seu-email@exemplo.com --name="Seu nome"
 
 O sistema solicitará a senha de forma oculta. Depois, acesse `/login`; o painel inicial estará em `/admin`.
 
+## Fluxo editorial inicial
+
+No painel, abra **Administrar páginas** para criar uma página em rascunho. Você pode adicionar blocos de texto, código e referência. Salvar mantém o conteúdo como rascunho; a ação **Publicar revisão** torna essa versão pública em `/p/seu-slug`.
+
+Para atualizar uma página publicada, use **Abrir nova revisão**. A publicação anterior permanece preservada e a nova revisão começa como rascunho.
+
 ## Configuração
 
 O arquivo `.env` é local e não deve ser enviado ao Git. Para esta etapa, mantenha `DB_CONNECTION=sqlite` e aponte `DB_DATABASE` para o arquivo `database/database.sqlite` quando sua instalação exigir o caminho explícito.

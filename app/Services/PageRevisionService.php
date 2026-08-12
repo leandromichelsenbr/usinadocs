@@ -46,4 +46,39 @@ class PageRevisionService
             return $revision->fresh(['blocks', 'page']);
         });
     }
+
+    public function updateDraft(PageRevision $revision, Language $language, string $title, ?string $summary, array $blocks): PageRevision
+    {
+        abort_if($revision->status === PageRevision::PUBLISHED, 409, 'Published revisions cannot be edited.');
+
+        return DB::transaction(function () use ($revision, $language, $title, $summary, $blocks): PageRevision {
+            $revision->update([
+                'language_id' => $language->id,
+                'title' => $title,
+                'summary' => $summary,
+            ]);
+            $revision->blocks()->delete();
+
+            foreach ($blocks as $position => $block) {
+                $revision->blocks()->create([
+                    'type' => $block['type'],
+                    'position' => $position + 1,
+                    'data' => $block['data'],
+                ]);
+            }
+
+            return $revision->fresh('blocks');
+        });
+    }
+
+    public function createDraftFrom(Page $page, PageRevision $source): PageRevision
+    {
+        return $this->createDraft(
+            $page,
+            $source->language,
+            $source->title,
+            $source->summary,
+            $source->blocks->map(fn ($block) => ['type' => $block->type, 'data' => $block->data])->all(),
+        );
+    }
 }
