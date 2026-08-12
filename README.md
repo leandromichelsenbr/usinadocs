@@ -1,7 +1,7 @@
 # Usina Docs
 
 > [!WARNING]
-> Usina Docs is currently in the **pre-alpha planning and architecture phase**. It is not yet ready for installation or production use.
+> Usina Docs is in **pre-alpha**. Its first installable foundation is available for local evaluation only and is not ready for production use.
 
 **Usina Docs** is an open source knowledge and learning platform for creating, structuring, translating, publishing and teaching content. It is maintained by **Usina.BR Tecnologia e Informação Ltda. ME**.
 
@@ -9,7 +9,7 @@ Its central principle is simple: documentation and training share the same struc
 
 ## Project status
 
-The repository currently contains the project's license, governance documents, vision and architecture planning. Application source code and installable packages have not been released yet.
+The repository contains the project's license, governance documents, vision, architecture planning and the first Laravel-based installable foundation. See the [installation guide](docs/INSTALL.md).
 
 The AdvPL Guide is the first real-world use case and the laboratory where the product requirements are being validated. Usina Docs itself will remain independent from AdvPL, Protheus and TOTVS-specific concepts.
 
