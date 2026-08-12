@@ -20,6 +20,7 @@ class Page extends Model
     {
         return $this->hasMany(PageRevision::class);
     }
+    public function localizations(): HasMany { return $this->hasMany(PageLocalization::class); }
 
     public function publishedRevision(): BelongsTo
     {

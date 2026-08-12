@@ -23,7 +23,7 @@ class EditorialPanelTest extends TestCase
             'password' => Hash::make('correct horse battery staple'),
         ]);
         $site = Site::create(['name' => 'Example', 'slug' => 'example']);
-        $language = Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English']);
+        $language = Language::create(['code' => 'en', 'route_key' => 'en', 'name' => 'English', 'native_name' => 'English']);
 
         $response = $this->actingAs($administrator)->post('/admin/pages', [
             'site_id' => $site->id,
@@ -39,10 +39,10 @@ class EditorialPanelTest extends TestCase
         $page = Page::where('slug', 'first-page')->firstOrFail();
         $revision = $page->revisions()->firstOrFail();
         $response->assertRedirect(route('admin.pages.edit', [$page, $revision]));
-        $this->get('/p/first-page')->assertNotFound();
+        $this->get('/en/p/first-page')->assertNotFound();
 
         $this->actingAs($administrator)->post(route('admin.pages.publish', [$page, $revision]))->assertRedirect(route('admin.pages.index'));
-        $this->get('/p/first-page')->assertOk()->assertSee('First page')->assertSee('Visible after publication.');
+        $this->get('/en/p/first-page')->assertOk()->assertSee('First page')->assertSee('Visible after publication.');
     }
 
     public function test_visitors_cannot_access_editorial_routes(): void

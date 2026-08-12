@@ -26,7 +26,8 @@ class ExampleTest extends TestCase
         ]);
         app(PageRevisionService::class)->publish($revision);
 
-        $response = $this->get('/p/welcome');
+        $language->update(['route_key' => 'en']);
+        $response = $this->get('/en/p/welcome');
 
         $response->assertStatus(200);
         $response->assertSee('Welcome');
