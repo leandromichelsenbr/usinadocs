@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-<header><nav class="wrap"><a class="brand" href="{{ url('/') }}">Usina <span>Docs</span></a><a href="{{ route('demo') }}">Ver demonstração</a></nav></header>
+<header><nav class="wrap"><a class="brand" href="{{ url('/') }}">Usina <span>Docs</span></a><a href="{{ route('pages.show', 'bem-vindo') }}">Ver demonstração</a></nav></header>
 <main class="wrap">{{ $slot }}</main>
 <footer><div class="wrap">Usina Docs · Pré-alpha · Código sob MPL-2.0</div></footer>
 </body>

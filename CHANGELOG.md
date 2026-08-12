@@ -8,6 +8,8 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Editorial core for sites, languages, pages, ordered blocks and immutable published revisions.
+- Public page rendering from published revisions and seeded demonstration content.
 - Initial Laravel 12 application foundation with local SQLite installation guidance.
 - Public demonstration page rendered from structured content blocks.
 - Automated application test workflow for pull requests and the `main` branch.
