@@ -8,6 +8,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Initial browser-based editorial panel for pages, drafts, blocks and publication.
 - Local administrator authentication, role protection and secure first-administrator command.
 - Editorial core for sites, languages, pages, ordered blocks and immutable published revisions.
 - Public page rendering from published revisions and seeded demonstration content.
