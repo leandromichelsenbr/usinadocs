@@ -55,7 +55,8 @@ class PageRevisionTest extends TestCase
         [$page, $language] = $this->pageContext();
         app(PageRevisionService::class)->createDraft($page, $language, 'Unpublished', null, []);
 
-        $this->get('/p/example-page')->assertNotFound();
+        $language->update(['route_key' => 'en']);
+        $this->get('/en/p/example-page')->assertNotFound();
     }
 
     private function pageContext(): array

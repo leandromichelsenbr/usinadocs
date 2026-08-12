@@ -39,10 +39,10 @@ class EditorialPanelTest extends TestCase
         $page = Page::where('slug', 'first-page')->firstOrFail();
         $revision = $page->revisions()->firstOrFail();
         $response->assertRedirect(route('admin.pages.edit', [$page, $revision]));
-        $this->get('/p/first-page')->assertNotFound();
+        $this->get('/en/p/first-page')->assertNotFound();
 
         $this->actingAs($administrator)->post(route('admin.pages.publish', [$page, $revision]))->assertRedirect(route('admin.pages.index'));
-        $this->get('/p/first-page')->assertOk()->assertSee('First page')->assertSee('Visible after publication.');
+        $this->get('/en/p/first-page')->assertOk()->assertSee('First page')->assertSee('Visible after publication.');
     }
 
     public function test_visitors_cannot_access_editorial_routes(): void
