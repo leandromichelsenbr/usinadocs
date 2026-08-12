@@ -6,7 +6,7 @@ Esta primeira base usa **PHP 8.2 ou superior**, [Composer](https://getcomposer.o
 
 - PHP 8.2+ com as extensões SQLite, OpenSSL, Mbstring, XML, Ctype, JSON, Tokenizer e Fileinfo;
 - Composer 2;
-- Node.js 20+ e npm (apenas para compilar recursos visuais quando necessário).
+- Node.js 20+ e npm, somente quando for necessário compilar recursos visuais.
 
 ## Primeira execução
 
@@ -21,11 +21,11 @@ No Windows, copie manualmente `.env.example` para `.env` se o comando `cp` não 
 
 ```bash
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 php artisan serve
 ```
 
-Abra `http://127.0.0.1:8000`. A página inicial e a rota `/demonstracao` devem estar disponíveis.
+Abra `http://127.0.0.1:8000`. A página inicial e a demonstração em `/p/bem-vindo` devem estar disponíveis.
 
 ## Configuração
 
@@ -41,4 +41,4 @@ php artisan test
 
 ## Limitações desta etapa
 
-Esta é a fundação técnica do pré-alpha. A demonstração usa conteúdo de configuração apenas para provar a renderização de uma página estruturada. Banco de conteúdo, contas, tradução, editor e cursos entrarão em tarefas posteriores.
+Esta é a fundação técnica do pré-alpha. A demonstração agora é criada a partir do núcleo editorial: página, revisão publicada e blocos estruturados. Banco de conteúdo, contas, tradução, editor e cursos entrarão em tarefas posteriores.
