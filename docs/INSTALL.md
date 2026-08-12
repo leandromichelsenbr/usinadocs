@@ -27,6 +27,16 @@ php artisan serve
 
 Abra `http://127.0.0.1:8000`. A página inicial e a demonstração em `/p/bem-vindo` devem estar disponíveis.
 
+## Primeiro administrador
+
+O projeto não cria contas ou senhas padrão. Em outro terminal, execute:
+
+```bash
+php artisan user:make-admin seu-email@exemplo.com --name="Seu nome"
+```
+
+O sistema solicitará a senha de forma oculta. Depois, acesse `/login`; o painel inicial estará em `/admin`.
+
 ## Configuração
 
 O arquivo `.env` é local e não deve ser enviado ao Git. Para esta etapa, mantenha `DB_CONNECTION=sqlite` e aponte `DB_DATABASE` para o arquivo `database/database.sqlite` quando sua instalação exigir o caminho explícito.
@@ -41,4 +51,4 @@ php artisan test
 
 ## Limitações desta etapa
 
-Esta é a fundação técnica do pré-alpha. A demonstração agora é criada a partir do núcleo editorial: página, revisão publicada e blocos estruturados. Banco de conteúdo, contas, tradução, editor e cursos entrarão em tarefas posteriores.
+Esta é uma base pré-alpha. O painel prova a fronteira de acesso administrativo; a interface para criar e editar páginas, as traduções, a mídia e os cursos entrarão em tarefas posteriores.
