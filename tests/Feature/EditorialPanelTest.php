@@ -49,4 +49,24 @@ class EditorialPanelTest extends TestCase
     {
         $this->get('/admin/pages')->assertRedirect('/login');
     }
+
+    public function test_administrator_can_open_the_translation_form_for_a_page(): void
+    {
+        $administrator = User::create([
+            'name' => 'Administrator',
+            'email' => 'admin@example.test',
+            'role' => 'administrator',
+            'password' => Hash::make('correct horse battery staple'),
+        ]);
+        $site = Site::create(['name' => 'Example', 'slug' => 'example']);
+        $page = Page::create(['site_id' => $site->id, 'slug' => 'welcome']);
+        Language::create(['code' => 'pt-BR', 'route_key' => 'pt', 'name' => 'Portuguese', 'native_name' => 'Português']);
+        Language::create(['code' => 'en', 'route_key' => 'en', 'name' => 'English', 'native_name' => 'English']);
+
+        $this->actingAs($administrator)
+            ->get(route('admin.pages.translations.create', $page))
+            ->assertOk()
+            ->assertSee('Nova tradução')
+            ->assertSee('Português');
+    }
 }
