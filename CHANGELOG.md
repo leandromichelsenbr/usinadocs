@@ -8,6 +8,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Local administrator authentication, role protection and secure first-administrator command.
 - Editorial core for sites, languages, pages, ordered blocks and immutable published revisions.
 - Public page rendering from published revisions and seeded demonstration content.
 - Initial Laravel 12 application foundation with local SQLite installation guidance.
