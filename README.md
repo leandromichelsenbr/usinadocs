@@ -1,8 +1,34 @@
 # Usina Docs
 
-**Usina Docs** is an open source document management platform focused on simplicity, flexibility and integration, maintained by **Usina.BR Tecnologia e Informação Ltda. ME**.
+> [!WARNING]
+> Usina Docs is currently in the **pre-alpha planning and architecture phase**. It is not yet ready for installation or production use.
 
-## Open Source
+**Usina Docs** is an open source knowledge and learning platform for creating, structuring, translating, publishing and teaching content. It is maintained by **Usina.BR Tecnologia e Informação Ltda. ME**.
+
+Its central principle is simple: documentation and training share the same structured knowledge base. A concept, example, image or reference can be published for consultation and reused in lessons, reviews and assessments without editorial duplication.
+
+## Project status
+
+The repository currently contains the project's license, governance documents, vision and architecture planning. Application source code and installable packages have not been released yet.
+
+The AdvPL Guide is the first real-world use case and the laboratory where the product requirements are being validated. Usina Docs itself will remain independent from AdvPL, Protheus and TOTVS-specific concepts.
+
+See the [project vision](docs/vision.md), [target architecture](docs/target-architecture.md) and [roadmap](ROADMAP.md).
+
+## Planned capabilities
+
+- structured page models and reusable content blocks;
+- complete revision history, comparison and restoration;
+- translation status and review at block level;
+- media library with authorship, origin and licensing metadata;
+- editorial workflows and permissions;
+- searchable catalogs, taxonomies and relationships;
+- native courses, learning paths, lessons and assessments;
+- progress, achievements and error-guided review;
+- open import, export and backup formats;
+- themes and extension points.
+
+## Open source
 
 The official Usina Docs source code will remain publicly available.
 
@@ -16,24 +42,14 @@ Usina Docs is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See [
 
 Copyright © 2026 Usina.BR Tecnologia e Informação Ltda. ME.
 
+The license covers source code, not the Usina.BR or Usina Docs names, logos and official visual identity. See [TRADEMARKS.md](TRADEMARKS.md).
+
 ## Contributing
 
-Community contributions are welcome. Pull Requests accepted into the project are incorporated under the same **MPL-2.0** license. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Community contributions are welcome. Pull Requests accepted into the project are incorporated under the same **MPL-2.0** license. See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-## Trademark and attribution
+## Support and security
 
-The **Usina Docs** name, logo and official visual identity may be used with appropriate attribution. Modified versions, forks, distributions and third-party services must not imply that they are official versions or endorsed by Usina.BR without authorization.
+Use of Usina Docs does not require a support contract. Usina.BR may optionally provide commercial support, implementation, training, consulting, integrations, hosting and development.
 
-See [TRADEMARKS.md](TRADEMARKS.md).
-
-## Support
-
-Use of Usina Docs does not require a support contract.
-
-**Usina.BR Tecnologia e Informação Ltda. ME** may optionally provide commercial services related to the project, including technical support, implementation, training, consulting, integrations and development.
-
-Commercial support does not change the rights granted under the MPL-2.0 license.
-
-## Security
-
-Please report security vulnerabilities privately rather than through public Issues. See [SECURITY.md](SECURITY.md).
+For community support expectations, see [SUPPORT.md](SUPPORT.md). Please report security vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
