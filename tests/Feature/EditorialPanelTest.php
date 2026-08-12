@@ -23,7 +23,7 @@ class EditorialPanelTest extends TestCase
             'password' => Hash::make('correct horse battery staple'),
         ]);
         $site = Site::create(['name' => 'Example', 'slug' => 'example']);
-        $language = Language::create(['code' => 'en', 'name' => 'English', 'native_name' => 'English']);
+        $language = Language::create(['code' => 'en', 'route_key' => 'en', 'name' => 'English', 'native_name' => 'English']);
 
         $response = $this->actingAs($administrator)->post('/admin/pages', [
             'site_id' => $site->id,
