@@ -9,7 +9,8 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
-Route::get('/p/{slug}', [PublishedPageController::class, 'show'])->name('pages.show');
+Route::get('/{locale}/p/{slug}', [PublishedPageController::class, 'show'])->name('pages.show');
+Route::get('/p/{slug}', fn (string $slug) => redirect()->route('pages.show', ['locale' => 'pt', 'slug' => $slug]));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [SessionController::class, 'create'])->name('login');
@@ -22,6 +23,8 @@ Route::middleware(['auth', 'administrator'])->prefix('admin')->group(function ()
     Route::get('/', fn () => view('admin.dashboard'))->name('admin.dashboard');
     Route::get('/pages', [PageController::class, 'index'])->name('admin.pages.index');
     Route::get('/pages/create', [PageController::class, 'create'])->name('admin.pages.create');
+    Route::get('/pages/{page}/translations/create', [PageController::class, 'createTranslation'])->name('admin.pages.translations.create');
+    Route::post('/pages/{page}/translations', [PageController::class, 'storeTranslation'])->name('admin.pages.translations.store');
     Route::post('/pages', [PageController::class, 'store'])->name('admin.pages.store');
     Route::get('/pages/{page}/revisions/{revision}/edit', [PageController::class, 'edit'])->name('admin.pages.edit');
     Route::put('/pages/{page}/revisions/{revision}', [PageController::class, 'update'])->name('admin.pages.update');

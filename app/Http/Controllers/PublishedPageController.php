@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Page;
+use App\Models\PageLocalization;
 use Illuminate\View\View;
 
 class PublishedPageController extends Controller
 {
-    public function show(string $slug): View
+    public function show(string $locale, string $slug): View
     {
-        $page = Page::query()
+        $page = PageLocalization::query()
             ->where('slug', $slug)
-            ->with(['publishedRevision.blocks', 'publishedRevision.language'])
+            ->whereHas('language', fn ($q) => $q->where('route_key', $locale))
+            ->with(['publishedRevision.blocks', 'publishedRevision.language','page.localizations.language'])
             ->firstOrFail();
 
         abort_unless($page->publishedRevision, 404);
 
-        return view('page', ['revision' => $page->publishedRevision]);
+        return view('page', ['revision' => $page->publishedRevision, 'localization' => $page]);
     }
 }

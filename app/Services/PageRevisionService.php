@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Language;
 use App\Models\Page;
 use App\Models\PageRevision;
+use App\Models\PageLocalization;
 use Illuminate\Support\Facades\DB;
 
 class PageRevisionService
@@ -41,6 +42,7 @@ class PageRevisionService
                 'published_at' => now(),
             ]);
 
+            PageLocalization::firstOrCreate(['page_id'=>$revision->page_id,'language_id'=>$revision->language_id],['slug'=>$revision->page->slug])->update(['published_revision_id' => $revision->id]);
             $revision->page()->update(['published_revision_id' => $revision->id]);
 
             return $revision->fresh(['blocks', 'page']);

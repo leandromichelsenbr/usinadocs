@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Language extends Model
 {
-    protected $fillable = ['code', 'name', 'native_name'];
+    protected $fillable = ['code', 'route_key', 'name', 'native_name'];
 }

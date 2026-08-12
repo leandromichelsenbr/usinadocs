@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Language;
 use App\Models\Page;
 use App\Models\PageRevision;
+use App\Models\PageLocalization;
 use App\Models\Site;
 use App\Services\PageRevisionService;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ class PageController extends Controller
     public function index(): View
     {
         return view('admin.pages.index', [
-            'pages' => Page::with(['site', 'publishedRevision', 'latestDraft'])->orderBy('slug')->get(),
+            'pages' => Page::with(['site', 'localizations.language', 'localizations.publishedRevision'])->orderBy('slug')->get(),
         ]);
     }
 
@@ -34,10 +35,18 @@ class PageController extends Controller
     {
         $data = $this->validatedPayload($request);
         $page = Page::create(['site_id' => $data['site_id'], 'slug' => $data['slug']]);
-        $revision = $service->createDraft($page, Language::findOrFail($data['language_id']), $data['title'], $data['summary'], $data['blocks']);
+        $language = Language::findOrFail($data['language_id']);
+        $page->localizations()->create(['language_id'=>$language->id,'slug'=>$data['slug']]);
+        $revision = $service->createDraft($page, $language, $data['title'], $data['summary'], $data['blocks']);
 
         return redirect()->route('admin.pages.edit', [$page, $revision])->with('success', 'Página criada como rascunho.');
     }
+
+    public function createTranslation(Page $page): View { return view('admin.pages.translation', ['page'=>$page,'languages'=>Language::whereDoesntHave('localizations',fn($q)=>$q->where('page_id',$page->id))->get()]); }
+    public function storeTranslation(Request $request, Page $page, PageRevisionService $service): RedirectResponse {
+        $data=$this->validatedPayload($request,false); $request->validate(['slug'=>['required','alpha_dash','max:120',Rule::unique('page_localizations','slug')->where('language_id',$data['language_id'])]]);
+        $language=Language::findOrFail($data['language_id']); $page->localizations()->create(['language_id'=>$language->id,'slug'=>$request->string('slug')]);
+        $revision=$service->createDraft($page,$language,$data['title'],$data['summary'],$data['blocks']); return redirect()->route('admin.pages.edit',[$page,$revision]); }
 
     public function edit(Page $page, PageRevision $revision): View
     {
