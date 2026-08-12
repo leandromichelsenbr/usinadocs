@@ -8,6 +8,9 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Initial Laravel 12 application foundation with local SQLite installation guidance.
+- Public demonstration page rendered from structured content blocks.
+- Automated application test workflow for pull requests and the `main` branch.
 - Initial open source project governance and documentation.
 - Pre-alpha product vision and target architecture.
 - Public roadmap, support guidance and community code of conduct.
