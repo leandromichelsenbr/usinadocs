@@ -29,10 +29,14 @@ final class AppFactory
         $authenticator = new Authenticator($database);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
+        $app->addErrorMiddleware(true, true, true);
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
         $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             return $response->withHeader('Location', '/pt/p/bem-vindo')->withStatus(302);
+        });
+        $app->get('/favicon.ico', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
+            return $response->withStatus(204);
         });
 
         $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig): ResponseInterface {
