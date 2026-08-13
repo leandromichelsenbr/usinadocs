@@ -62,11 +62,14 @@ final class AppFactory
         $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });
         $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial): ResponseInterface {
             if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'administrator') return $response->withHeader('Location', '/login')->withStatus(302);
-            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts()]);
+            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts(), 'published' => $editorial->published()]);
         });
         $app->get('/admin/pages/new', static function ($request,$response) use ($twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); return $twig->render($response,'page-form.twig'); });
         $app->post('/admin/pages', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $d=(array)$request->getParsedBody(); $id=$editorial->create(trim((string)$d['title']),trim((string)$d['slug']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code'])); return $response->withHeader('Location','/admin')->withStatus(302); });
         $app->post('/admin/pages/{id}/publish', static function ($request,$response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $editorial->publish($a['id']); return $response->withHeader('Location','/admin')->withStatus(302); });
+        $app->post('/admin/pages/{id}/revisions', static function ($request,$response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $editorial->createRevision($a['id']); return $response->withHeader('Location','/admin/pages/'.$a['id'].'/edit')->withStatus(302); });
+        $app->get('/admin/pages/{id}/edit', static function ($request,$response,array $a) use ($editorial,$twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $page=$editorial->draft($a['id']); if($page===null)return $response->withStatus(404); return $twig->render($response,'page-form.twig',['page'=>$page]); });
+        $app->post('/admin/pages/{id}', static function (ServerRequestInterface $request,ResponseInterface $response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302);$d=(array)$request->getParsedBody();$editorial->updateDraft($a['id'],trim((string)$d['title']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code']));return $response->withHeader('Location','/admin')->withStatus(302); });
 
         return $app;
     }
