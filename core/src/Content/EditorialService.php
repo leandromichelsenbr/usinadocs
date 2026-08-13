@@ -4,7 +4,7 @@ namespace UsinaDocs\Core\Content;
 use PDO;
 final class EditorialService {
  public function __construct(private readonly PDO $db) {}
- public function create(string $title,string $slug,string $summary,string $body,string $code): string {
+ public function create(string $title,string $slug,string $summary,string $body,string $code,string $imageId=''): string {
   $id='page-'.bin2hex(random_bytes(8)); $revision='revision-'.bin2hex(random_bytes(8)); $now=gmdate('c');
   $this->db->beginTransaction(); try {
    $this->db->prepare("INSERT INTO pages (id,site_id,created_at,updated_at) VALUES (:id,'site-usinadocs',:now,:now)")->execute(['id'=>$id,'now'=>$now]);
@@ -13,6 +13,7 @@ final class EditorialService {
    $s=$this->db->prepare('INSERT INTO blocks (id,page_revision_id,type,position,data) VALUES (:id,:revision,:type,:position,:data)');
    $s->execute(['id'=>'block-'.bin2hex(random_bytes(8)),'revision'=>$revision,'type'=>'text','position'=>1,'data'=>json_encode(['body'=>$body],JSON_UNESCAPED_UNICODE)]);
    if ($code !== '') $s->execute(['id'=>'block-'.bin2hex(random_bytes(8)),'revision'=>$revision,'type'=>'code','position'=>2,'data'=>json_encode(['language'=>'advpl','code'=>$code],JSON_UNESCAPED_UNICODE)]);
+   if ($imageId !== '') $s->execute(['id'=>'block-'.bin2hex(random_bytes(8)),'revision'=>$revision,'type'=>'image','position'=>3,'data'=>json_encode(['id'=>$imageId],JSON_UNESCAPED_UNICODE)]);
    $this->db->commit(); return $id;
   } catch (\Throwable $e) { $this->db->rollBack(); throw $e; }
  }

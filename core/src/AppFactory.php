@@ -13,6 +13,7 @@ use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Authentication\Authenticator;
 use UsinaDocs\Core\Content\EditorialService;
+use UsinaDocs\Core\Media\MediaLibrary;
 
 final class AppFactory
 {
@@ -29,6 +30,7 @@ final class AppFactory
         $repository = new PublishedPageRepository($database);
         $authenticator = new Authenticator($database);
         $editorial = new EditorialService($database);
+        $media = new MediaLibrary($database, $root.'/storage/media');
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
         $app->addErrorMiddleware(true, true, true);
@@ -41,6 +43,7 @@ final class AppFactory
         $app->get('/favicon.ico', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             return $response->withStatus(204);
         });
+        $app->get('/media/{id}', static function ($request,$response,array $a) use ($media) { $item=$media->find($a['id']);if($item===null||!is_file($media->path($item)))return$response->withStatus(404);$stream=fopen($media->path($item),'rb');$response->getBody()->write((string)stream_get_contents($stream));fclose($stream);return$response->withHeader('Content-Type',$item['mime_type'])->withHeader('Content-Length',(string)$item['byte_size']);});
 
         $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig): ResponseInterface {
             $page = $repository->findByLocalizedSlug((string) $arguments['locale'], (string) $arguments['slug']);
@@ -64,8 +67,10 @@ final class AppFactory
             if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'administrator') return $response->withHeader('Location', '/login')->withStatus(302);
             $search=(string)($request->getQueryParams()['q']??'');return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts(), 'published' => $editorial->published(), 'catalog'=>$editorial->catalog($search),'search'=>$search]);
         });
-        $app->get('/admin/pages/new', static function ($request,$response) use ($twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); return $twig->render($response,'page-form.twig'); });
-        $app->post('/admin/pages', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $d=(array)$request->getParsedBody(); $id=$editorial->create(trim((string)$d['title']),trim((string)$d['slug']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code'])); return $response->withHeader('Location','/admin')->withStatus(302); });
+        $app->get('/admin/media', static function ($request,$response) use ($twig,$media) {if(!isset($_SESSION['user']))return$response->withHeader('Location','/login')->withStatus(302);return$twig->render($response,'media.twig',['media'=>$media->all()]);});
+        $app->post('/admin/media', static function (ServerRequestInterface $request,ResponseInterface $response) use ($media) {if(!isset($_SESSION['user']))return$response->withHeader('Location','/login')->withStatus(302);$d=(array)$request->getParsedBody();$file=$request->getUploadedFiles()['file']??null;if($file===null||$file->getError()!==UPLOAD_ERR_OK)return$response->withHeader('Location','/admin/media')->withStatus(302);$path=tempnam(sys_get_temp_dir(),'usinadocs-media-');$file->moveTo($path);try{$media->store($path,$file->getClientFilename()??'image',(string)($d['title']??''),(string)($d['source_url']??''),(string)($d['license_note']??''));}finally{@unlink($path);}return$response->withHeader('Location','/admin/media')->withStatus(302);});
+        $app->get('/admin/pages/new', static function ($request,$response) use ($twig,$media) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); return $twig->render($response,'page-form.twig',['media'=>$media->all()]); });
+        $app->post('/admin/pages', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $d=(array)$request->getParsedBody(); $id=$editorial->create(trim((string)$d['title']),trim((string)$d['slug']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code']),trim((string)($d['image_id']??''))); return $response->withHeader('Location','/admin')->withStatus(302); });
         $app->post('/admin/pages/{id}/publish', static function ($request,$response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $editorial->publish($a['id']); return $response->withHeader('Location','/admin')->withStatus(302); });
         $app->post('/admin/pages/{id}/revisions', static function ($request,$response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $editorial->createRevision($a['id']); return $response->withHeader('Location','/admin/pages/'.$a['id'].'/edit')->withStatus(302); });
         $app->get('/admin/pages/{id}/edit', static function ($request,$response,array $a) use ($editorial,$twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $page=$editorial->draft($a['id']); if($page===null)return $response->withStatus(404); return $twig->render($response,'page-form.twig',['page'=>$page]); });
