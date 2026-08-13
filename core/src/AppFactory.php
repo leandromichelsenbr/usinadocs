@@ -30,6 +30,7 @@ final class AppFactory
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
         $app->addErrorMiddleware(true, true, true);
+        $app->addBodyParsingMiddleware();
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
         $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
