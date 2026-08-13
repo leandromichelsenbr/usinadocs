@@ -10,7 +10,9 @@ final class Schema
 {
     public static function migrate(PDO $database, string $projectRoot): void
     {
-        $database->exec((string) file_get_contents($projectRoot.'/database/migrations/001_core.sql'));
+        foreach (glob($projectRoot.'/database/migrations/*.sql') ?: [] as $migration) {
+            $database->exec((string) file_get_contents($migration));
+        }
     }
 
     public static function seed(PDO $database): void
@@ -28,5 +30,10 @@ final class Schema
         foreach ([['block-welcome-text', 'text', 1, $text], ['block-welcome-code', 'code', 2, $code]] as [$id, $type, $position, $data]) {
             $statement->execute(['id' => $id, 'revision' => 'revision-welcome-pt', 'type' => $type, 'position' => $position, 'data' => $data]);
         }
+
+        $email = $_ENV['USINADOCS_ADMIN_EMAIL'] ?? 'admin@example.test';
+        $password = $_ENV['USINADOCS_ADMIN_PASSWORD'] ?? 'change-this-password';
+        $user = $database->prepare('INSERT OR IGNORE INTO users (id, email, name, password_hash, role, created_at) VALUES (:id, :email, :name, :password_hash, :role, :created_at)');
+        $user->execute(['id' => 'user-admin', 'email' => $email, 'name' => 'Administrator', 'password_hash' => password_hash($password, PASSWORD_DEFAULT), 'role' => 'administrator', 'created_at' => $now]);
     }
 }

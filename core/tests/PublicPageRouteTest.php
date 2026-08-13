@@ -51,4 +51,12 @@ final class PublicPageRouteTest extends TestCase
 
         self::assertSame(404, $app->handle($request)->getStatusCode());
     }
+
+    public function test_browser_favicon_request_is_handled_without_an_exception(): void
+    {
+        $app = AppFactory::create(dirname(__DIR__), $this->databasePath);
+        $request = (new ServerRequestFactory())->createServerRequest('GET', '/favicon.ico');
+
+        self::assertSame(204, $app->handle($request)->getStatusCode());
+    }
 }

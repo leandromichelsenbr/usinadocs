@@ -25,6 +25,7 @@
   },
   "scripts": {
     "migrate": "@php bin/migrate.php",
+    "reset-admin": "@php bin/reset-admin.php",
     "test": "@php vendor/bin/phpunit"
   },
   "config": {
