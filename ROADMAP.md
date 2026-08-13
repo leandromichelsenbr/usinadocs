@@ -8,13 +8,13 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - [x] adopt MPL-2.0;
 - [x] publish initial governance documents;
 - [x] document product vision and target architecture;
-- [ ] define the initial technical stack and supported environment;
+- [x] define the initial technical stack and supported environment (ADR-001);
 - [ ] add automated checks for secrets, licenses and documentation;
 - [ ] publish contribution and release workflows.
 
-## Phase 1 - Pages and revisions
+## Phase 1 - Lightweight core and pages
 
-- installation bootstrap and database migrations;
+- lightweight PHP bootstrap, routing and database migrations;
 - users, roles, sites and languages;
 - structured pages, blocks and immutable revisions;
 - editorial states, comparison, restoration and publication;

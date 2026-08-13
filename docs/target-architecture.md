@@ -16,6 +16,10 @@ Migration adapter ---> Usina Core ---> theme
                            +-- AdvPL package
 ```
 
+## Selected alpha core
+
+The active alpha direction is defined by [ADR-001: Lightweight PHP Core](ADR-001-LIGHTWEIGHT-PHP-CORE.md): PHP 8.2+, Slim, Twig, PDO and SQLite as the default database. The existing Laravel implementation is a proof of concept used to validate editorial rules; it is not the technical base for new modules.
+
 ## Layers
 
 ### Domain
@@ -76,7 +80,6 @@ Every installation must support a database-independent, versioned export package
 
 ## Open decisions
 
-- initial technical stack and supported environments;
 - official relational database support;
 - structured editor format;
 - extension contract;
