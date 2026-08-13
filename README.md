@@ -9,7 +9,7 @@ Its central principle is simple: documentation and training share the same struc
 
 ## Project status
 
-The repository contains the project's license, governance documents, vision, architecture planning and the first Laravel-based installable foundation. See the [installation guide](docs/INSTALL.md) and the [alpha architecture guide](docs/ARCHITECTURE.md).
+The repository contains the project's license, governance documents, vision, architecture planning and the first Laravel-based installable foundation. See the [installation guide](docs/INSTALL.md), [alpha architecture guide](docs/ARCHITECTURE.md) and [content package specification](docs/CONTENT-PACKAGE.md).
 
 The AdvPL Guide is the first real-world use case and the laboratory where the product requirements are being validated. Usina Docs itself will remain independent from AdvPL, Protheus and TOTVS-specific concepts.
 
