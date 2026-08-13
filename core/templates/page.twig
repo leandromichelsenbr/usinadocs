@@ -17,7 +17,7 @@
 </head>
 <body>
 <main>
-    <header><div><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · Revision {{ page.revision_number }}</div></div><nav class="languages" aria-label="Idiomas disponíveis">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}</nav></header>
+    <header><div><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · Revision {{ page.revision_number }}</div></div><nav class="languages" aria-label="Idiomas disponíveis">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}{% if can_edit and page.language_code == 'pt' %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions"><button type="submit">Editar</button></form>{% endif %}</nav></header>
     <article>
         <h1>{{ page.title }}</h1>
         {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}

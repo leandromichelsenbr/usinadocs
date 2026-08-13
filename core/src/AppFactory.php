@@ -54,7 +54,8 @@ final class AppFactory
                 return $response->withStatus(404);
             }
 
-            return $twig->render($response, 'page.twig', ['page' => $page]);
+            $canEdit = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'administrator';
+            return $twig->render($response, 'page.twig', ['page' => $page, 'can_edit' => $canEdit]);
         });
         $app->get('/login', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $twig->render($response, 'login.twig'));
         $app->post('/login', static function (ServerRequestInterface $request, ResponseInterface $response) use ($authenticator): ResponseInterface {
