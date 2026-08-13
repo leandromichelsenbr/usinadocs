@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="{{ page.language_code|e }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title }} · {{ page.site_name }}</title>
+    <style>
+        :root { color-scheme: light dark; font-family: Inter, system-ui, sans-serif; color: #172033; background: #f3f6fb; }
+        body { margin: 0; } main { max-width: 800px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+        header { border-bottom: 1px solid #c7d2e5; padding-bottom: 1rem; margin-bottom: 2.5rem; }
+        .brand { color: #1264a3; font-weight: 800; letter-spacing: .03em; } .meta { color: #526174; font-size: .9rem; }
+        h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin-bottom: .6rem; } .summary { color: #3c4a5d; font-size: 1.2rem; line-height: 1.6; }
+        section { margin-top: 1.6rem; line-height: 1.7; } pre { overflow: auto; padding: 1rem; border-radius: .6rem; background: #172033; color: #ecf3ff; }
+        @media (prefers-color-scheme: dark) { :root { color: #edf3ff; background: #0e1624; } header { border-color: #32435d; } .brand { color: #7fc7ff; } .meta, .summary { color: #bfccdc; } }
+    </style>
+</head>
+<body>
+<main>
+    <header><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · Revision {{ page.revision_number }}</div></header>
+    <article>
+        <h1>{{ page.title }}</h1>
+        {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}
+        {% for block in page.blocks %}
+            <section>
+                {% if block.type == 'text' %}
+                    {% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}
+                    <p>{{ block.data.body }}</p>
+                {% elseif block.type == 'code' %}
+                    {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
+                    <pre><code>{{ block.data.code }}</code></pre>
+                {% endif %}
+            </section>
+        {% endfor %}
+    </article>
+</main>
+</body>
+</html>
