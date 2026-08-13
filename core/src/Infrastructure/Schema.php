@@ -24,6 +24,16 @@ final class Schema
         $database->exec("INSERT OR IGNORE INTO page_revisions (id, page_id, language_code, number, status, title, summary, created_at, published_at) VALUES ('revision-welcome-pt', 'page-welcome', 'pt', 1, 'published', 'Bem-vindo ao Usina Docs', 'Uma base leve para documentação e aprendizado.', '$now', '$now')");
         $database->exec("INSERT OR IGNORE INTO page_localizations (page_id, language_code, slug, published_revision_id) VALUES ('page-welcome', 'pt', 'bem-vindo', 'revision-welcome-pt')");
         $database->exec("INSERT OR IGNORE INTO page_metadata (page_id, content_type, updated_at) VALUES ('page-welcome', 'article', '$now')");
+        $models = [
+            ['model-reference', 'reference', 'Referência técnica', 'Sintaxe, explicação, exemplos e fontes para consulta rápida.', [['heading','Título de seção',0],['text','Texto',1],['code','Código',0],['image','Imagem',0],['reference','Referência',1],['notice','Aviso',0]]],
+            ['model-article', 'article', 'Artigo', 'Leitura editorial com contexto, ilustrações, citações e referências.', [['heading','Título de seção',0],['text','Texto',1],['image','Imagem',0],['reference','Referência',1],['notice','Aviso',0]]],
+            ['model-lesson', 'lesson', 'Aula', 'Conteúdo progressivo com explicação, exemplos e momentos de reforço.', [['heading','Etapa da aula',1],['text','Explicação',1],['code','Exemplo de código',0],['image','Ilustração',0],['notice','Dica ou cuidado',0],['reference','Referência',0]]],
+            ['model-class', 'class', 'Classe', 'Documentação de propriedades, métodos, exemplos e observações técnicas.', [['heading','Seção',1],['text','Descrição',1],['code','Exemplo',0],['notice','Observação',0],['reference','Referência',1]]],
+            ['model-entry-point', 'entry_point', 'Ponto de entrada', 'Contexto de execução, parâmetros, retorno e cuidados de implementação.', [['heading','Seção',1],['text','Descrição',1],['code','Exemplo',0],['notice','Cuidado',0],['reference','Referência',1]]],
+        ];
+        $model = $database->prepare('INSERT OR IGNORE INTO editorial_models (id, content_type, label, description) VALUES (:id, :content_type, :label, :description)');
+        $artifact = $database->prepare('INSERT OR IGNORE INTO editorial_model_artifacts (id, model_id, artifact_type, label, is_required, position) VALUES (:id, :model, :type, :label, :required, :position)');
+        foreach ($models as [$id, $type, $label, $description, $artifacts]) { $model->execute(['id'=>$id,'content_type'=>$type,'label'=>$label,'description'=>$description]); foreach ($artifacts as $position=>[$artifactType,$artifactLabel,$required]) $artifact->execute(['id'=>$id.'-'.$artifactType,'model'=>$id,'type'=>$artifactType,'label'=>$artifactLabel,'required'=>$required,'position'=>$position+1]); }
 
         $text = json_encode(['title' => 'Conhecimento reutilizável', 'body' => 'Uma mesma explicação pode atender à consulta, à revisão e a uma aula, sem duplicação editorial.'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
         $code = json_encode(['language' => 'text', 'code' => 'Página → Revisão → Blocos → Traduções', 'caption' => 'Modelo editorial'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
