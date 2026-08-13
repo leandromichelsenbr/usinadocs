@@ -15,6 +15,12 @@ The AdvPL Guide is the first real-world use case and the laboratory where the pr
 
 See the [project vision](docs/vision.md), [target architecture](docs/target-architecture.md) and [roadmap](ROADMAP.md).
 
+## Lightweight core preview
+
+The installable lightweight core is being built in [`core/`](core/). It is intentionally isolated from the archived Laravel prototype while the project validates the new architecture.
+
+It currently renders one published, Portuguese example page from SQLite. See [`core/README.md`](core/README.md) for local installation and validation steps.
+
 ## Planned capabilities
 
 - structured page models and reusable content blocks;
