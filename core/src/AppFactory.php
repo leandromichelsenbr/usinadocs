@@ -12,6 +12,7 @@ use Slim\Views\Twig;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Authentication\Authenticator;
+use UsinaDocs\Core\Content\EditorialService;
 
 final class AppFactory
 {
@@ -27,6 +28,7 @@ final class AppFactory
         $database = Database::connect($databasePath);
         $repository = new PublishedPageRepository($database);
         $authenticator = new Authenticator($database);
+        $editorial = new EditorialService($database);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
         $app->addErrorMiddleware(true, true, true);
@@ -58,10 +60,13 @@ final class AppFactory
             session_regenerate_id(true); $_SESSION['user'] = $user; return $response->withHeader('Location', '/admin')->withStatus(302);
         });
         $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });
-        $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig): ResponseInterface {
+        $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial): ResponseInterface {
             if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'administrator') return $response->withHeader('Location', '/login')->withStatus(302);
-            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user']]);
+            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts()]);
         });
+        $app->get('/admin/pages/new', static function ($request,$response) use ($twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); return $twig->render($response,'page-form.twig'); });
+        $app->post('/admin/pages', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $d=(array)$request->getParsedBody(); $id=$editorial->create(trim((string)$d['title']),trim((string)$d['slug']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code'])); return $response->withHeader('Location','/admin')->withStatus(302); });
+        $app->post('/admin/pages/{id}/publish', static function ($request,$response,array $a) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $editorial->publish($a['id']); return $response->withHeader('Location','/admin')->withStatus(302); });
 
         return $app;
     }
