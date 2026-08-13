@@ -17,7 +17,7 @@
 </head>
 <body>
 <main>
-    <header><div><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · Revision {{ page.revision_number }}</div></div><nav class="languages" aria-label="Idiomas disponíveis">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}</nav></header>
+    <header><div><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · Revision {{ page.revision_number }}</div></div><nav class="languages" aria-label="Idiomas disponíveis">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}{% if can_edit and page.language_code == 'pt' %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions"><button type="submit">Editar</button></form>{% endif %}</nav></header>
     <article>
         <h1>{{ page.title }}</h1>
         {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}
@@ -26,11 +26,17 @@
                 {% if block.type == 'text' %}
                     {% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}
                     <p>{{ block.data.body }}</p>
+                {% elseif block.type == 'heading' %}
+                    <h2>{{ block.data.text }}</h2>
                 {% elseif block.type == 'code' %}
                     {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
                     <pre><code>{{ block.data.code }}</code></pre>
                 {% elseif block.type == 'image' %}
                     <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
+                {% elseif block.type == 'reference' %}
+                    <p><strong>Referência:</strong> <a href="{{ block.data.url }}">{{ block.data.title }}</a></p>
+                {% elseif block.type == 'notice' %}
+                    <aside style="border-left:4px solid #1264a3;padding:.75rem 1rem;background:#eaf4fc">{{ block.data.body }}</aside>
                 {% endif %}
             </section>
         {% endfor %}
