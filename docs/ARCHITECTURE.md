@@ -97,7 +97,7 @@ O próximo bloco de arquitetura deve manter estas regras editoriais e acrescenta
 1. modelo formal de tipos de bloco e validação por tipo;
 2. metadados editoriais, referências e mídia;
 3. fluxo de revisão, permissões e auditoria;
-4. exportação versionada independente do banco;
+4. exportação versionada independente do banco, definida em [CONTENT-PACKAGE.md](CONTENT-PACKAGE.md);
 5. cursos, aulas, atividades e progresso como módulo nativo.
 
 Decisões de banco de produção, API, extensões, temas e editor visual permanecem abertas. Mudanças estruturais devem registrar a decisão, a motivação e o impacto de migração antes de serem incorporadas.
