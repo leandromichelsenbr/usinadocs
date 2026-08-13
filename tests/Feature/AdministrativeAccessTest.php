@@ -43,6 +43,6 @@ class AdministrativeAccessTest extends TestCase
         ])->assertRedirect('/admin');
 
         $this->assertAuthenticatedAs($administrator);
-        $this->get('/admin')->assertOk()->assertSee('Base administrativa pronta.');
+        $this->get('/admin')->assertOk()->assertSee('Administrar páginas');
     }
 }
