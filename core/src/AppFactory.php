@@ -62,7 +62,7 @@ final class AppFactory
         $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });
         $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial): ResponseInterface {
             if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'administrator') return $response->withHeader('Location', '/login')->withStatus(302);
-            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts(), 'published' => $editorial->published()]);
+            $search=(string)($request->getQueryParams()['q']??'');return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'drafts' => $editorial->drafts(), 'published' => $editorial->published(), 'catalog'=>$editorial->catalog($search),'search'=>$search]);
         });
         $app->get('/admin/pages/new', static function ($request,$response) use ($twig) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); return $twig->render($response,'page-form.twig'); });
         $app->post('/admin/pages', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) { if(!isset($_SESSION['user'])) return $response->withHeader('Location','/login')->withStatus(302); $d=(array)$request->getParsedBody(); $id=$editorial->create(trim((string)$d['title']),trim((string)$d['slug']),trim((string)$d['summary']),trim((string)$d['body']),trim((string)$d['code'])); return $response->withHeader('Location','/admin')->withStatus(302); });

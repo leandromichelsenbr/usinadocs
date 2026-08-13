@@ -52,6 +52,16 @@ final class PublishedPageRepository
             throw new \RuntimeException('A published block contains invalid JSON.', 0, $exception);
         }
 
+        $translationStatement = $this->database->prepare(
+            'SELECT pl.language_code, l.native_name, pl.slug '
+            .'FROM page_localizations pl '
+            .'JOIN languages l ON l.code = pl.language_code '
+            .'JOIN page_revisions r ON r.id = pl.published_revision_id '
+            .'WHERE pl.page_id = :page AND r.status = :status ORDER BY pl.language_code'
+        );
+        $translationStatement->execute(['page' => $page['page_id'], 'status' => 'published']);
+        $page['translations'] = $translationStatement->fetchAll(PDO::FETCH_ASSOC);
+
         return $page;
     }
 }
