@@ -11,6 +11,7 @@ use Slim\Factory\AppFactory as SlimAppFactory;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Infrastructure\Database;
+use UsinaDocs\Core\Authentication\Authenticator;
 
 final class AppFactory
 {
@@ -23,9 +24,12 @@ final class AppFactory
             $databasePath = $isAbsolute ? $configuredPath : $root.DIRECTORY_SEPARATOR.$configuredPath;
         }
 
-        $repository = new PublishedPageRepository(Database::connect($databasePath));
+        $database = Database::connect($databasePath);
+        $repository = new PublishedPageRepository($database);
+        $authenticator = new Authenticator($database);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
         $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             return $response->withHeader('Location', '/pt/p/bem-vindo')->withStatus(302);
@@ -41,6 +45,17 @@ final class AppFactory
             }
 
             return $twig->render($response, 'page.twig', ['page' => $page]);
+        });
+        $app->get('/login', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $twig->render($response, 'login.twig'));
+        $app->post('/login', static function (ServerRequestInterface $request, ResponseInterface $response) use ($authenticator): ResponseInterface {
+            $data = (array) $request->getParsedBody(); $user = $authenticator->attempt((string)($data['email'] ?? ''), (string)($data['password'] ?? ''));
+            if ($user === null) return $response->withHeader('Location', '/login')->withStatus(302);
+            session_regenerate_id(true); $_SESSION['user'] = $user; return $response->withHeader('Location', '/admin')->withStatus(302);
+        });
+        $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });
+        $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig): ResponseInterface {
+            if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'administrator') return $response->withHeader('Location', '/login')->withStatus(302);
+            return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user']]);
         });
 
         return $app;
