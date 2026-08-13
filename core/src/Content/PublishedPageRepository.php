@@ -18,9 +18,10 @@ final class PublishedPageRepository
     {
         $pageStatement = $this->database->prepare(
             'SELECT p.id AS page_id, s.name AS site_name, l.code AS language_code, l.native_name, '
-            .'pl.slug, r.id AS revision_id, r.number AS revision_number, r.title, r.summary, r.published_at '
+            .'pl.slug, COALESCE(m.content_type, \'reference\') AS content_type, r.id AS revision_id, r.number AS revision_number, r.title, r.summary, r.published_at '
             .'FROM page_localizations pl '
             .'JOIN pages p ON p.id = pl.page_id '
+            .'LEFT JOIN page_metadata m ON m.page_id = p.id '
             .'JOIN sites s ON s.id = p.site_id '
             .'JOIN languages l ON l.code = pl.language_code '
             .'JOIN page_revisions r ON r.id = pl.published_revision_id '

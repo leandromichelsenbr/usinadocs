@@ -23,6 +23,7 @@ final class Schema
         $database->exec("INSERT OR IGNORE INTO pages (id, site_id, created_at, updated_at) VALUES ('page-welcome', 'site-usinadocs', '$now', '$now')");
         $database->exec("INSERT OR IGNORE INTO page_revisions (id, page_id, language_code, number, status, title, summary, created_at, published_at) VALUES ('revision-welcome-pt', 'page-welcome', 'pt', 1, 'published', 'Bem-vindo ao Usina Docs', 'Uma base leve para documentação e aprendizado.', '$now', '$now')");
         $database->exec("INSERT OR IGNORE INTO page_localizations (page_id, language_code, slug, published_revision_id) VALUES ('page-welcome', 'pt', 'bem-vindo', 'revision-welcome-pt')");
+        $database->exec("INSERT OR IGNORE INTO page_metadata (page_id, content_type, updated_at) VALUES ('page-welcome', 'article', '$now')");
 
         $text = json_encode(['title' => 'Conhecimento reutilizável', 'body' => 'Uma mesma explicação pode atender à consulta, à revisão e a uma aula, sem duplicação editorial.'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
         $code = json_encode(['language' => 'text', 'code' => 'Página → Revisão → Blocos → Traduções', 'caption' => 'Modelo editorial'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
