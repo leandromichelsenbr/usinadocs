@@ -19,6 +19,14 @@ Copy-Item .env.example .env
 
 Abra `http://127.0.0.1:8080/pt/p/bem-vindo`.
 
+## Alterar acesso administrativo
+
+Defina `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD` no arquivo `.env`. Se o administrador já tiver sido criado, sincronize as novas credenciais sem apagar seu banco:
+
+```bash
+composer reset-admin
+```
+
 ## Estado atual
 
 Esta primeira fatia demonstra o fluxo público mínimo: SQLite, migração, conteúdo de demonstração, rota localizada, página publicada e blocos de texto/código. Autenticação, administração, revisões editáveis, mídia e importação serão adicionados em fatias posteriores.
