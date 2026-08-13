@@ -62,6 +62,7 @@ final class PublicPageRouteTest extends TestCase
 
     public function test_public_page_does_not_expose_editor_action_to_visitors(): void
     {
+        $_SESSION = [];
         $app = AppFactory::create(dirname(__DIR__), $this->databasePath);
         $request = (new ServerRequestFactory())->createServerRequest('GET', '/pt/p/bem-vindo');
 
