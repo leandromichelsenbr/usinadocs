@@ -29,6 +29,8 @@
                 {% elseif block.type == 'code' %}
                     {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
                     <pre><code>{{ block.data.code }}</code></pre>
+                {% elseif block.type == 'image' %}
+                    <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
                 {% endif %}
             </section>
         {% endfor %}
