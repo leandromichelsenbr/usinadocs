@@ -26,11 +26,17 @@
                 {% if block.type == 'text' %}
                     {% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}
                     <p>{{ block.data.body }}</p>
+                {% elseif block.type == 'heading' %}
+                    <h2>{{ block.data.text }}</h2>
                 {% elseif block.type == 'code' %}
                     {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
                     <pre><code>{{ block.data.code }}</code></pre>
                 {% elseif block.type == 'image' %}
                     <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
+                {% elseif block.type == 'reference' %}
+                    <p><strong>Referência:</strong> <a href="{{ block.data.url }}">{{ block.data.title }}</a></p>
+                {% elseif block.type == 'notice' %}
+                    <aside style="border-left:4px solid #1264a3;padding:.75rem 1rem;background:#eaf4fc">{{ block.data.body }}</aside>
                 {% endif %}
             </section>
         {% endfor %}
