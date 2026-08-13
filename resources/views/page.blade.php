@@ -1,6 +1,6 @@
 <x-layouts.app :title="$revision->title.' — Usina Docs'">
     <article class="article">
-        <header>
+        <header class="article-header">
             <p class="eyebrow">Conteúdo publicado · {{ $revision->language->native_name }}</p>
             <h1>{{ $revision->title }}</h1>
             @if ($revision->summary)<p class="lead">{{ $revision->summary }}</p>@endif
