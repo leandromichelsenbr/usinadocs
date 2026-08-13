@@ -1,12 +1,24 @@
-# Instalação local
+# Instalação local — alfa
 
-Esta primeira base usa **PHP 8.2 ou superior**, [Composer](https://getcomposer.org/), SQLite e Laravel 12.
+Esta instalação serve para avaliação e desenvolvimento local do **Usina Docs alfa**. Ela não é um guia de produção.
 
 ## Requisitos
 
-- PHP 8.2+ com as extensões SQLite, OpenSSL, Mbstring, XML, Ctype, JSON, Tokenizer e Fileinfo;
+- Git;
+- PHP 8.2 ou superior;
 - Composer 2;
-- Node.js 20+ e npm, somente quando for necessário compilar recursos visuais.
+- extensão PHP `fileinfo`, além de `pdo_sqlite`/`sqlite3`, OpenSSL, Mbstring, XML, Ctype, JSON e Tokenizer;
+- Node.js 20+ e npm, somente para compilar recursos visuais.
+
+Confirme o PHP e suas configurações ativas:
+
+```bash
+php --version
+php --ini
+php -m
+```
+
+No Windows, habilite as extensões necessárias no `php.ini` usado pela linha de comando — por exemplo, `extension=fileinfo`, `extension=pdo_sqlite` e `extension=sqlite3`. Depois, abra um novo terminal e execute novamente `php -m`.
 
 ## Primeira execução
 
@@ -14,10 +26,25 @@ Esta primeira base usa **PHP 8.2 ou superior**, [Composer](https://getcomposer.o
 git clone https://github.com/leandromichelsenbr/usinadocs.git
 cd usinadocs
 composer install
-cp .env.example .env
 ```
 
-No Windows, copie manualmente `.env.example` para `.env` se o comando `cp` não estiver disponível. Em seguida, crie o arquivo vazio `database/database.sqlite` e execute:
+Crie o arquivo de ambiente e o banco SQLite.
+
+No PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+New-Item database/database.sqlite -ItemType File -Force
+```
+
+No macOS ou Linux:
+
+```bash
+cp .env.example .env
+touch database/database.sqlite
+```
+
+Em seguida:
 
 ```bash
 php artisan key:generate
@@ -25,36 +52,46 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-Abra `http://127.0.0.1:8000`. A página inicial e a demonstração em `/p/bem-vindo` devem estar disponíveis.
+Abra `http://127.0.0.1:8000`. A demonstração inicial deve responder em `http://127.0.0.1:8000/pt/p/bem-vindo`.
+
+> O repositório ainda não possui `composer.lock`; por isso, `composer install` resolve as versões compatíveis disponíveis no momento. A criação de um lockfile será tratada antes de uma distribuição beta reproduzível.
 
 ## Primeiro administrador
 
-O projeto não cria contas ou senhas padrão. Em outro terminal, execute:
+Não há conta nem senha padrão. Crie a conta administrativa local:
 
 ```bash
 php artisan user:make-admin seu-email@exemplo.com --name="Seu nome"
 ```
 
-O sistema solicitará a senha de forma oculta. Depois, acesse `/login`; o painel inicial estará em `/admin`.
+A senha é solicitada de forma oculta e precisa ter ao menos 12 caracteres. Depois, entre em `http://127.0.0.1:8000/login` e acesse o painel em `/admin`.
 
-## Fluxo editorial inicial
+## O que testar no alfa
 
-No painel, abra **Administrar páginas** para criar uma página em rascunho. Você pode adicionar blocos de texto, código e referência. Salvar mantém o conteúdo como rascunho; a ação **Publicar revisão** torna essa versão pública em `/p/seu-slug`.
+1. Abra `/admin/pages` e crie uma página em rascunho.
+2. Adicione blocos de texto, código ou referência e salve.
+3. Publique a revisão e acesse a rota pública no idioma escolhido.
+4. Crie uma nova revisão da página já publicada; a versão anterior deve permanecer pública e imutável.
+5. Crie uma tradução em `/admin/pages/{pagina}/translations/create` e confirme a rota localizada.
 
-Para atualizar uma página publicada, use **Abrir nova revisão**. A publicação anterior permanece preservada e a nova revisão começa como rascunho.
-
-## Configuração
-
-O arquivo `.env` é local e não deve ser enviado ao Git. Para esta etapa, mantenha `DB_CONNECTION=sqlite` e aponte `DB_DATABASE` para o arquivo `database/database.sqlite` quando sua instalação exigir o caminho explícito.
-
-## Verificação
-
-Após instalar as dependências, execute:
+## Testes automatizados
 
 ```bash
 php artisan test
 ```
 
-## Limitações desta etapa
+O conjunto cobre acesso administrativo, publicação, revisão imutável, rascunhos não públicos e rotas localizadas.
 
-Esta é uma base pré-alpha. O painel prova a fronteira de acesso administrativo; a interface para criar e editar páginas, as traduções, a mídia e os cursos entrarão em tarefas posteriores.
+## Problemas frequentes
+
+| Sintoma | Ação |
+| --- | --- |
+| `composer` não é reconhecido | Instale o Composer e reabra o terminal. |
+| `ext-fileinfo` ausente | Habilite `extension=fileinfo` no `php.ini` indicado por `php --ini`. |
+| `could not find driver` | Habilite `pdo_sqlite` e `sqlite3`, crie `database/database.sqlite` e rode as migrações. |
+| Página retorna erro após mudar `.env` | Execute `php artisan optimize:clear`. |
+| Porta 8000 ocupada | Execute `php artisan serve --port=8001`. |
+
+## Limites desta etapa
+
+O alfa contém a fundação editorial: autenticação local, administração, páginas, revisões, blocos, publicações e localização. Cursos, biblioteca de mídia, editor visual avançado, importação/exportação e autenticação externa fazem parte das próximas etapas. Consulte também [a arquitetura do alfa](ARCHITECTURE.md).
