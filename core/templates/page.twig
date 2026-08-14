@@ -11,8 +11,8 @@
         .brand { color: #1264a3; font-weight: 800; letter-spacing: .03em; } .meta { color: #526174; font-size: .9rem; } .type { display:inline-block; margin-top:.35rem; padding:.15rem .45rem; border-radius:999px; background:#e1edf8; color:#244565; font-size:.8rem; font-weight:700; }
         .languages { display:flex; gap:.4rem; flex-wrap:wrap; justify-content:end; } .languages a,.languages span { border:1px solid #c7d2e5; border-radius:.4rem; padding:.25rem .5rem; color:inherit; font-size:.85rem; text-decoration:none; } .languages span { font-weight:700; border-color:#1264a3; color:#1264a3; }
         h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin-bottom: .6rem; } .summary { color: #3c4a5d; font-size: 1.2rem; line-height: 1.6; }
-        section { margin-top: 1.6rem; line-height: 1.7; } pre { overflow: auto; padding: 1rem; border-radius: .6rem; background: #172033; color: #ecf3ff; }
-        @media (prefers-color-scheme: dark) { :root { color: #edf3ff; background: #0e1624; } header { border-color: #32435d; } .brand { color: #7fc7ff; } .meta, .summary { color: #bfccdc; } }
+        section { margin-top: 1.6rem; line-height: 1.7; } pre { overflow: auto; padding: 1rem; border-radius: .6rem; background: #172033; color: #ecf3ff; } .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{padding:.65rem;border:1px solid #c7d2e5;text-align:left}th{background:#eaf4fc}
+        @media (prefers-color-scheme: dark) { :root { color: #edf3ff; background: #0e1624; } header { border-color: #32435d; } .brand { color: #7fc7ff; } .meta, .summary { color: #bfccdc; } th,td{border-color:#32435d}th{background:#1c3854;color:#f2f7ff}td{background:#101d2d;color:#e7effa} }
     </style>
 </head>
 <body>
@@ -31,6 +31,8 @@
                 {% elseif block.type == 'code' %}
                     {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
                     <pre><code>{{ block.data.code }}</code></pre>
+                {% elseif block.type == 'table' %}
+                    <div class="table-wrap"><table><thead><tr>{% for table_header in block.data.headers %}<th scope="col">{{ table_header }}</th>{% endfor %}</tr></thead><tbody>{% for row in block.data.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
                 {% elseif block.type == 'image' %}
                     <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
                 {% elseif block.type == 'reference' %}

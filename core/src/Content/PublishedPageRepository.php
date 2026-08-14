@@ -41,12 +41,14 @@ final class PublishedPageRepository
 
         try {
             $page['blocks'] = array_map(
-                static fn (array $block): array => [
-                    'id' => $block['id'],
-                    'type' => $block['type'],
-                    'position' => (int) $block['position'],
-                    'data' => json_decode($block['data'], true, 512, JSON_THROW_ON_ERROR),
-                ],
+                static function (array $block): array {
+                    $data = json_decode($block['data'], true, 512, JSON_THROW_ON_ERROR);
+                    if ($block['type'] === 'table') {
+                        $data['headers'] = is_array($data['headers'] ?? null) ? $data['headers'] : array_values(array_filter(array_map('trim', explode('|', (string) ($data['headers'] ?? '')))));
+                        $data['rows'] = is_array($data['rows'] ?? null) ? $data['rows'] : array_map(static fn (string $row): array => array_map('trim', explode('|', $row)), array_filter(preg_split('/\R/', (string) ($data['rows'] ?? '')) ?: []));
+                    }
+                    return ['id'=>$block['id'],'type'=>$block['type'],'position'=>(int)$block['position'],'data'=>$data];
+                },
                 $blocksStatement->fetchAll(PDO::FETCH_ASSOC)
             );
         } catch (JsonException $exception) {
