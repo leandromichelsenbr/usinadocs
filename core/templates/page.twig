@@ -32,7 +32,7 @@
                     {% if block.data.caption %}<h2>{{ block.data.caption }}</h2>{% endif %}
                     <pre><code>{{ block.data.code }}</code></pre>
                 {% elseif block.type == 'table' %}
-                    <div class="table-wrap"><table><thead><tr>{% for header in block.data.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead><tbody>{% for row in block.data.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+                    <div class="table-wrap"><table><thead><tr>{% for table_header in block.data.headers %}<th scope="col">{{ table_header }}</th>{% endfor %}</tr></thead><tbody>{% for row in block.data.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
                 {% elseif block.type == 'image' %}
                     <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
                 {% elseif block.type == 'reference' %}
