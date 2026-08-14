@@ -38,7 +38,7 @@
                 {% elseif block.type == 'diagram' %}
                     <div class="diagram">{% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}<div class="diagram-nodes">{% for node in block.data.nodes %}<span class="diagram-node">{{ node }}</span>{% if not loop.last %}<span class="diagram-arrow">→</span>{% endif %}{% endfor %}</div>{% if block.data.edges %}<ul class="diagram-links">{% for edge in block.data.edges %}<li>{{ edge }}</li>{% endfor %}</ul>{% endif %}</div>
                 {% elseif block.type == 'quiz' %}
-                    <div class="quiz" data-answer="{{ block.data.correct|default(0) }}"><h2>{{ block.data.question }}</h2><div class="quiz-options">{% for option in block.data.options %}<button type="button" class="quiz-option" data-choice="{{ loop.index0 }}">{{ option }}</button>{% endfor %}</div><p class="quiz-feedback" hidden></p><p class="quiz-explanation" hidden>{{ block.data.explanation }}</p></div>
+                    <div class="quiz" data-answer="{{ block.data.correct|default(0) }}"><h2>{{ block.data.question }}</h2><div class="quiz-options">{% for option in block.data.options %}<button type="button" class="quiz-option" data-choice="{{ loop.index0 }}">{{ option }}</button>{% endfor %}</div><p class="quiz-feedback" hidden></p><p class="quiz-explanation quiz-correct-explanation" hidden>{{ block.data.explanation }}</p><p class="quiz-explanation quiz-error-explanation" hidden>{{ block.data.error_explanation }}{% if block.data.error_url %} <a href="{{ block.data.error_url }}">Revisar este assunto</a>{% endif %}</p></div>
                 {% elseif block.type == 'image' %}
                     <img src="/media/{{ block.data.id }}" alt="Imagem de apoio" loading="lazy" style="max-width:100%;border-radius:.6rem">
                 {% elseif block.type == 'reference' %}
@@ -50,6 +50,6 @@
         {% endfor %}
     </article>
 </main>
-<script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),explanation=quiz.querySelector('.quiz-explanation');feedback.hidden=false;feedback.textContent=correct?'Resposta correta.':'Ainda não. Revise a explicação abaixo e tente novamente.';feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');explanation.hidden=false;}))});</script>
+<script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?'Resposta correta.':'Ainda não. Veja a orientação de revisão abaixo.';feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});</script>
 </body>
 </html>
