@@ -8,6 +8,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Bilingual README and strategic documentation in Portuguese and English.
 - Initial browser-based editorial panel for pages, drafts, blocks and publication.
 - Local administrator authentication, role protection and secure first-administrator command.
 - Editorial core for sites, languages, pages, ordered blocks and immutable published revisions.
@@ -22,5 +23,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 ### Changed
 
 - Repositioned Usina Docs as a knowledge and learning platform.
+- Expanded the long-term product scope to include controlled documents, procedures, work instructions and non-programming knowledge areas.
+- Added initial planning for general use cases and content models.
 - Clarified official logo usage and the distinction between software and trademark rights.
 - Clarified the private vulnerability reporting process for the pre-alpha phase.

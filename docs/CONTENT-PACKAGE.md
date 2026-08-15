@@ -1,20 +1,20 @@
 # Pacote de conteúdo Usina Docs — especificação alfa 0.1
 
-O pacote de conteúdo é o formato aberto de troca, backup editorial e migração do Usina Docs. Ele representa conhecimento e mídia sem depender do banco de dados, da tecnologia de servidor ou do tema visual de uma instalação.
+O pacote de conteúdo é o formato aberto de troca, backup editorial e migração do Usina Docs. Ele representa conhecimento, documentos controlados, treinamentos e mídia sem depender do banco de dados, da tecnologia de servidor ou do tema visual de uma instalação.
 
 Esta é uma especificação **alfa**. Ela estabelece contratos estáveis de identificação e integridade, mas permite evolução incompatível entre versões alfa. O leitor deve sempre verificar `format_version` antes de importar.
 
 ## Objetivos
 
 - permitir backup completo do conteúdo editorial sem usuários, sessões ou segredos;
-- transportar páginas, revisões, blocos, idiomas, referências e arquivos de mídia entre instalações;
+- transportar páginas, documentos controlados, treinamentos, revisões, blocos, idiomas, referências e arquivos de mídia entre instalações;
 - manter a origem, autoria, licença e acessibilidade do material;
 - tornar a importação repetível e verificável por checksums;
-- permitir que módulos futuros — como cursos e aulas — reutilizem o mesmo conteúdo.
+- permitir que documentos, procedimentos, cursos e aulas reutilizem o mesmo conteúdo.
 
 ## O que não entra no pacote
 
-Por padrão, o pacote não inclui senhas, sessões, tokens, dados de autenticação externa, logs, preferências privadas, dados de progresso de alunos, telemetria ou configurações de infraestrutura.
+Por padrão, o pacote não inclui senhas, sessões, tokens, dados de autenticação externa, logs, preferências privadas, ciência nominal de documentos, dados de progresso de alunos, telemetria ou configurações de infraestrutura.
 
 Esses itens podem ter mecanismos de backup próprios no futuro, mas nunca devem ser incluídos no pacote editorial sem consentimento explícito e documentação de segurança.
 
@@ -72,6 +72,8 @@ Os arquivos JSON usam UTF-8, finais de linha LF e chaves em `snake_case`. Datas 
   "languages": ["pt-BR", "en", "es"],
   "contents": {
     "pages": 1,
+    "controlled_documents": 0,
+    "courses": 0,
     "revisions": 3,
     "media": 1
   },
@@ -138,6 +140,26 @@ Uma revisão contém o conteúdo completo de uma página em um idioma. Ela não 
 
 Status permitidos no alfa: `draft`, `in_review` e `published`. Uma importação preserva rascunhos somente quando o operador habilitar explicitamente `include_drafts`; o padrão é importar apenas versões publicadas e suas referências.
 
+## Documento controlado
+
+Um documento controlado é uma página com metadados adicionais de governança. O pacote deve preservar esses metadados sem exigir que todo site trate todas as páginas como documentos controlados.
+
+Campos previstos:
+
+| Campo | Finalidade |
+| --- | --- |
+| `document_code` | Código interno, como `POP-QUAL-001` ou `IT-MAN-003`. |
+| `version_label` | Revisão ou versão exibida ao usuário. |
+| `owner` | Área ou pessoa responsável pelo conteúdo. |
+| `reviewer` | Responsável técnico pela revisão. |
+| `approver` | Responsável pela aprovação formal. |
+| `effective_at` | Início de vigência. |
+| `review_due_at` | Próxima revisão prevista. |
+| `requires_acknowledgement` | Indica se o usuário precisa registrar ciência. |
+| `requires_training` | Indica se existe treinamento obrigatório vinculado. |
+
+Registros nominais de ciência, assinaturas, progresso e avaliações são dados pessoais ou operacionais da instalação. Eles não entram no pacote editorial por padrão.
+
 ## Blocos
 
 Todo bloco possui `id`, `type`, `position` e `data`. A ordem é crescente, começa em 1 e não pode se repetir em uma revisão. Tipos desconhecidos não devem ser descartados silenciosamente: o importador deve interromper ou manter o bloco como não renderizável, de acordo com o modo escolhido pelo operador.
@@ -164,6 +186,9 @@ Tipos iniciais:
 | `reference` | `citation_key` ou `text` | Chamada editorial para uma referência estruturada. |
 | `media` | `media_id`, `alt` | Imagem, áudio, vídeo ou arquivo sob demanda. |
 | `callout` | `tone`, `body` | Aviso, dica, cuidado ou informação complementar. |
+| `procedure_step` | `title`, `body` | Etapa de procedimento ou instrução de trabalho. |
+| `checklist` | `items` | Lista de verificação para operação, revisão ou aula prática. |
+| `assessment` | `questions` | Avaliação vinculada a aula, procedimento ou documento. |
 
 O formato não obriga um tema a renderizar todos os tipos. Porém, o tema deve informar claramente quando um bloco não for suportado.
 

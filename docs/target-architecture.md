@@ -12,6 +12,7 @@ Existing AdvPL Guide
 Migration adapter ---> Usina Core ---> theme
                            |
                            +-- Usina Docs
+                           +-- Usina Control
                            +-- Usina Learn
                            +-- AdvPL package
 ```
@@ -24,11 +25,11 @@ The active alpha direction is defined by [ADR-001: Lightweight PHP Core](ADR-001
 
 ### Domain
 
-Independent rules for pages, revisions, blocks, translations, publication, media, licensing, courses, lessons, activities, progress, users, roles and permissions.
+Independent rules for pages, revisions, blocks, translations, publication, media, licensing, controlled documents, approvals, acknowledgements, courses, lessons, activities, progress, users, roles and permissions.
 
 ### Application
 
-Use cases such as creating and reviewing a page, comparing and restoring revisions, marking translations outdated, publishing, reusing a block in a lesson, evaluating an attempt and importing or exporting a package.
+Use cases such as creating and reviewing a page, comparing and restoring revisions, marking translations outdated, publishing, approving a controlled document, recording acknowledgement, reusing a block in a lesson, evaluating an attempt and importing or exporting a package.
 
 ### Infrastructure
 
@@ -51,6 +52,11 @@ Site
 │   ├── Taxonomies
 │   ├── Relationships
 │   └── Media
+├── Controlled documents
+│   ├── Approval workflow
+│   ├── Validity and review cycle
+│   ├── Acknowledgements
+│   └── Required training
 └── Courses
     ├── Learning paths
     ├── Lessons
@@ -83,6 +89,8 @@ Every installation must support a database-independent, versioned export package
 - official relational database support;
 - structured editor format;
 - extension contract;
+- controlled-document approval and signature policy;
+- training evidence retention policy;
 - repository and release mirroring strategy;
 - trademark authorization channel;
 - telemetry policy, with no telemetry without consent as the default.
