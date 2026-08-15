@@ -1,6 +1,6 @@
 # Usina Docs Roadmap
 
-This roadmap communicates direction rather than fixed delivery dates. Priorities may change as the AdvPL Guide pilot and community feedback reveal new requirements.
+This roadmap communicates direction rather than fixed delivery dates. Priorities may change as the AdvPL Guide pilot, controlled-document use cases and community feedback reveal new requirements.
 
 ## Phase 0 - Project foundation
 
@@ -19,7 +19,7 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - structured pages, blocks and immutable revisions;
 - editorial states, comparison, restoration and publication;
 - initial import/export format;
-- first five representative content models.
+- first representative content models, including article, reference page, function/command, controlled procedure and lesson.
 
 ## Phase 2 - Block-level translation
 
@@ -36,7 +36,15 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - thumbnails and on-demand media loading;
 - structured citations and references.
 
-## Phase 4 - Native learning
+## Phase 4 - Controlled documents
+
+- document codes, owners, reviewers, approvers and areas;
+- version validity, review cycles and expiration alerts;
+- approval workflow and audit trail;
+- formal acknowledgement for documents that require awareness;
+- links between controlled documents and required training.
+
+## Phase 5 - Native learning
 
 - courses, tracks, modules and lessons;
 - reuse of documentation blocks in lessons;
@@ -44,12 +52,19 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - error-guided review;
 - progress, achievements and aggregated learning indicators.
 
-## Phase 5 - AdvPL Guide pilot
+## Phase 6 - AdvPL Guide pilot
 
 - import representative pages and lessons;
 - run a separate staging installation;
 - compare accessibility, SEO, performance and translations;
 - release gradually with immediate rollback capability.
+
+## Phase 7 - General knowledge pilots
+
+- prepare demonstration content outside programming;
+- validate procedures and work instructions;
+- validate educational content for science and technical subjects;
+- test document acknowledgement, training evidence and reporting.
 
 ## Alpha milestone
 

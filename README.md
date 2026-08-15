@@ -3,9 +3,9 @@
 > [!WARNING]
 > Usina Docs is in **pre-alpha**. Its first installable foundation is available for local evaluation only and is not ready for production use.
 
-**Usina Docs** is an open source knowledge and learning platform for creating, structuring, translating, publishing and teaching content. It is maintained by **Usina.BR Tecnologia e Informação Ltda. ME**.
+**Usina Docs** is an open source platform for knowledge management, controlled documentation and training. It helps teams create, structure, translate, review, publish, teach and track understanding of technical, operational and educational content. It is maintained by **Usina.BR Tecnologia e Informação Ltda. ME**.
 
-Its central principle is simple: documentation and training share the same structured knowledge base. A concept, example, image or reference can be published for consultation and reused in lessons, reviews and assessments without editorial duplication.
+Its central principle is simple: documentation and training share the same structured knowledge base. A concept, procedure, instruction, example, image or reference can be published for consultation and reused in lessons, reviews, assessments and evidence of training without editorial duplication.
 
 ## Project status
 
@@ -13,7 +13,9 @@ The repository contains the project's license, governance documents, vision, arc
 
 The AdvPL Guide is the first real-world use case and the laboratory where the product requirements are being validated. Usina Docs itself will remain independent from AdvPL, Protheus and TOTVS-specific concepts.
 
-See the [project vision](docs/vision.md), [target architecture](docs/target-architecture.md) and [roadmap](ROADMAP.md).
+The long-term goal is broader than programming documentation. Usina Docs is being designed to support knowledge bases, standard operating procedures, work instructions, controlled documents, technical manuals, internal training, onboarding, continuing education and subject areas such as programming, electronics, chemistry, physics, maintenance, quality and safety.
+
+See the [project vision](docs/vision.md), [use cases and content models](docs/USE-CASES-AND-MODELS.md), [target architecture](docs/target-architecture.md) and [roadmap](ROADMAP.md).
 
 ## Lightweight core preview
 
@@ -24,10 +26,12 @@ It currently renders one published, Portuguese example page from SQLite. See [`c
 ## Planned capabilities
 
 - structured page models and reusable content blocks;
+- document-control metadata such as code, owner, approver, version, validity and review date;
 - complete revision history, comparison and restoration;
 - translation status and review at block level;
 - media library with authorship, origin and licensing metadata;
 - editorial workflows and permissions;
+- acknowledgement, consent and training evidence for documents that require formal awareness;
 - searchable catalogs, taxonomies and relationships;
 - native courses, learning paths, lessons and assessments;
 - progress, achievements and error-guided review;

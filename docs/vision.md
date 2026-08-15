@@ -1,6 +1,8 @@
 # Product vision
 
-Usina Docs is an open platform for structuring, reviewing, translating, publishing and teaching knowledge.
+Usina Docs is an open platform for structuring, reviewing, translating, publishing, teaching and controlling knowledge.
+
+It is intended for programming documentation, but not limited to it. The same platform should support technical references, standard operating procedures, work instructions, controlled documents, manuals, internal training, onboarding, continuing education and educational content in areas such as electronics, chemistry, physics, maintenance, quality and safety.
 
 ## Origin
 
@@ -8,7 +10,7 @@ The name **Usina** represents the generation and transformation of knowledge. Th
 
 ## Central difference
 
-Documentation and training use the same knowledge model. A concept, example, image or reference can be maintained once and reused in reference pages, lessons, reviews and assessments.
+Documentation, controlled documents and training use the same knowledge model. A concept, procedure, instruction, example, image or reference can be maintained once and reused in reference pages, manuals, lessons, reviews, assessments and evidence of awareness.
 
 ## Principles
 
@@ -22,6 +24,8 @@ Documentation and training use the same knowledge model. A concept, example, ima
 8. Security, privacy, accessibility and source attribution are product requirements.
 9. A release is installable from scratch using only its package and documentation.
 10. Public reading remains lightweight and resilient.
+11. Controlled documents must preserve authorship, approval, validity and revision history.
+12. Training evidence and personal data must be explicit, minimal and auditable.
 
 ## Product areas
 
@@ -33,6 +37,10 @@ Sites, configuration, users, permissions, pages, revisions, blocks, languages, t
 
 Structured content models, catalogs, references, citations, relationships, editorial workflow and technical review.
 
+### Usina Control
+
+Controlled documents, procedures, work instructions, approval workflows, version validity, formal acknowledgement, training requirements and audit evidence.
+
 ### Usina Learn
 
 Courses, learning paths, modules, lessons, objectives, prerequisites, exercises, assessments, error-guided review, progress, achievements and certificates.
@@ -43,6 +51,8 @@ AdvPL-specific models, syntax highlighting, content and integrations used by the
 
 ## Positioning
 
-**Usina Docs - knowledge that teaches.**
+**Usina Docs - knowledge that documents, teaches and proves understanding.**
 
 Created in Brazil and open to the world.
+
+For the planned domains and page models, see [USE-CASES-AND-MODELS.md](USE-CASES-AND-MODELS.md).

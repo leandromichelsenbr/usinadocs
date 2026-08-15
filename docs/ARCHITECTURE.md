@@ -17,6 +17,8 @@ O alfa é uma aplicação Laravel 12 com banco SQLite para desenvolvimento local
 
 Ele **não** substitui o AdvPL Guia em produção. O guia continua sendo o laboratório de produto e conteúdo; o Usina Docs é o projeto independente, generalizável e aberto.
 
+A arquitetura deve permanecer neutra em relação ao assunto publicado. Programação é o primeiro caso real, mas o mesmo núcleo deve acomodar procedimentos, instruções de trabalho, documentos controlados, manuais, aulas e bases de conhecimento de outras áreas.
+
 ## Mapa da aplicação
 
 ```text
@@ -68,6 +70,7 @@ Site
 3. Um rascunho não aparece na rota pública.
 4. A publicação aponta uma revisão por idioma através de `PageLocalization`.
 5. O conteúdo de uma revisão é formado por blocos ordenados; os blocos não são reutilizados por referência nesta etapa.
+6. Metadados de controle documental, aprovação, ciência e treinamento serão adicionados sem alterar a regra de imutabilidade das revisões publicadas.
 
 ## Rotas principais
 
@@ -96,8 +99,9 @@ O próximo bloco de arquitetura deve manter estas regras editoriais e acrescenta
 
 1. modelo formal de tipos de bloco e validação por tipo;
 2. metadados editoriais, referências e mídia;
-3. fluxo de revisão, permissões e auditoria;
+3. fluxo de revisão, aprovação, permissões e auditoria;
 4. exportação versionada independente do banco, definida em [CONTENT-PACKAGE.md](CONTENT-PACKAGE.md);
-5. cursos, aulas, atividades e progresso como módulo nativo.
+5. documentos controlados, ciência formal e validade de revisão;
+6. cursos, aulas, atividades e progresso como módulo nativo.
 
 Decisões de banco de produção, API, extensões, temas e editor visual permanecem abertas. Mudanças estruturais devem registrar a decisão, a motivação e o impacto de migração antes de serem incorporadas.
