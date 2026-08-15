@@ -1,7 +1,5 @@
 # Usina Docs Roadmap
 
-Language versions: [Portugues do Brasil](docs/pt-BR/roadmap.md) | [English](docs/en/roadmap.md)
-
 This roadmap communicates direction rather than fixed delivery dates. Priorities may change as the AdvPL Guide pilot, controlled-document use cases and community feedback reveal new requirements.
 
 ## Phase 0 - Project foundation

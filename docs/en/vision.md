@@ -1,7 +1,5 @@
 # Product vision
 
-Language versions: [Portugues do Brasil](pt-BR/vision.md) | [English](en/vision.md)
-
 Usina Docs is an open platform for structuring, reviewing, translating, publishing, teaching and controlling knowledge.
 
 It is intended for programming documentation, but not limited to it. The same platform should support technical references, standard operating procedures, work instructions, controlled documents, manuals, internal training, onboarding, continuing education and educational content in areas such as electronics, chemistry, physics, maintenance, quality and safety.
@@ -57,4 +55,4 @@ AdvPL-specific models, syntax highlighting, content and integrations used by the
 
 Created in Brazil and open to the world.
 
-For the planned domains and page models, see [USE-CASES-AND-MODELS.md](USE-CASES-AND-MODELS.md).
+For the planned domains and page models, see [use-cases-and-models.md](use-cases-and-models.md).

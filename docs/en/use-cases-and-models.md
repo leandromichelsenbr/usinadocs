@@ -1,7 +1,5 @@
 # Use cases and content models
 
-Language versions: [Portugues do Brasil](pt-BR/use-cases-and-models.md) | [English](en/use-cases-and-models.md)
-
 Usina Docs is designed to handle multiple knowledge domains with the same foundation: structured content, revisions, translations, references, training and evidence.
 
 This document describes the main long-term use cases. It is not a final schema; it is a planning guide for future data models, interface design and acceptance criteria.
