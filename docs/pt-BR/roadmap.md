@@ -2,6 +2,16 @@
 
 Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem mudar conforme o piloto do AdvPL Guia, os casos de uso de documentos controlados e o retorno da comunidade revelem novos requisitos.
 
+## Proximo ciclo de desenvolvimento
+
+1. historico visual de revisoes de paginas, modelos e artefatos, com comparacao e restauracao;
+2. deteccao de alteracoes na fonte e traducoes desatualizadas para paginas e artefatos;
+3. formato inicial de importacao e exportacao, validado com um conjunto representativo do AdvPL Guia;
+4. campos e modelos editoriais necessarios para referencias de funcoes, classes, pontos de entrada e artigos;
+5. inventario de URLs, redirecionamentos, metadados SEO e midia do site `advpl.usinabr.com.br`;
+6. instalacao de homologacao isolada para o primeiro ensaio de migracao;
+7. testes de atualizacao de banco, backup e restauracao antes da primeira Alpha.
+
 ## Fase 0 - Fundacao do projeto
 
 - [x] estabelecer o repositorio publico;
@@ -14,12 +24,17 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 
 ## Fase 1 - Nucleo leve e paginas
 
-- bootstrap PHP leve, roteamento e migracoes de banco;
-- usuarios, papeis, sites e idiomas;
-- paginas estruturadas, blocos e revisoes imutaveis;
-- estados editoriais, comparacao, restauracao e publicacao;
-- formato inicial de importacao/exportacao;
-- primeiros modelos representativos de conteudo, incluindo artigo, pagina de referencia, funcao/comando, procedimento controlado e aula.
+- [x] bootstrap PHP leve, roteamento e migracoes de banco;
+- [x] acesso administrativo inicial, sites e idiomas;
+- [x] paginas estruturadas, blocos, rascunhos, publicacao e revisoes imutaveis;
+- [x] editor versionado de modelos editoriais;
+- [x] editor versionado de artefatos reutilizaveis;
+- [x] referencias de artefatos com revisao fixada e mapa de impacto;
+- [x] traducoes versionadas de paginas e artefatos em portugues, ingles e espanhol;
+- [ ] historico visual, comparacao e restauracao de revisoes;
+- [ ] formato inicial de importacao/exportacao;
+- [ ] concluir papeis e permissoes editoriais alem do administrador;
+- [ ] concluir modelos representativos de funcao/comando, procedimento controlado e aula.
 
 ## Fase 2 - Traducao por bloco
 
