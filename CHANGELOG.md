@@ -8,6 +8,11 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Versioned editorial model editor with required artifact definitions.
+- Versioned reusable artifact editor with revision-pinned page references.
+- Artifact usage and update-impact reports across pages and languages.
+- Versioned reusable artifact translations in Portuguese, English and Spanish.
+- Model-driven page editing and required-artifact validation before publication.
 - Bilingual README and strategic documentation in Portuguese and English.
 - Initial browser-based editorial panel for pages, drafts, blocks and publication.
 - Local administrator authentication, role protection and secure first-administrator command.

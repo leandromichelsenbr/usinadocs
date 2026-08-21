@@ -4,6 +4,16 @@ Language versions: [Portugues do Brasil](docs/pt-BR/roadmap.md) | [English](docs
 
 This roadmap communicates direction rather than fixed delivery dates. Priorities may change as the AdvPL Guide pilot, controlled-document use cases and community feedback reveal new requirements.
 
+## Next development cycle
+
+1. visual revision history for pages, models and artifacts, including comparison and restoration;
+2. source-change tracking and outdated-translation detection for pages and artifacts;
+3. an initial import/export format validated with a representative AdvPL Guide content set;
+4. editorial fields and models required for function references, classes, entry points and articles;
+5. an inventory of URLs, redirects, SEO metadata and media from `advpl.usinabr.com.br`;
+6. an isolated staging installation for the first migration rehearsal;
+7. database upgrade, backup and restoration tests before the first Alpha.
+
 ## Phase 0 - Project foundation
 
 - [x] establish the public repository;
@@ -16,12 +26,17 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 
 ## Phase 1 - Lightweight core and pages
 
-- lightweight PHP bootstrap, routing and database migrations;
-- users, roles, sites and languages;
-- structured pages, blocks and immutable revisions;
-- editorial states, comparison, restoration and publication;
-- initial import/export format;
-- first representative content models, including article, reference page, function/command, controlled procedure and lesson.
+- [x] lightweight PHP bootstrap, routing and database migrations;
+- [x] initial administrator access, sites and languages;
+- [x] structured pages, blocks, drafts, publication and immutable revisions;
+- [x] versioned editorial model editor;
+- [x] versioned reusable artifact editor;
+- [x] revision-pinned artifact references and impact map;
+- [x] versioned page and artifact translations in Portuguese, English and Spanish;
+- [ ] visual revision history, comparison and restoration;
+- [ ] initial import/export format;
+- [ ] complete editorial roles and permissions beyond the administrator;
+- [ ] complete representative models for function/command, controlled procedure and lesson content.
 
 ## Phase 2 - Block-level translation
 
