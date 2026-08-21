@@ -34,6 +34,13 @@ final class Schema
         $model = $database->prepare('INSERT OR IGNORE INTO editorial_models (id, content_type, label, description) VALUES (:id, :content_type, :label, :description)');
         $artifact = $database->prepare('INSERT OR IGNORE INTO editorial_model_artifacts (id, model_id, artifact_type, label, is_required, position) VALUES (:id, :model, :type, :label, :required, :position)');
         foreach ($models as [$id, $type, $label, $description, $artifacts]) { $model->execute(['id'=>$id,'content_type'=>$type,'label'=>$label,'description'=>$description]); foreach ($artifacts as $position=>[$artifactType,$artifactLabel,$required]) $artifact->execute(['id'=>$id.'-'.$artifactType,'model'=>$id,'type'=>$artifactType,'label'=>$artifactLabel,'required'=>$required,'position'=>$position+1]); }
+        $modelRevision = $database->prepare("INSERT OR IGNORE INTO editorial_model_revisions (id, model_id, number, status, label, description, created_at, published_at) VALUES (:id, :model, 1, 'published', :label, :description, :created, :published)");
+        $revisionArtifact = $database->prepare('INSERT OR IGNORE INTO editorial_model_revision_artifacts (id, model_revision_id, artifact_type, label, is_required, position) VALUES (:id, :revision, :type, :label, :required, :position)');
+        foreach ($models as [$id, $type, $label, $description, $artifacts]) {
+            $revisionId = 'model-revision-'.$type.'-1';
+            $modelRevision->execute(['id'=>$revisionId,'model'=>$id,'label'=>$label,'description'=>$description,'created'=>$now,'published'=>$now]);
+            foreach ($artifacts as $position=>[$artifactType,$artifactLabel,$required]) $revisionArtifact->execute(['id'=>$revisionId.'-'.$artifactType,'revision'=>$revisionId,'type'=>$artifactType,'label'=>$artifactLabel,'required'=>$required,'position'=>$position+1]);
+        }
 
         $text = json_encode(['title' => 'Conhecimento reutilizável', 'body' => 'Uma mesma explicação pode atender à consulta, à revisão e a uma aula, sem duplicação editorial.'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
         $code = json_encode(['language' => 'text', 'code' => 'Página → Revisão → Blocos → Traduções', 'caption' => 'Modelo editorial'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);

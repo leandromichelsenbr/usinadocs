@@ -51,6 +51,8 @@
                     <p><strong>Referência:</strong> <a href="{{ block.data.url }}">{{ block.data.title }}</a></p>
                 {% elseif block.type == 'notice' %}
                     <aside style="border-left:4px solid #1264a3;padding:.75rem 1rem;background:#eaf4fc">{{ block.data.body }}</aside>
+                {% elseif block.type == 'missing_artifact' %}
+                    {% if can_edit %}<aside style="border:1px solid #8b1f2d;padding:.75rem 1rem">{{ block.data.title }}</aside>{% endif %}
                 {% endif %}
             </section>
         {% endfor %}
