@@ -1,10 +1,46 @@
-<!doctype html><html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Administração · Usina Docs</title>
-<style>body{font:16px system-ui;margin:2rem;max-width:1000px}header,article,form{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}header{justify-content:space-between}table{width:100%;border-collapse:collapse}th,td{padding:.7rem;border-bottom:1px solid #ddd;text-align:left}.published{color:#096b2e}.draft{color:#8a5800}.absent,.missing{color:#8b1f2d}</style>
-<body><main><header><strong>Usina Docs</strong><form method="post" action="/logout"><button>Sair</button></form></header>
-<h1>Painel editorial</h1><p>Olá, {{ user.name }}.</p>
-<p><a href="/admin/pages/new">Criar página</a> · <a href="/admin/models">Modelos editoriais</a> · <a href="/admin/artifacts">Artefatos reutilizáveis</a> · <a href="/admin/media">Biblioteca de mídia</a> · <a href="/admin/translations">Revisar traduções</a></p>
-<h2>Catálogo editorial</h2><form method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
-<table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>{% for page in catalog %}<tr><td>{{ page.title }}</td><td class="{{ page.pt_status }}">{% if page.pt_status == 'published' %}<a href="/pt/p/{{ page.pt_slug }}">published</a>{% else %}{{ page.pt_status }}{% endif %}</td><td class="{{ page.en_status }}">{% if page.en_status == 'published' %}<a href="/en/p/{{ page.en_slug }}">published</a>{% elseif page.en_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/en/new">Incluir tradução</a>{% else %}{{ page.en_status }}{% endif %}</td><td class="{{ page.es_status }}">{% if page.es_status == 'published' %}<a href="/es/p/{{ page.es_slug }}">published</a>{% elseif page.es_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/es/new">Incluir tradução</a>{% else %}{{ page.es_status }}{% endif %}</td></tr>{% else %}<tr><td colspan="4">Nenhuma página encontrada.</td></tr>{% endfor %}</tbody></table>
-<h2>Rascunhos em português</h2>{% for page in drafts %}<article><strong>{{ page.title }}</strong><a href="/admin/pages/{{ page.id }}/edit">Editar</a><form method="post" action="/admin/pages/{{ page.id }}/publish"><button>Publicar</button></form></article>{% else %}<p>Nenhum rascunho.</p>{% endfor %}
-<h2>Publicadas em português</h2>{% for page in published %}<article><strong>{{ page.title }}</strong><a href="/pt/p/{{ page.slug }}">Ver</a><form method="post" action="/admin/pages/{{ page.id }}/revisions"><button>Revisar PT</button></form><details><summary>Traduções</summary><form method="post" action="/admin/pages/{{ page.id }}/translations/en"><input name="slug" required placeholder="endereço em inglês"><button>Criar inglês</button></form><form method="post" action="/admin/pages/{{ page.id }}/translations/es"><input name="slug" required placeholder="endereço em espanhol"><button>Criar espanhol</button></form></details></article>{% else %}<p>Nenhuma página publicada.</p>{% endfor %}
+<!doctype html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Administração · Usina Docs</title>
+    <style>
+        body{font:16px system-ui;margin:2rem;max-width:1200px;color:#172033}header,.nav,.search,.actions{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}header{justify-content:space-between}.nav{padding:.9rem 0;border-block:1px solid #d8dee9}.search{margin:1rem 0}.search input{min-width:280px;padding:.5rem}table{width:100%;border-collapse:collapse}th,td{padding:.8rem;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}th{background:#f5f7fa}.page-title{min-width:190px}.language-cell{min-width:220px}.status{display:inline-block;padding:.15rem .45rem;border-radius:999px;font-size:.78rem;font-weight:700}.published{background:#e3f4e9;color:#096b2e}.draft{background:#fff0cf;color:#805000}.absent,.missing{background:#f8e4e4;color:#8b1f2d}.actions{margin-top:.45rem}.actions form,header form{display:inline;margin:0}.actions a,.actions button{font:inherit;font-size:.82rem}.actions button{cursor:pointer}a{color:#1264a3}.empty{padding:2rem;text-align:center;color:#526174}@media(max-width:850px){body{margin:1rem}.catalog{display:block;overflow-x:auto}}
+    </style>
+</head>
+<body><main>
+    <header><strong>Usina Docs</strong><form method="post" action="/logout"><button>Sair</button></form></header>
+    <h1>Painel editorial</h1>
+    <p>Olá, {{ user.name }}.</p>
+    <nav class="nav"><a href="/admin/pages/new">Criar página</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a></nav>
+    <h2>Catálogo editorial</h2>
+    <form class="search" method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
+    <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>
+    {% for page in catalog %}
+        <tr>
+            <td class="page-title"><strong>{{ page.title }}</strong></td>
+            <td class="language-cell">
+                {% if page.pt_status == 'published' %}<a class="status published" href="/pt/p/{{ page.pt_slug }}">Publicado</a>{% elseif page.pt_status == 'draft' %}<span class="status draft">Rascunho</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
+                <div class="actions">
+                    {% if page.pt_status != 'missing' %}<a href="/admin/pages/{{ page.id }}/history/pt">Histórico</a>{% endif %}
+                    {% if page.pt_has_draft %}<a href="/admin/pages/{{ page.id }}/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/publish"><button>Publicar</button></form>{% elseif page.pt_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/pt"><button>Criar revisão</button></form>{% endif %}
+                </div>
+            </td>
+            <td class="language-cell">
+                {% if page.en_status == 'published' %}<a class="status published" href="/en/p/{{ page.en_slug }}">Publicado</a>{% elseif page.en_status == 'draft' %}<span class="status draft">Rascunho</span>{% elseif page.en_status == 'absent' %}<span class="status absent">Ausente</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
+                <div class="actions">
+                    {% if page.en_status not in ['absent','missing'] %}<a href="/admin/pages/{{ page.id }}/history/en">Histórico</a>{% endif %}
+                    {% if page.en_has_draft %}<a href="/admin/pages/{{ page.id }}/en/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/en/publish"><button>Publicar</button></form>{% elseif page.en_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/en"><button>Criar revisão</button></form>{% elseif page.en_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/en/new">Incluir tradução</a>{% endif %}
+                </div>
+            </td>
+            <td class="language-cell">
+                {% if page.es_status == 'published' %}<a class="status published" href="/es/p/{{ page.es_slug }}">Publicado</a>{% elseif page.es_status == 'draft' %}<span class="status draft">Rascunho</span>{% elseif page.es_status == 'absent' %}<span class="status absent">Ausente</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
+                <div class="actions">
+                    {% if page.es_status not in ['absent','missing'] %}<a href="/admin/pages/{{ page.id }}/history/es">Histórico</a>{% endif %}
+                    {% if page.es_has_draft %}<a href="/admin/pages/{{ page.id }}/es/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/es/publish"><button>Publicar</button></form>{% elseif page.es_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/es"><button>Criar revisão</button></form>{% elseif page.es_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/es/new">Incluir tradução</a>{% endif %}
+                </div>
+            </td>
+        </tr>
+    {% else %}<tr><td class="empty" colspan="4">Nenhuma página encontrada.</td></tr>{% endfor %}
+    </tbody></table></div>
 </main></body></html>
