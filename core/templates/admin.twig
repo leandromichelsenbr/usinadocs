@@ -12,13 +12,13 @@
     <header><strong>Usina Docs</strong><form method="post" action="/logout"><button>Sair</button></form></header>
     <h1>Painel editorial</h1>
     <p>Olá, {{ user.name }}.</p>
-    <nav class="nav"><a href="/admin/pages/new">Criar página</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a></nav>
+    <nav class="nav"><a href="/admin/pages/new">Criar página</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
     <h2>Catálogo editorial</h2>
     <form class="search" method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
     <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>
     {% for page in catalog %}
         <tr>
-            <td class="page-title"><strong>{{ page.title }}</strong></td>
+            <td class="page-title"><strong>{{ page.title }}</strong>{% if page.pt_status == 'published' %}<div class="actions"><a href="/admin/pages/{{ page.id }}/export">Exportar pacote</a></div>{% endif %}</td>
             <td class="language-cell">
                 {% if page.pt_status == 'published' %}<a class="status published" href="/pt/p/{{ page.pt_slug }}">Publicado</a>{% elseif page.pt_status == 'draft' %}<span class="status draft">Rascunho</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
                 <div class="actions">

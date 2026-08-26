@@ -263,4 +263,4 @@ Assinaturas criptográficas são opcionais no alfa. Quando adotadas, devem assin
 
 ## Próxima implementação
 
-Esta especificação precede o código. A implementação deve começar por um exportador de página publicada, um validador de manifesto e um importador em modo de prévia. O primeiro pacote de demonstração deve conter uma página, três idiomas, blocos de texto e código, uma referência e uma mídia com licença explícita.
+O núcleo já oferece exportação de página publicada, validação de manifesto e importação em modo de prévia sem escrita no banco. A próxima evolução do pacote deve acrescentar a execução transacional da importação e um pacote de demonstração com uma página, três idiomas, blocos de texto e código, uma referência e uma mídia com licença explícita.
