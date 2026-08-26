@@ -263,4 +263,4 @@ Assinaturas criptográficas são opcionais no alfa. Quando adotadas, devem assin
 
 ## Próxima implementação
 
-O núcleo já oferece exportação de página publicada, validação de manifesto e importação em modo de prévia sem escrita no banco. A próxima evolução do pacote deve acrescentar a execução transacional da importação e um pacote de demonstração com uma página, três idiomas, blocos de texto e código, uma referência e uma mídia com licença explícita.
+O núcleo já oferece exportação de página publicada, validação de manifesto, prévia sem escrita e importação transacional conservadora de páginas novas. A próxima evolução deve tratar conflitos e atualizações de conteúdo existente e ampliar o pacote de demonstração para três idiomas, referência estruturada e mídia com licença explícita.

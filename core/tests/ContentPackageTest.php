@@ -39,4 +39,13 @@ final class ContentPackageTest extends TestCase
     {
         $app=AppFactory::create(dirname(__DIR__),$this->path);$_SESSION=['user'=>['role'=>'administrator','name'=>'Administrator']];$response=$app->handle((new ServerRequestFactory())->createServerRequest('GET','/admin/pages/page-welcome/export'));self::assertSame(200,$response->getStatusCode());self::assertSame('application/zip',$response->getHeaderLine('Content-Type'));self::assertStringContainsString('.zip',$response->getHeaderLine('Content-Disposition'));
     }
+
+    public function test_a_new_page_is_imported_atomically_and_existing_ids_are_blocked():void
+    {
+        $sourcePath=sys_get_temp_dir().'/usinadocs-package-source-'.bin2hex(random_bytes(5)).'.sqlite';
+        try{$sourceDb=Database::connect($sourcePath);Schema::migrate($sourceDb,dirname(__DIR__));Schema::seed($sourceDb);$sourceEditorial=new EditorialService($sourceDb);$id=$sourceEditorial->create('Página transportada','pagina-transportada','Resumo','','','','article');$sourceEditorial->replaceDraftBlocks($id,'pt',[['type'=>'text','data'=>['body'=>'Conteúdo transportado']],['type'=>'code','data'=>['language'=>'advpl','code'=>'Return']]]);$sourceEditorial->publish($id);$package=(new ContentPackageService($sourceDb))->exportPublishedPage($id);
+            $targetDb=Database::connect($this->path);$target=new ContentPackageService($targetDb);$result=$target->import($package['content']);self::assertTrue($result['imported'],implode('; ',$result['errors']));self::assertSame(1,$result['pages']);self::assertSame(1,$result['revisions']);$page=$targetDb->prepare('SELECT pl.slug,r.title FROM page_localizations pl JOIN page_revisions r ON r.id=pl.published_revision_id WHERE pl.page_id=:id');$page->execute(['id'=>$id]);self::assertSame(['slug'=>'pagina-transportada','title'=>'Página transportada'],$page->fetch());$blocks=$targetDb->prepare('SELECT COUNT(*) FROM blocks b JOIN page_revisions r ON r.id=b.page_revision_id WHERE r.page_id=:id');$blocks->execute(['id'=>$id]);self::assertSame(2,(int)$blocks->fetchColumn());
+            $before=(int)$targetDb->query('SELECT COUNT(*) FROM pages')->fetchColumn();$second=$target->import($package['content']);self::assertFalse($second['imported']);self::assertSame($before,(int)$targetDb->query('SELECT COUNT(*) FROM pages')->fetchColumn());
+        }finally{@unlink($sourcePath);}
+    }
 }
