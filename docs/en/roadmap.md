@@ -32,7 +32,7 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - [x] revision-pinned artifact references and impact map;
 - [x] versioned page and artifact translations in Portuguese, English and Spanish;
 - [x] visual revision history, comparison and restoration;
-- [ ] initial import/export format;
+- [x] initial import/export format;
 - [ ] complete editorial roles and permissions beyond the administrator;
 - [ ] complete representative models for function/command, controlled procedure and lesson content.
 

@@ -14,6 +14,7 @@ use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Authentication\Authenticator;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
+use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Media\MediaLibrary;
 
 final class AppFactory
@@ -32,6 +33,7 @@ final class AppFactory
         $authenticator = new Authenticator($database);
         $editorial = new EditorialService($database);
         $artifacts = new ReusableArtifactService($database);
+        $packages = new ContentPackageService($database);
         $media = new MediaLibrary($database, $root.'/storage/media');
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
@@ -71,6 +73,9 @@ final class AppFactory
             $search=(string)($request->getQueryParams()['q']??'');return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'catalog'=>$editorial->catalog($search),'search'=>$search]);
         });
         $app->get('/admin/translations', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial,$artifacts): ResponseInterface {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);$search=(string)($request->getQueryParams()['q']??'');return$twig->render($response,'translation-review.twig',['pages'=>$editorial->translationReview($search),'artifacts'=>$artifacts->translationReview($search),'search'=>$search]);});
+        $app->get('/admin/packages', static function ($request,$response) use ($twig) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);return$twig->render($response,'packages.twig');});
+        $app->post('/admin/packages/preview', static function (ServerRequestInterface $request,ResponseInterface $response) use ($twig,$packages) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);$file=$request->getUploadedFiles()['package']??null;if($file===null||$file->getError()!==UPLOAD_ERR_OK)return$twig->render($response,'packages.twig',['error'=>'Selecione um pacote ZIP válido.'])->withStatus(422);$content=(string)$file->getStream()->getContents();return$twig->render($response,'packages.twig',['preview'=>$packages->preview($content),'filename'=>$file->getClientFilename()]);});
+        $app->get('/admin/pages/{id}/export', static function ($request,$response,array $a) use ($packages) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);$package=$packages->exportPublishedPage($a['id']);if($package===null)return$response->withStatus(404);$response->getBody()->write($package['content']);return$response->withHeader('Content-Type','application/zip')->withHeader('Content-Disposition','attachment; filename="'.$package['filename'].'"')->withHeader('Content-Length',(string)strlen($package['content']));});
         $app->get('/admin/models', static function ($request,$response) use ($twig,$editorial) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);return$twig->render($response,'models.twig',['models'=>$editorial->editorialModels()]);});
         $app->get('/admin/models/new', static function ($request,$response) use ($twig) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);return$twig->render($response,'model-form.twig',['artifacts'=>[['type'=>'text','label'=>'Texto','required'=>true]]]);});
         $app->post('/admin/models', static function (ServerRequestInterface $request,ResponseInterface $response) use ($editorial) {if(!isset($_SESSION['user'])||$_SESSION['user']['role']!=='administrator')return$response->withHeader('Location','/login')->withStatus(302);$data=(array)$request->getParsedBody();$artifacts=json_decode((string)($data['artifacts_json']??'[]'),true);$id=$editorial->createEditorialModel((string)($data['content_type']??''),trim((string)($data['label']??'')),trim((string)($data['description']??'')),is_array($artifacts)?$artifacts:[]);return$response->withHeader('Location','/admin/models/'.$id.'/edit')->withStatus(302);});
