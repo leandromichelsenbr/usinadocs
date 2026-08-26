@@ -31,7 +31,7 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 - [x] editor versionado de artefatos reutilizaveis;
 - [x] referencias de artefatos com revisao fixada e mapa de impacto;
 - [x] traducoes versionadas de paginas e artefatos em portugues, ingles e espanhol;
-- [ ] historico visual, comparacao e restauracao de revisoes;
+- [x] historico visual, comparacao e restauracao de revisoes;
 - [ ] formato inicial de importacao/exportacao;
 - [ ] concluir papeis e permissoes editoriais alem do administrador;
 - [ ] concluir modelos representativos de funcao/comando, procedimento controlado e aula.
