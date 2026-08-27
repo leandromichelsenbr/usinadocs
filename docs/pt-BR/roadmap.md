@@ -59,19 +59,29 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 - ciencia formal para documentos que exigem conhecimento;
 - vinculos entre documentos controlados e treinamentos obrigatorios.
 
-## Fase 5 - Aprendizagem nativa
+## Fase 5 - Modulo de Treinamentos / Aprendizagem nativa
 
-- cursos, trilhas, modulos e aulas;
+O treinamento passa a ser tratado como modulo de dominio proprio, com fronteira arquitetural explicita e capacidade futura de evoluir de forma relativamente independente do nucleo documental. Ver [Modulo de Treinamentos](modulo-treinamentos.md).
+
+- cursos livres, programas, trilhas, niveis, modulos e aulas;
 - reutilizacao de blocos de documentacao em aulas;
+- matriculas e retomada de aprendizagem;
+- progresso, pontuacao e conquistas;
 - exercicios e avaliacoes versionados;
 - revisao orientada por erro;
-- progresso, conquistas e indicadores agregados de aprendizagem.
+- indicadores agregados de aprendizagem;
+- programas progressivos orientados a competencias;
+- certificados de conclusao com identificador verificavel em fase posterior;
+- integracao com documentos controlados e treinamentos obrigatorios;
+- migracao incremental do piloto de treinamento existente no AdvPL Guia.
 
 ## Fase 6 - Piloto AdvPL Guia
 
 - importar paginas e aulas representativas;
+- importar e validar um curso livre representativo do modulo de treinamentos;
 - executar uma instalacao separada de homologacao;
 - comparar acessibilidade, SEO, desempenho e traducoes;
+- validar matriculas, progresso e redirecionamentos sem quebrar URLs existentes;
 - publicar gradualmente com capacidade de retorno imediato.
 
 ## Fase 7 - Pilotos de conhecimento geral

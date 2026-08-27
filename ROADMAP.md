@@ -61,19 +61,28 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - formal acknowledgement for documents that require awareness;
 - links between controlled documents and required training.
 
-## Phase 5 - Native learning
+## Phase 5 - Training Module / Native learning
 
-- courses, tracks, modules and lessons;
+Training is a first-class Usina Docs domain module, not merely a set of special pages. Detailed architecture and migration guidance are documented in [Portuguese](docs/pt-BR/modulo-treinamentos.md) and [English](docs/en/training-module.md).
+
+- free courses, learning programs, tracks, levels, modules and lessons;
 - reuse of documentation blocks in lessons;
+- enrollments and learning resume;
+- progress, points, achievements and aggregated indicators;
 - versioned exercises and assessments;
 - error-guided review;
-- progress, achievements and aggregated learning indicators.
+- progressive competency-oriented programs;
+- completion certificates with verifiable identifiers in a later phase;
+- integration with controlled documents and mandatory training;
+- incremental migration of the existing AdvPL Guide training pilot.
 
 ## Phase 6 - AdvPL Guide pilot
 
 - import representative pages and lessons;
+- import and validate a representative free course from the Training Module;
 - run a separate staging installation;
 - compare accessibility, SEO, performance and translations;
+- validate enrollments, progress and redirects without breaking existing URLs;
 - release gradually with immediate rollback capability.
 
 ## Phase 7 - General knowledge pilots
