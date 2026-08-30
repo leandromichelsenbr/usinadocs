@@ -48,4 +48,14 @@ final class ContentPackageTest extends TestCase
             $before=(int)$targetDb->query('SELECT COUNT(*) FROM pages')->fetchColumn();$second=$target->import($package['content']);self::assertFalse($second['imported']);self::assertSame($before,(int)$targetDb->query('SELECT COUNT(*) FROM pages')->fetchColumn());
         }finally{@unlink($sourcePath);}
     }
+
+    public function test_an_existing_page_can_be_kept_or_updated_as_an_immutable_revision():void
+    {
+        $sourcePath=sys_get_temp_dir().'/usinadocs-package-update-'.bin2hex(random_bytes(5)).'.sqlite';
+        try{$sourceDb=Database::connect($sourcePath);Schema::migrate($sourceDb,dirname(__DIR__));Schema::seed($sourceDb);$editorial=new EditorialService($sourceDb);$id=$editorial->create('Versão um','pagina-atualizavel','','','','','article');$editorial->replaceDraftBlocks($id,'pt',[['type'=>'text','data'=>['body'=>'Primeira versão']]]);$editorial->publish($id);$sourcePackages=new ContentPackageService($sourceDb);$first=$sourcePackages->exportPublishedPage($id);
+            $targetDb=Database::connect($this->path);$targetPackages=new ContentPackageService($targetDb);self::assertTrue($targetPackages->import($first['content'])['imported']);$editorial->createRevision($id);$editorial->updateDraft($id,'Versão dois','','Segunda versão','');$editorial->publish($id);$second=$sourcePackages->exportPublishedPage($id);
+            $kept=$targetPackages->import($second['content'],'keep_local');self::assertTrue($kept['imported']);self::assertSame(1,$kept['skipped']);$title=$targetDb->prepare('SELECT r.title FROM page_localizations pl JOIN page_revisions r ON r.id=pl.published_revision_id WHERE pl.page_id=:page AND pl.language_code=\'pt\'');$title->execute(['page'=>$id]);self::assertSame('Versão um',$title->fetchColumn());
+            $updated=$targetPackages->import($second['content'],'import_revision');self::assertTrue($updated['imported'],implode('; ',$updated['errors']));self::assertSame(1,$updated['updated']);self::assertSame(1,$updated['revisions']);$title->execute(['page'=>$id]);self::assertSame('Versão dois',$title->fetchColumn());$count=$targetDb->prepare('SELECT COUNT(*) FROM page_revisions WHERE page_id=:page');$count->execute(['page'=>$id]);self::assertSame(2,(int)$count->fetchColumn());
+        }finally{@unlink($sourcePath);}
+    }
 }
