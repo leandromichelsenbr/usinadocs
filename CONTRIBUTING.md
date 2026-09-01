@@ -13,7 +13,16 @@ When preparing a Pull Request:
 3. summarize the main changes;
 4. include or update tests when applicable;
 5. update documentation when necessary;
-6. preserve existing copyright and licensing notices.
+6. add or update useful didactic code comments;
+7. preserve existing copyright and licensing notices.
+
+## Didactic code comments
+
+Usina Docs is also intended to be understandable as a learning resource. Contributors should add as many useful didactic comments as practical, especially around business rules, editorial invariants, workflow ordering, transactions, security boundaries, compatibility decisions, edge cases and regression tests.
+
+Comments should explain intent and reasoning that cannot be inferred from names and structure alone. Avoid comments that only paraphrase the syntax or repeat what the next line already says. Prefer clear code first, then use comments to preserve the context and design knowledge that the code itself cannot express.
+
+Keep comments synchronized with behavior. When implementation changes make a comment inaccurate, update or remove it in the same Pull Request.
 
 ## Licensing of contributions
 
