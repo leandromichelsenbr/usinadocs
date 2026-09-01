@@ -2,6 +2,12 @@
 
 Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem mudar conforme o piloto do AdvPL Guia, os casos de uso de documentos controlados e o retorno da comunidade revelem novos requisitos.
 
+## Frente transversal - Confianca editorial e E-E-A-T
+
+A autoria, o metodo de producao, as referencias, a validacao tecnica e o sistema de selos **Controle de Qualidade USINA** devem ser incorporados aos modelos editoriais antes da migracao ampla do AdvPL Guia.
+
+O detalhamento, as prioridades, as dependencias e os criterios de aceite estao no [backlog editorial e de confianca](backlog-editorial-e-confianca.md).
+
 ## Proximo ciclo de desenvolvimento
 
 1. historico visual de revisoes de paginas, modelos e artefatos, com comparacao e restauracao;
