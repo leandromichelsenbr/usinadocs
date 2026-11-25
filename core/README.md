@@ -30,3 +30,30 @@ composer reset-admin
 ## Estado atual
 
 Esta primeira fatia demonstra o fluxo público mínimo: SQLite, migração, conteúdo de demonstração, rota localizada, página publicada e blocos de texto/código. Autenticação, administração, revisões editáveis, mídia e importação serão adicionados em fatias posteriores.
+
+## Login por Google e Microsoft
+
+Para usar autenticação externa, defina `USINADOCS_AUTH_MODE=oauth` e
+`USINADOCS_OAUTH_CONFIG` com o caminho de um arquivo JSON privado, legível
+pelo processo do PHP. O arquivo fica fora da pasta pública e do repositório.
+
+```json
+{
+  "origin": "https://docs.example.com",
+  "google": {"client_id": "", "client_secret": ""},
+  "microsoft": {"client_id": "", "client_secret": "", "tenant": "common"}
+}
+```
+
+Registre `/auth/google/callback` e `/auth/microsoft/callback`, com a origem
+HTTPS completa, como URLs de retorno dos respectivos aplicativos web. Na
+Microsoft, habilite a permissão delegada `User.Read` e escolha as contas
+compatíveis com o tenant configurado. Execute `php bin/migrate.php` e,
+para o primeiro administrador, `php bin/invite-administrator.php EMAIL`.
+O convite é aceito no login com o endereço verificado pelo Google.
+
+O primeiro login cria a conta no grupo Leitor. Administradores podem
+atribuir os grupos Editor e Administrador no painel de usuários. A aplicação
+identifica a conta pelo provedor e pelo identificador fornecido por ele.
+No modo OAuth, a aplicação usa apenas o login pelos provedores e dispensa
+`USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD`.

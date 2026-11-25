@@ -1,5 +1,9 @@
 # Instructions for coding agents
 
+## Publishing changes
+
+After validating a requested Usina Docs change, commit and publish it to the official repository at `https://github.com/leandromichelsenbr/usinadocs`. Use a pull request against the default branch unless the repository or the maintainer specifies a different workflow. Keep credentials, local configuration, and instance data outside published commits.
+
 ## Didactic code comments
 
 Usina Docs is also a learning-oriented project. When creating or changing code, add as many useful didactic comments as practical so that a reader can understand not only what the implementation does, but why it was designed that way.

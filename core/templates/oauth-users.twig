@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usuários e grupos</title>
+    <style>
+        body{font:1rem/1.5 system-ui,sans-serif;color:#172033;margin:clamp(1rem,4vw,3rem)}
+        main{max-width:70rem}a{color:#1264a3}
+        .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}
+        th,td{padding:.6rem;text-align:left;border-bottom:1px solid #ccd4df}
+        button,select{font:inherit}
+    </style>
+</head>
+<body><main>
+    <p><a href="/admin">Painel editorial</a></p>
+    <h1>Usuários e grupos</h1>
+    <h2 id="grupos">Grupos</h2>
+    <ul>
+        {% for group in groups %}<li>{{ group.name }}</li>{% endfor %}
+    </ul>
+    <h2>Usuários</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Provedor</th><th scope="col">Grupo</th></tr></thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email ?? '—' }}</td>
+                        <td>{{ user.provider == 'google' ? 'Google' : 'Microsoft' }}</td>
+                        <td>
+                            <form method="post" action="/admin/users/{{ user.id }}/group">
+                                <select name="group" aria-label="Grupo de {{ user.name }}">
+                                    {% for group in groups %}
+                                        <option value="{{ group.id }}"{% if user.role == group.id %} selected{% endif %}>{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit">Salvar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4">Ainda não há usuários cadastrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main></body>
+</html>

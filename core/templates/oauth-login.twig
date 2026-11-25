@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entrar</title>
+    <style>
+        body{margin:0;background:#f5f4ec;color:#183b2d;font:1rem/1.55 system-ui,sans-serif}
+        main{box-sizing:border-box;max-width:32rem;margin:clamp(2rem,10vw,6rem) auto;padding:1.5rem}
+        h1{font-size:2.25rem;margin:.5rem 0}a{color:inherit}
+        .login-links{display:grid;gap:.75rem;margin:1.5rem 0}
+        .provider{display:block;padding:.7rem 1rem;border:1px solid #285a43;background:#fffef8;border-radius:.35rem;text-decoration:none;font-weight:650}
+        .provider:hover,.provider:focus-visible{background:#e5efcd}
+        form{margin:1.25rem 0}
+    </style>
+</head>
+<body>
+<main>
+    <p><a href="/">Início</a></p>
+    {% if account %}
+        <h1>Sua conta</h1>
+        <p>{{ account.name }}</p>
+        {% if can_access_editor %}<p><a href="/admin">Painel editorial</a></p>{% endif %}
+        <form method="post" action="/logout"><button type="submit">Sair</button></form>
+    {% else %}
+        <h1>Entrar</h1>
+        {% if failed %}<p role="alert">Não foi possível concluir o login. Tente novamente.</p>{% endif %}
+        <div class="login-links">
+            {% for provider, label in providers %}
+                <a class="provider" href="/auth/{{ provider }}">Entrar com {{ label }}</a>
+            {% else %}
+                <p>O login está temporariamente indisponível.</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</main>
+</body>
+</html>
