@@ -1,48 +1,59 @@
+{% set labels = editorial_labels[reader_preferences.language] %}
+{% set fields = editor_form_labels[reader_preferences.language] %}
 {% set editing = profile.editing_slug|default(profile.slug|default('')) %}
 {% if error and profile.editing_slug is not defined %}{% set editing = '' %}{% endif %}
 <!doctype html>
-<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Cadastro de autores</title>
+    <title>{{ labels.authors }}</title>
     {% include 'site-favicon.twig' %}
     <style>
         {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
         main{max-width:56rem} label{display:block;margin-block:1rem}.field{display:block;box-sizing:border-box;width:100%;padding:.5rem;font:inherit}
         button{font:inherit;padding:.55rem .9rem}textarea{min-height:6rem}.authors{padding-left:1.25rem}.authors li{margin:.35rem 0}
     </style>
 </head>
-<body><main>
-    <a href="/admin">Painel editorial</a>
-    <h1>Autores</h1>
-    <p><a href="/pt/p/autores">Ver página pública de autores</a></p>
+<body><main class="reader-screen">
+    <p><a href="/admin">{{ reader_preferences.text.panel }}</a></p>
+    {% include 'reader-language.twig' only %}
+    <h1>{{ labels.authors }}</h1>
+    <p><a href="/{{ reader_preferences.language }}/p/autores">{{ fields.public_authors }}</a></p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-    {% if saved %}<p role="status">Biografia salva.</p>{% endif %}
+    {% if saved %}<p role="status">{{ fields.bio_saved }}</p>{% endif %}
     <section aria-labelledby="form-title">
-        <h2 id="form-title">{{ editing ? 'Editar biografia' : 'Novo autor' }}</h2>
-        <form method="post" action="/admin/authors{{ editing ? '/' ~ editing : '' }}">
+        <h2 id="form-title">{{ editing ? fields.edit_bio : fields.new_author }}</h2>
+        <form method="post" data-warn-unsaved action="/admin/authors{{ editing ? '/' ~ editing : '' }}">
             <input type="hidden" name="csrf" value="{{ csrf }}">
-            <label>Nome público<input class="field" name="name" required maxlength="120" value="{{ profile.name|default('') }}"></label>
+            <label>{{ fields.public_name }}<input class="field" name="name" required maxlength="120" value="{{ profile.name|default('') }}"></label>
             {% if editing %}
-                <p>Endereço público: <a href="/pt/p/autor-{{ editing }}">/pt/p/autor-{{ editing }}</a></p>
+                <p>{{ fields.address }}: <a href="/pt/p/autor-{{ editing }}">/pt/p/autor-{{ editing }}</a></p>
             {% else %}
-                <label>Identificador do endereço<input class="field" name="slug" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="{{ profile.slug|default('') }}"></label>
+                <label>{{ fields.address_id }}<input class="field" name="slug" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="{{ profile.slug|default('') }}"></label>
             {% endif %}
-            <label>Biografia em português <textarea class="field" name="bio_pt" required maxlength="8000">{{ profile.bio_pt|default('') }}</textarea></label>
-            <label>Biografia em inglês <textarea class="field" name="bio_en" maxlength="8000">{{ profile.bio_en|default('') }}</textarea></label>
-            <label>Biografia em espanhol <textarea class="field" name="bio_es" maxlength="8000">{{ profile.bio_es|default('') }}</textarea></label>
-            <button type="submit">Salvar biografia</button>
+            {# The interface language does not change the language of any biography field.
+               O idioma da interface não altera o idioma de nenhum campo da biografia. #}
+            {% for locale, name in reader_preferences.languages %}
+                <label>{{ fields.biography }} · <span lang="{{ locale }}">{{ name }}</span>
+                    <textarea class="field" name="bio_{{ locale }}" lang="{{ locale }}"{% if locale == 'pt' %} required{% endif %} maxlength="8000">{{ profile['bio_' ~ locale]|default('') }}</textarea>
+                </label>
+            {% endfor %}
+            <button type="submit">{{ fields.save_bio }}</button>
         </form>
-        {% if editing %}<p><a href="/admin/authors">Cadastrar outro autor</a></p>{% endif %}
+        {% if editing %}<p><a href="/admin/authors">{{ fields.another_author }}</a></p>{% endif %}
     </section>
     <section aria-labelledby="directory-title">
-        <h2 id="directory-title">Autores cadastrados</h2>
+        <h2 id="directory-title">{{ fields.authors_list }}</h2>
         {% if directory %}
             <ul class="authors">{% for author in directory %}<li><a href="/admin/authors/{{ author.slug }}">{{ author.name }}</a></li>{% endfor %}</ul>
         {% else %}
-            <p>Nenhum autor cadastrado.</p>
+            <p>{{ fields.authors_empty }}</p>
         {% endif %}
     </section>
-</main></body>
+</main>
+{% include 'reader-theme.twig' only %}
+{% include 'editor-unsaved.twig' only %}
+</body>
 </html>

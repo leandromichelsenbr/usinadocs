@@ -1,32 +1,39 @@
+{% set labels = editorial_labels[reader_preferences.language] %}
+{% set fields = editor_form_labels[reader_preferences.language] %}
 <!doctype html>
-<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Assinatura do artigo</title>
+    <title>{{ fields.byline }}</title>
     {% include 'site-favicon.twig' %}
     <style>
         {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
         label{display:block;margin:.55rem 0}fieldset{margin-block:1rem}button{font:inherit;padding:.55rem .9rem}
     </style>
 </head>
-<body><main>
-    <a href="/admin/pages/{{ page_id }}/release">Voltar à publicação</a>
-    <h1>Assinatura do artigo</h1>
-    <p>Selecione os autores que devem assinar as três edições do artigo.</p>
-    <p><a href="/admin/authors">Cadastrar ou editar biografias</a></p>
+<body><main class="reader-screen">
+    <p><a href="/admin/pages/{{ page_id }}/release">{{ labels.release }}</a></p>
+    {% include 'reader-language.twig' only %}
+    <h1>{{ fields.byline }}</h1>
+    <p>{{ fields.byline_note }}</p>
+    <p><a href="/admin/authors">{{ fields.edit_bios }}</a></p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
     {% if directory %}
-        <form method="post" action="/admin/pages/{{ page_id }}/authors">
+        <form method="post" data-warn-unsaved action="/admin/pages/{{ page_id }}/authors">
             <input type="hidden" name="csrf" value="{{ csrf }}">
             <fieldset>
-                <legend>Autores</legend>
+                <legend>{{ labels.authors }}</legend>
                 {% for author in directory %}
                     <label><input type="checkbox" name="authors[]" value="{{ author.slug }}"{{ author.slug in selected ? ' checked' }}> {{ author.name }}</label>
                 {% endfor %}
             </fieldset>
-            <button type="submit">Salvar assinatura</button>
+            <button type="submit">{{ fields.save_byline }}</button>
         </form>
     {% endif %}
-</main></body>
+</main>
+{% include 'reader-theme.twig' only %}
+{% include 'editor-unsaved.twig' only %}
+</body>
 </html>

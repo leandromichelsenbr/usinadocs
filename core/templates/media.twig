@@ -1,1 +1,54 @@
-<!doctype html><html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mídia · Usina Docs</title><body><main><h1>Biblioteca de mídia</h1><p>Envie imagens JPEG, PNG ou WebP de até 5 MB. Registre origem e licença para manter a rastreabilidade editorial.</p><form method="post" action="/admin/media" enctype="multipart/form-data"><label>Arquivo <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required></label><label>Título <input name="title" required></label><label>URL de origem <input name="source_url" type="url"></label><label>Autoria/licença <input name="license_note"></label><button>Enviar imagem</button></form><h2>Arquivos enviados</h2>{% for item in media %}<article><img src="/media/{{ item.id }}" alt="" width="120" loading="lazy"><strong>{{ item.title }}</strong><span>{{ item.mime_type }} · {{ item.byte_size }} bytes</span>{% if item.source_url %}<a href="{{ item.source_url }}">Origem</a>{% endif %}<span>{{ item.license_note }}</span></article>{% else %}<p>Nenhuma mídia enviada.</p>{% endfor %}<p><a href="/admin">Voltar ao painel</a></p></main></body></html>
+{% set labels = editorial_labels[reader_preferences.language] %}
+{% set fields = editor_form_labels[reader_preferences.language] %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ labels.media }} · Usina Docs</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+        main { max-width: 60rem; }
+        label { display: block; margin-block: .7rem; }
+        input { display: block; box-sizing: border-box; max-width: 100%; padding: .35rem; font: inherit; }
+        .media-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .8rem; }
+        .media-items article { display: grid; align-content: start; gap: .35rem; padding: .75rem; border: 1px solid light-dark(#becabe, #53685b); overflow-wrap: anywhere; }
+        .media-items img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body><main class="reader-screen">
+    <p><a href="/admin">{{ reader_preferences.text.panel }}</a></p>
+    {% include 'reader-language.twig' only %}
+    <h1>{{ labels.media }}</h1>
+    <p>{{ fields.upload_hint }}</p>
+    <form method="post" action="/admin/media" enctype="multipart/form-data" data-warn-unsaved>
+        <label>{{ fields.file }} <input type="file" name="file" accept="image/jpeg,image/png,image/webp" required></label>
+        <label>{{ labels.title }} <input name="title" required></label>
+        <label>{{ fields.source_url }} <input name="source_url" type="url"></label>
+        <label>{{ fields.credit }} <input name="license_note"></label>
+        <button type="submit">{{ fields.upload }}</button>
+    </form>
+    <h2>{{ fields.files }}</h2>
+    {# Translate display labels while showing media titles and credits as entered by the editor.
+       Traduz os rótulos da interface e exibe títulos e créditos como foram informados pelo editor. #}
+    <div class="media-items">
+        {% for item in media %}
+            <article>
+                <img src="/media/{{ item.id|url_encode }}" alt="" width="120" loading="lazy">
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.mime_type }} · {{ item.byte_size }} bytes</span>
+                {% if item.source_url starts with 'https://' or item.source_url starts with 'http://' %}
+                    <a href="{{ item.source_url }}">{{ fields.source_url }}</a>
+                {% endif %}
+                <span>{{ item.license_note }}</span>
+            </article>
+        {% else %}
+            <p>{{ fields.media_empty }}</p>
+        {% endfor %}
+    </div>
+</main>
+{% include 'reader-theme.twig' only %}
+{% include 'editor-unsaved.twig' only %}
+</body></html>

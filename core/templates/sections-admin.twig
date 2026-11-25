@@ -1,0 +1,64 @@
+{% set locale = reader_preferences.language %}
+{% set labels = editorial_labels[locale] %}
+{% set fields = editor_form_labels[locale] %}
+{% set editing = section.editing_slug is defined ? section.editing_slug : section.slug|default('') %}
+{% set preferences = editing ? {section: editing} : {} %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ fields.sections }} · Usina Docs</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+        main { max-width: 56rem; }
+        .section-list li { margin-block: .4rem; overflow-wrap: anywhere; }
+        label { display: grid; gap: .25rem; margin-block: .75rem; }
+        input, select, button { box-sizing: border-box; max-width: 100%; padding: .45rem; font: inherit; }
+    </style>
+</head>
+<body><main class="reader-screen">
+    <p><a href="/admin">{{ reader_preferences.text.panel }}</a></p>
+    {% include 'reader-language.twig' with {query: preferences} only %}
+    <h1>{{ fields.sections }}</h1>
+    <p>{{ fields.section_behavior }}</p>
+    {% if error %}<p role="alert">{{ fields[error]|default(fields.unavailable_section) }}</p>{% endif %}
+    {% if saved %}<p role="status">{{ fields.section_saved }}</p>{% endif %}
+    <ul class="section-list">
+        {% for item in sections %}
+            <li><a href="/admin/sections?section={{ item.slug|url_encode }}"{% if item.slug == editing %} aria-current="page"{% endif %}>{{ item['title_' ~ locale] }}</a>
+                · {{ item.blocked ? fields.section_blocked : fields.section_active }}</li>
+        {% else %}
+            <li>{{ fields.section_empty }}</li>
+        {% endfor %}
+    </ul>
+    {% if editing %}<p><a href="/admin/sections">{{ fields.section_new }}</a></p>{% endif %}
+    <h2>{{ editing ? fields.section_edit : fields.section_new }}</h2>
+    <form method="post" action="/admin/sections{{ editing ? '/' ~ editing|url_encode : '' }}" data-warn-unsaved>
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        {# Titles can change independently of the stable identifier referenced by existing articles.
+           Os títulos podem mudar sem alterar o identificador referenciado pelos artigos existentes. #}
+        {% if editing %}
+            <p>{{ fields.address }} <code>{{ editing }}</code></p>
+        {% else %}
+            <label>{{ fields.address_id }} <input name="slug" value="{{ section.slug|default('') }}" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*"></label>
+        {% endif %}
+        {% for code, language in reader_preferences.languages %}
+            <label>{{ labels.title }} · <span lang="{{ code }}">{{ language }}</span>
+                <input name="title_{{ code }}" lang="{{ code }}" value="{{ section['title_' ~ code]|default('') }}" required maxlength="120">
+            </label>
+        {% endfor %}
+        <label>{{ labels.state }}
+            <select name="blocked">
+                <option value="0">{{ fields.section_active }}</option>
+                <option value="1"{% if section.blocked|default(false) %} selected{% endif %}>{{ fields.section_blocked }}</option>
+            </select>
+        </label>
+        <button type="submit">{{ fields.section_save }}</button>
+    </form>
+</main>
+{% include 'reader-theme.twig' with {query: preferences} only %}
+{% include 'editor-unsaved.twig' only %}
+</body></html>

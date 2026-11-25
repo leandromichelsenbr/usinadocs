@@ -9,7 +9,7 @@
     {% for code, label in reader_preferences.languages %}
         {% set translation = translations|filter(item => item.language_code == code)|first %}
         {% set slug = translation.slug|default(localized_slug|default('')) %}
-        {% set path = slug ? '/' ~ code ~ '/p/' ~ slug|url_encode : '' %}
-        <a href="{{ path }}?{{ query|merge({lang: code})|url_encode }}" lang="{{ code }}" title="{{ label }}" aria-label="{{ label }}"{% if path %} hreflang="{{ code }}"{% endif %}{% if active_language == code %} aria-current="page"{% endif %}>{{ code|upper }}</a>
+        {% set path = slug ? '/' ~ code ~ '/p/' ~ slug|url_encode : preference_path|default('') %}
+        <a href="{{ path }}?{{ query|merge({lang: code})|url_encode }}" lang="{{ code }}" title="{{ label }}" aria-label="{{ label }}"{% if slug %} hreflang="{{ code }}"{% endif %}{% if active_language == code %} aria-current="page"{% endif %}>{{ code|upper }}</a>
     {% endfor %}
 </nav>
