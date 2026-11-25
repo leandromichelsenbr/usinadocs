@@ -2,11 +2,15 @@
    Um logotipo pode servir aos dois temas. Só renderiza uma segunda imagem quando os arquivos são diferentes. #}
 {% set light = site_appearance.logo_light_id ?: site_appearance.logo_dark_id %}
 {% set dark = site_appearance.logo_dark_id ?: site_appearance.logo_light_id %}
-{% if light %}
-    <span class="site-logo">
-        <img{% if dark != light %} class="site-logo-light"{% endif %} src="/media/{{ light|url_encode }}" alt="{{ label }}" decoding="async">
-        {% if dark != light %}<img class="site-logo-dark" src="/media/{{ dark|url_encode }}" alt="{{ label }}" decoding="async">{% endif %}
-    </span>
-{% else %}
-    {{ label }}
-{% endif %}
+{# Link the current theme's image or the fallback site name to the same public homepage.
+   Vincula a imagem do tema atual ou o nome do site à mesma página inicial pública. #}
+<a class="site-logo-link" href="{{ home_locale is defined ? '/?lang=' ~ home_locale|url_encode : '/' }}" aria-label="{{ label }} · {{ home_label|default(reader_preferences.text.home) }}">
+    {% if light %}
+        <span class="site-logo">
+            <img{% if dark != light %} class="site-logo-light"{% endif %} src="/media/{{ light|url_encode }}" alt="{{ label }}" decoding="async">
+            {% if dark != light %}<img class="site-logo-dark" src="/media/{{ dark|url_encode }}" alt="{{ label }}" decoding="async">{% endif %}
+        </span>
+    {% else %}
+        {{ label }}
+    {% endif %}
+</a>

@@ -26,7 +26,7 @@
 </head>
 <body><main>
     <header>
-        <a href="/?lang={{ locale }}" aria-label="{{ copy.home }}">{% include 'site-logo.twig' with {label: site_label} %}</a>
+        {% include 'site-logo.twig' with {label: site_label, home_locale: locale, home_label: copy.home} %}
         <nav class="legal-languages" aria-label="{{ copy.languages }}">
             {% for code, language in languages %}
                 <a href="/{{ code }}/p/legal-{{ slug }}" hreflang="{{ code }}" lang="{{ code }}"{% if code == locale %} aria-current="page"{% endif %}>{{ language }}</a>
