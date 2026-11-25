@@ -40,6 +40,22 @@
             <button type="submit">Salvar capa</button>
         </form>
     </section>
+    {# The warning follows the article across languages and can be removed independently of its revisions.
+       O alerta acompanha o artigo em todos os idiomas e pode ser retirado sem alterar suas revisões. #}
+    {% if release.editions.pt.page.content_type == 'article' %}
+        <section class="panel" id="alerta" aria-labelledby="critical-heading">
+            <h2 id="critical-heading">Alerta crítico nas chamadas</h2>
+            <form method="post" action="/admin/pages/{{ page_id }}/critical-alert">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <label for="critical">Exibição</label>
+                <select name="critical" id="critical">
+                    <option value="0"{{ not critical ? ' selected' }}>Sem alerta</option>
+                    <option value="1"{{ critical ? ' selected' }}>Alerta crítico</option>
+                </select>
+                <button type="submit">Salvar alerta</button>
+            </form>
+        </section>
+    {% endif %}
     <section aria-label="Prévias por idioma" class="previews">
         {% for locale, edition in release.editions %}
             <section class="preview">

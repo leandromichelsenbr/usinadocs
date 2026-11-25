@@ -1,0 +1,4 @@
+{# Pair the icon with a readable label so color alone does not convey criticality.
+   Combina o ícone com um texto legível para indicar criticidade além da cor. #}
+{% set critical_label = {pt: 'Alerta crítico', en: 'Critical alert', es: 'Alerta crítica'}[locale] %}
+<span class="article-critical-label"><span class="article-critical-icon" aria-hidden="true">!</span> {{ critical_label }}</span>
