@@ -34,6 +34,33 @@ final class PublishedPageRepository
             return null;
         }
 
+        return $this->withBlocks($page);
+    }
+
+    public function findForPreview(string $pageId, string $locale): ?array
+    {
+        // Keep draft resolution on a separate path used only by authenticated editorial routes.
+        // Mantém a resolução de rascunhos em um caminho separado, usado apenas por rotas editoriais autenticadas.
+        $query = $this->database->prepare(
+            "SELECT p.id AS page_id, s.name AS site_name, l.code AS language_code, l.native_name, pl.slug,
+                    COALESCE(m.content_type, 'reference') AS content_type, r.id AS revision_id,
+                    r.number AS revision_number, r.title, r.summary, r.published_at, r.status
+             FROM page_localizations pl JOIN pages p ON p.id = pl.page_id
+             JOIN sites s ON s.id = p.site_id JOIN languages l ON l.code = pl.language_code
+             LEFT JOIN page_metadata m ON m.page_id = p.id
+             JOIN page_revisions r ON r.id = COALESCE(
+                 (SELECT d.id FROM page_revisions d WHERE d.page_id = p.id AND d.language_code = pl.language_code AND d.status = 'draft'
+                  ORDER BY d.number DESC LIMIT 1), pl.published_revision_id)
+             WHERE p.id = :id AND pl.language_code = :locale"
+        );
+        $query->execute(['id' => $pageId, 'locale' => $locale]);
+        $page = $query->fetch();
+
+        return $page === false ? null : $this->withBlocks($page);
+    }
+
+    private function withBlocks(array $page): array
+    {
         $blocksStatement = $this->database->prepare(
             'SELECT id, type, position, data FROM blocks WHERE page_revision_id = :revision ORDER BY position ASC'
         );

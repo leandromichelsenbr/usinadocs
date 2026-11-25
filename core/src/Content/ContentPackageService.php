@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace UsinaDocs\Core\Content;
 
 use PDO;
+use UsinaDocs\Core\Media\MediaLibrary;
 
 final class ContentPackageService
 {
@@ -12,26 +13,36 @@ final class ContentPackageService
     private const VERSION='0.1';
     private const LANGUAGES=['pt'=>'pt-BR','en'=>'en','es'=>'es'];
 
-    public function __construct(private readonly PDO $db) {}
+    private const TYPES = ['reference', 'article', 'lesson', 'class', 'entry_point'];
+
+    public function __construct(private readonly PDO $db, private readonly ?MediaLibrary $media = null) {}
 
     public function exportPublishedPage(string $pageId):?array
     {
-        $pageStatement=$this->db->prepare('SELECT p.id,p.site_id,p.created_at,p.updated_at,s.name AS site_name,s.slug AS site_slug FROM pages p JOIN sites s ON s.id=p.site_id WHERE p.id=:id');
+        $pageStatement=$this->db->prepare('SELECT p.id,p.site_id,p.created_at,p.updated_at,s.name AS site_name,s.slug AS site_slug, m.content_type, c.media_id AS cover_media_id FROM pages p JOIN sites s ON s.id=p.site_id LEFT JOIN page_metadata m ON m.page_id=p.id LEFT JOIN page_covers c ON c.page_id=p.id WHERE p.id=:id');
         $pageStatement->execute(['id'=>$pageId]);$page=$pageStatement->fetch(PDO::FETCH_ASSOC);if($page===false)return null;
         $localizations=$this->db->prepare("SELECT pl.language_code,pl.slug,r.id AS revision_id,r.number,r.title,r.summary,r.created_at,r.published_at FROM page_localizations pl JOIN page_revisions r ON r.id=pl.published_revision_id AND r.status='published' WHERE pl.page_id=:page ORDER BY pl.language_code");
         $localizations->execute(['page'=>$pageId]);$published=$localizations->fetchAll(PDO::FETCH_ASSOC);if($published===[])return null;
-        $folder=$this->safeFolder($pageId);$files=[];$pageLocalizations=[];
-        foreach($published as $revision){$language=self::LANGUAGES[$revision['language_code']]??$revision['language_code'];$pageLocalizations[]=['language'=>$language,'slug'=>$revision['slug'],'published_revision_id'=>$revision['revision_id']];$blocks=$this->db->prepare('SELECT id,type,position,data FROM blocks WHERE page_revision_id=:revision ORDER BY position');$blocks->execute(['revision'=>$revision['revision_id']]);$blockRows=array_map(static fn(array $block):array=>['id'=>$block['id'],'type'=>$block['type'],'position'=>(int)$block['position'],'data'=>json_decode($block['data'],true,512,JSON_THROW_ON_ERROR)],$blocks->fetchAll(PDO::FETCH_ASSOC));$revisionDocument=['id'=>$revision['revision_id'],'page_id'=>$pageId,'language'=>$language,'number'=>(int)$revision['number'],'status'=>'published','title'=>$revision['title'],'summary'=>$revision['summary'],'created_at'=>$revision['created_at'],'published_at'=>$revision['published_at'],'blocks'=>$blockRows,'references'=>[]];$path=sprintf('pages/%s/revisions/%04d.%s.json',$folder,(int)$revision['number'],$language);$files[$path]=$this->json($revisionDocument);}
-        $pagePath='pages/'.$folder.'/page.json';$files[$pagePath]=$this->json(['id'=>$pageId,'site_id'=>$page['site_id'],'created_at'=>$page['created_at'],'updated_at'=>$page['updated_at'],'localizations'=>$pageLocalizations]);ksort($files);
+        $folder=$this->safeFolder($pageId);$files=[];$pageLocalizations=[];$imageIds=[];
+        foreach($published as $revision){$language=self::LANGUAGES[$revision['language_code']]??$revision['language_code'];$pageLocalizations[]=['language'=>$language,'slug'=>$revision['slug'],'published_revision_id'=>$revision['revision_id']];$blocks=$this->db->prepare('SELECT id,type,position,data FROM blocks WHERE page_revision_id=:revision ORDER BY position');$blocks->execute(['revision'=>$revision['revision_id']]);$blockRows=array_map(static fn(array $block):array=>['id'=>$block['id'],'type'=>$block['type'],'position'=>(int)$block['position'],'data'=>json_decode($block['data'],true,512,JSON_THROW_ON_ERROR)],$blocks->fetchAll(PDO::FETCH_ASSOC));$imageIds=array_merge($imageIds,PackageImages::ids($page,$blockRows));$revisionDocument=['id'=>$revision['revision_id'],'page_id'=>$pageId,'language'=>$language,'number'=>(int)$revision['number'],'status'=>'published','title'=>$revision['title'],'summary'=>$revision['summary'],'created_at'=>$revision['created_at'],'published_at'=>$revision['published_at'],'blocks'=>$blockRows,'references'=>[]];$path=sprintf('pages/%s/revisions/%04d.%s.json',$folder,(int)$revision['number'],$language);$files[$path]=$this->json($revisionDocument);}
+        $pagePath='pages/'.$folder.'/page.json';$files[$pagePath]=$this->json(['id'=>$pageId,'site_id'=>$page['site_id'],'created_at'=>$page['created_at'],'updated_at'=>$page['updated_at'],'localizations'=>$pageLocalizations,'content_type'=>$page['content_type']??'reference','cover_media_id'=>$page['cover_media_id']]);
+        // Put the binaries in the same integrity inventory as the revision documents.
+        // Coloca os arquivos de imagem no mesmo inventário de integridade dos documentos de revisão.
+        $assets = [];
+        if ($this->media !== null) {
+            foreach (array_unique($imageIds) as $id) $assets[] = PackageImages::addToExport($this->media, $id, $files);
+            $files['media/media.json'] = $this->json($assets);
+        }
+        ksort($files);
         $inventory=[];foreach($files as $path=>$content)$inventory[]=['path'=>$path,'sha256'=>hash('sha256',$content)];
-        $manifest=['format'=>self::FORMAT,'format_version'=>self::VERSION,'package_id'=>$this->uuid(),'created_at'=>gmdate('Y-m-d\TH:i:s\Z'),'created_by'=>['name'=>'Usina Docs'],'site'=>['id'=>$page['site_id'],'name'=>$page['site_name'],'slug'=>$page['site_slug']],'default_language'=>'pt-BR','languages'=>array_values(array_unique(array_column($pageLocalizations,'language'))),'contents'=>['pages'=>1,'controlled_documents'=>0,'courses'=>0,'revisions'=>count($published),'media'=>0],'files'=>$inventory];
+        $manifest=['format'=>self::FORMAT,'format_version'=>self::VERSION,'package_id'=>$this->uuid(),'created_at'=>gmdate('Y-m-d\TH:i:s\Z'),'created_by'=>['name'=>'Usina Docs'],'site'=>['id'=>$page['site_id'],'name'=>$page['site_name'],'slug'=>$page['site_slug']],'default_language'=>'pt-BR','languages'=>array_values(array_unique(array_column($pageLocalizations,'language'))),'contents'=>['pages'=>1,'controlled_documents'=>0,'courses'=>0,'revisions'=>count($published),'media'=>count($assets)],'files'=>$inventory];
         $files=['manifest.json'=>$this->json($manifest)]+$files;$checksumLines=[];foreach($files as $path=>$content)$checksumLines[]=hash('sha256',$content).'  '.$path;$files['checksums.sha256']=implode("\n",$checksumLines)."\n";
         return ['filename'=>$folder.'-usinadocs-0.1.zip','content'=>$this->zip($files),'manifest'=>$manifest];
     }
 
     public function preview(string $zip):array
     {
-        $result=['valid'=>false,'errors'=>[],'warnings'=>[],'summary'=>['create'=>0,'update'=>0,'slug_conflicts'=>0,'route_changes'=>0,'revisions'=>0,'unknown_blocks'=>0],'pages'=>[]];
+        $result=['valid'=>false,'errors'=>[],'warnings'=>[],'summary'=>['create'=>0,'update'=>0,'slug_conflicts'=>0,'route_changes'=>0,'revisions'=>0,'unknown_blocks'=>0,'media'=>0],'pages'=>[]];
         try{$files=$this->unzip($zip);}catch(\Throwable $exception){$result['errors'][]=$exception->getMessage();return$result;}
         if(!isset($files['manifest.json'],$files['checksums.sha256'])){$result['errors'][]='O pacote deve conter manifest.json e checksums.sha256.';return$result;}
         try{$manifest=json_decode($files['manifest.json'],true,512,JSON_THROW_ON_ERROR);}catch(\Throwable){$result['errors'][]='O manifesto não contém JSON válido.';return$result;}
@@ -40,7 +51,30 @@ final class ContentPackageService
         $listed=[];foreach((array)($manifest['files']??[])as$item){$path=(string)($item['path']??'');if(!$this->safePath($path)){$result['errors'][]='Caminho inseguro no manifesto: '.$path;continue;}if(isset($listed[$path])){$result['errors'][]='Arquivo duplicado no manifesto: '.$path;continue;}$listed[$path]=true;if(!isset($files[$path])){$result['errors'][]='Arquivo ausente: '.$path;continue;}if(!hash_equals((string)($item['sha256']??''),hash('sha256',$files[$path])))$result['errors'][]='Checksum inválido: '.$path;}
         foreach($files as $path=>$content)if(!in_array($path,['manifest.json','checksums.sha256'],true)&&!isset($listed[$path]))$result['errors'][]='Arquivo não listado no manifesto: '.$path;
         $checksumMap=[];foreach(preg_split('/\R/',trim($files['checksums.sha256']))?:[] as $line)if(preg_match('/^([a-f0-9]{64})  (.+)$/',$line,$match))$checksumMap[$match[2]]=$match[1];foreach($files as $path=>$content)if($path!=='checksums.sha256'&&(!isset($checksumMap[$path])||!hash_equals($checksumMap[$path],hash('sha256',$content))))$result['errors'][]='Checksum geral inválido: '.$path;
-        foreach(array_keys($files)as$path)if(preg_match('#^pages/[^/]+/page\.json$#',$path)){$this->previewPage($files,$path,$result);}
+        $assets = [];
+        try {
+            $assets = $this->imageInventory($files);
+            $result['summary']['media'] = count($assets);
+            if ($assets !== [] && $this->media === null) throw new \RuntimeException('A biblioteca de mídia não foi configurada.');
+        } catch (\RuntimeException|\InvalidArgumentException|\JsonException $error) {
+            $result['errors'][] = $error->getMessage();
+        }
+        foreach (array_keys($files) as $path) {
+            if (!preg_match('#^pages/[^/]+/page\.json$#', $path)) continue;
+            $this->previewPage($files, $path, $result);
+            // Old packages had no inventory, so their existing links remain backward compatible.
+            // Pacotes antigos não tinham inventário, então seus links existentes continuam compatíveis.
+            if (isset($files['media/media.json'])) {
+                try {
+                    $page = json_decode($files[$path], true, 512, JSON_THROW_ON_ERROR);
+                    foreach ($this->pageImageIds($files, $path, $page) as $id) {
+                        if (!isset($assets[$id])) $result['errors'][] = 'Imagem ausente do inventário: '.$id;
+                    }
+                } catch (\JsonException|\TypeError $error) {
+                    $result['errors'][] = 'Estrutura de imagem inválida: '.$path;
+                }
+            }
+        }
         $result['valid']=$result['errors']===[];return$result;
     }
 
@@ -48,13 +82,105 @@ final class ContentPackageService
     {
         if(!in_array($strategy,['create_only','keep_local','import_revision'],true))$strategy='create_only';$preview=$this->preview($zip);$blocking=$preview['summary']['slug_conflicts']>0||$preview['summary']['route_changes']>0||$preview['summary']['unknown_blocks']>0||($strategy==='create_only'&&$preview['summary']['update']>0);
         if(!$preview['valid']||$blocking)return['imported'=>false,'pages'=>0,'updated'=>0,'skipped'=>0,'revisions'=>0,'errors'=>array_merge($preview['errors'],$blocking?['A política escolhida não permite os conflitos detectados na prévia.']:[])];
-        $files=$this->unzip($zip);$pages=0;$updated=0;$skipped=0;$revisions=0;$this->db->beginTransaction();
-        try{foreach(array_keys($files)as$path)if(preg_match('#^pages/[^/]+/page\.json$#',$path)){$page=json_decode($files[$path],true,512,JSON_THROW_ON_ERROR);$exists=$this->db->prepare('SELECT 1 FROM pages WHERE id=:id');$exists->execute(['id'=>$page['id']]);if($exists->fetchColumn()){if($strategy==='keep_local'){$skipped++;continue;}$this->updatePage($files,$path,$page,$revisions);$updated++;}else{$this->importPage($files,$path,$page,$revisions);$pages++;}}$this->db->commit();return['imported'=>true,'pages'=>$pages,'updated'=>$updated,'skipped'=>$skipped,'revisions'=>$revisions,'errors'=>[]];}catch(\Throwable $exception){$this->db->rollBack();return['imported'=>false,'pages'=>0,'updated'=>0,'skipped'=>0,'revisions'=>0,'errors'=>['A transação foi cancelada: '.$exception->getMessage()]];}
+        $files = $this->unzip($zip);
+        $assets = $this->imageInventory($files);
+        $written = [];
+        $pages = $updated = $skipped = $revisions = 0;
+        $this->db->beginTransaction();
+        try {
+            foreach (array_keys($files) as $path) {
+                if (!preg_match('#^pages/[^/]+/page\.json$#', $path)) continue;
+                $page = json_decode($files[$path], true, 512, JSON_THROW_ON_ERROR);
+                $exists = $this->db->prepare('SELECT 1 FROM pages WHERE id=:id');
+                $exists->execute(['id' => $page['id']]);
+                $existing = (bool) $exists->fetchColumn();
+                if ($existing && $strategy === 'keep_local') {
+                    $skipped++;
+                    continue;
+                }
+
+                foreach ($this->pageImageIds($files, $path, $page) as $id) {
+                    if (!isset($assets[$id])) continue;
+                    $asset = $assets[$id];
+                    $restored = $this->media->restorePackageImage($asset, $files[$asset['path']]);
+                    if ($restored !== null) $written[] = $restored;
+                }
+                if ($existing) {
+                    $this->updatePage($files, $path, $page, $revisions);
+                    $updated++;
+                } else {
+                    $this->importPage($files, $path, $page, $revisions);
+                    $pages++;
+                }
+                $this->applyPageMetadata($page);
+            }
+            $this->db->commit();
+            return ['imported'=>true,'pages'=>$pages,'updated'=>$updated,'skipped'=>$skipped,'revisions'=>$revisions,'errors'=>[]];
+        } catch (\Throwable $exception) {
+            // Keep the write lock while compensating for files that SQLite cannot roll back.
+            // Mantém a trava de escrita enquanto remove arquivos que o SQLite não pode reverter.
+            foreach ($written as $path) unlink($path);
+            $this->db->rollBack();
+            return ['imported'=>false,'pages'=>0,'updated'=>0,'skipped'=>0,'revisions'=>0,'errors'=>['A transação foi cancelada: '.$exception->getMessage()]];
+        }
+    }
+
+    private function imageInventory(array $files): array
+    {
+        $inventory = isset($files['media/media.json']) ? json_decode($files['media/media.json'], true, 512, JSON_THROW_ON_ERROR) : [];
+        if (!is_array($inventory)) throw new \InvalidArgumentException('Inventário de mídia inválido.');
+        $result = [];
+        foreach ($inventory as $asset) {
+            if (!is_array($asset)) throw new \InvalidArgumentException('Entrada de mídia inválida.');
+            PackageImages::check($asset, $files);
+            if (isset($result[$asset['id']])) throw new \InvalidArgumentException('Imagem duplicada no inventário.');
+            $result[$asset['id']] = $asset;
+        }
+
+        return $result;
+    }
+
+    private function pageImageIds(array $files, string $path, array $page): array
+    {
+        $blocks = [];
+        $prefix = dirname($path).'/revisions/';
+        foreach ($files as $name => $content) {
+            if (str_starts_with($name, $prefix) && str_ends_with($name, '.json')) {
+                $revision = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+                $blocks = array_merge($blocks, $revision['blocks'] ?? []);
+            }
+        }
+
+        return PackageImages::ids($page, $blocks);
+    }
+
+    private function applyPageMetadata(array $page): void
+    {
+        // A legacy package can update the text without resetting its destination's type or cover.
+        // Um pacote antigo pode atualizar o texto sem redefinir o tipo ou a capa no destino.
+        if (isset($page['content_type'])) {
+            $query = $this->db->prepare('UPDATE page_metadata SET content_type=:type WHERE page_id=:page');
+            $query->execute(['type'=>$page['content_type'], 'page'=>$page['id']]);
+        }
+        if (array_key_exists('cover_media_id', $page)) {
+            $query = $this->db->prepare('DELETE FROM page_covers WHERE page_id=:page');
+            $query->execute(['page'=>$page['id']]);
+            if ($page['cover_media_id'] !== null) {
+                $query = $this->db->prepare('INSERT INTO page_covers (page_id, media_id) VALUES (:page,:media)');
+                $query->execute(['page'=>$page['id'], 'media'=>$page['cover_media_id']]);
+            }
+        }
     }
 
     private function previewPage(array $files,string $path,array &$result):void
     {
         try{$page=json_decode($files[$path],true,512,JSON_THROW_ON_ERROR);}catch(\Throwable){$result['errors'][]='Página com JSON inválido: '.$path;return;}$id=(string)($page['id']??'');if($id===''){$result['errors'][]='Página sem identificador: '.$path;return;}$exists=$this->db->prepare('SELECT 1 FROM pages WHERE id=:id');$exists->execute(['id'=>$id]);$action=$exists->fetchColumn()?'update':'create';$result['summary'][$action]++;
+        if (array_key_exists('content_type', $page) && !in_array($page['content_type'], self::TYPES, true)) {
+            $result['errors'][] = 'Tipo de conteúdo inválido: '.$path;
+        }
+        if (isset($page['cover_media_id']) && (!is_string($page['cover_media_id']) || $page['cover_media_id'] === '')) {
+            $result['errors'][] = 'Identificador de capa inválido: '.$path;
+        }
         $slugs=[];foreach((array)($page['localizations']??[])as$localization){$language=$this->databaseLanguage((string)($localization['language']??''));$slug=(string)($localization['slug']??'');$conflict=$this->db->prepare('SELECT page_id FROM page_localizations WHERE language_code=:language AND slug=:slug AND page_id<>:page');$conflict->execute(['language'=>$language,'slug'=>$slug,'page'=>$id]);if($conflict->fetchColumn()){$result['summary']['slug_conflicts']++;$result['warnings'][]='Conflito de slug '.$language.': '.$slug;}$current=$this->db->prepare('SELECT slug FROM page_localizations WHERE page_id=:page AND language_code=:language');$current->execute(['page'=>$id,'language'=>$language]);$currentSlug=$current->fetchColumn();if($currentSlug!==false&&$currentSlug!==$slug){$result['summary']['route_changes']++;$result['warnings'][]='Mudança de endereço bloqueada '.$language.': '.$currentSlug.' → '.$slug;}$slugs[$language]=$slug;}
         // Recognize the same video block in portable packages and in the public renderer.
         // Reconhece o mesmo bloco de vídeo nos pacotes portáveis e na renderização pública.

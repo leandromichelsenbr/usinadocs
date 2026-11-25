@@ -48,6 +48,7 @@
     {% if page.language_code != reader_preferences.language and reader_preferences.language not in page.translations|map(item => item.language_code) %}
         <p class="meta">{{ copy.translation_unavailable }}</p>
     {% endif %}
+    {% if editorial_preview %}<p role="status">Prévia editorial</p>{% endif %}
     <article lang="{{ page.language_code }}">
         <h1>{{ page.title }}</h1>
         {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}

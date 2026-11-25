@@ -19,9 +19,12 @@ use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
+use UsinaDocs\Core\Content\PageCovers;
+use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Media\MediaLibrary;
 use UsinaDocs\Core\Presentation\AppearanceRoutes;
 use UsinaDocs\Core\Presentation\ReaderPreferences;
+use UsinaDocs\Core\Presentation\PublicationRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
 
 final class AppFactory
@@ -40,8 +43,9 @@ final class AppFactory
         $useOAuth = ($_ENV['USINADOCS_AUTH_MODE'] ?? '') === 'oauth';
         $editorial = new EditorialService($database);
         $artifacts = new ReusableArtifactService($database);
-        $packages = new ContentPackageService($database);
         $media = new MediaLibrary($database, $root.'/storage/media');
+        $packages = new ContentPackageService($database, $media);
+        $covers = new PageCovers($database, $media);
         $appearance = new SiteAppearance($database, $media);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
@@ -60,6 +64,7 @@ final class AppFactory
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
         AppearanceRoutes::register($app, $twig, $appearance, $media);
+        PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media);
         $app->add(ReaderPreferences::middleware($twig));
         $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {
             // A request sees one saved identity across its page, icon and logo components.
@@ -160,7 +165,7 @@ final class AppFactory
         $app->post('/admin/pages/{id}/publish', static function ($request,$response,array $a) use ($editorial) { if(!Roles::canEdit($_SESSION['user'] ?? null)) return $response->withHeader('Location','/login')->withStatus(302);$missing=$editorial->missingRequiredArtifacts($a['id']);if($missing!==[])return$response->withHeader('Location','/admin/pages/'.$a['id'].'/edit?missing='.rawurlencode(implode(', ',$missing)))->withStatus(302);$editorial->publish($a['id']); return $response->withHeader('Location','/admin')->withStatus(302); });
         $app->post('/admin/pages/{id}/revisions', static function ($request,$response,array $a) use ($editorial) { if(!Roles::canEdit($_SESSION['user'] ?? null)) return $response->withHeader('Location','/login')->withStatus(302); $editorial->createRevision($a['id']); return $response->withHeader('Location','/admin/pages/'.$a['id'].'/edit')->withStatus(302); });
         $app->post('/admin/pages/{id}/revisions/{language}', static function ($request,$response,array $a) use ($editorial) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$editorial->createLocalizedRevision($a['id'],$a['language']);$path=$a['language']==='pt'?'/admin/pages/'.$a['id'].'/edit':'/admin/pages/'.$a['id'].'/'.$a['language'].'/edit';return$response->withHeader('Location',$path)->withStatus(302);});
-        $app->post('/admin/pages/{id}/revisions/{language}/discard', static function ($request,$response,array $a) use ($editorial) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$editorial->discardDraft($a['id'],$a['language']);return$response->withHeader('Location','/admin')->withStatus(302);});
+        $app->post('/admin/pages/{id}/revisions/{language}/discard', static function ($request,$response,array $a) use ($editorial) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);try{$editorial->discardDraft($a['id'],$a['language']);}catch(\DomainException $error){$response->getBody()->write($error->getMessage());return $response->withStatus(409)->withHeader('Content-Type','text/plain; charset=utf-8');}return$response->withHeader('Location','/admin')->withStatus(302);});
         $app->get('/admin/pages/{id}/history/{language}', static function ($request,$response,array $a) use ($editorial,$twig) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$history=$editorial->revisionHistory($a['id'],$a['language']);if($history===[])return$response->withStatus(404);$current=array_values(array_filter($history,static fn(array $revision):bool=>$revision['is_current']));return$twig->render($response,'page-history.twig',['page_id'=>$a['id'],'language'=>$a['language'],'history'=>$history,'current'=>$current[0]??null]);});
         $app->get('/admin/pages/{id}/compare/{language}', static function ($request,$response,array $a) use ($editorial,$twig) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$query=$request->getQueryParams();$comparison=$editorial->compareRevisions($a['id'],$a['language'],(string)($query['from']??''),(string)($query['to']??''));if($comparison===null)return$response->withStatus(404);return$twig->render($response,'page-comparison.twig',['page_id'=>$a['id'],'language'=>$a['language'],'comparison'=>$comparison]);});
         $app->post('/admin/pages/{id}/restore/{language}/{revision}', static function ($request,$response,array $a) use ($editorial) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$restored=$editorial->restoreRevision($a['id'],$a['language'],$a['revision']);if($restored===null)return$response->withHeader('Location','/admin/pages/'.$a['id'].'/history/'.$a['language'].'?restore=blocked')->withStatus(302);$path=$a['language']==='pt'?'/admin/pages/'.$a['id'].'/edit':'/admin/pages/'.$a['id'].'/'.$a['language'].'/edit';return$response->withHeader('Location',$path)->withStatus(302);});
