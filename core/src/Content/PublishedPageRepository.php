@@ -25,7 +25,10 @@ final class PublishedPageRepository
             .'JOIN sites s ON s.id = p.site_id '
             .'JOIN languages l ON l.code = pl.language_code '
             .'JOIN page_revisions r ON r.id = pl.published_revision_id '
+            // Hide every public edition while leaving the separate editorial preview available.
+            // Oculta todas as edições públicas e mantém a prévia editorial em sua rota separada.
             .'WHERE pl.language_code = :locale AND pl.slug = :slug AND r.status = :status'
+            .' AND NOT EXISTS (SELECT 1 FROM hidden_articles h WHERE h.page_id = p.id)'
         );
         $pageStatement->execute(['locale' => $locale, 'slug' => $slug, 'status' => 'published']);
         $page = $pageStatement->fetch(PDO::FETCH_ASSOC);

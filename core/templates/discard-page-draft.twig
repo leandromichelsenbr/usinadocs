@@ -1,0 +1,29 @@
+{% set labels = editorial_labels[reader_preferences.language] %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ labels.discard }} · Usina Docs</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+    </style>
+</head>
+<body><main class="reader-screen">
+    <p><a href="/admin">{{ labels.cancel }}</a></p>
+    {% include 'reader-language.twig' only %}
+    <h1>{{ labels.confirm_discard }}</h1>
+    <p><strong>{{ draft.title }}</strong> · {{ labels.revision }} {{ draft.number }} ({{ language|upper }})</p>
+    <p>{{ labels.discard_note }}</p>
+    {# Submit the visible revision ID to avoid deleting a replacement draft after a concurrent edit.
+       Envia o identificador da revisão exibida para evitar excluir um rascunho substituto após uma edição concorrente. #}
+    <form method="post" action="/admin/pages/{{ page_id }}/revisions/{{ language }}/discard">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="revision" value="{{ draft.id }}">
+        <button type="submit">{{ labels.discard }}</button>
+    </form>
+</main>
+{% include 'reader-theme.twig' only %}
+</body></html>
