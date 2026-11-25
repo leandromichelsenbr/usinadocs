@@ -1,0 +1,21 @@
+{% set copy = reader_preferences.text %}
+<form method="get" class="reader-settings">
+    <label>
+        <span>{{ copy.language }}</span>
+        <select name="lang">
+            <option value="auto"{{ reader_preferences.language_mode == 'auto' ? ' selected' }}>{{ copy.auto }}</option>
+            {% for code, label in reader_preferences.languages %}
+                <option value="{{ code }}" lang="{{ code }}"{{ reader_preferences.language_mode == code ? ' selected' }}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>
+        <span>{{ copy.theme }}</span>
+        <select name="theme">
+            {% for mode in ['auto', 'light', 'dark'] %}
+                <option value="{{ mode }}"{{ reader_preferences.theme == mode ? ' selected' }}>{{ copy[mode] }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit">{{ copy.apply }}</button>
+</form>

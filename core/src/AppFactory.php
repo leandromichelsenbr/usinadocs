@@ -20,6 +20,7 @@ use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Media\MediaLibrary;
+use UsinaDocs\Core\Presentation\ReaderPreferences;
 
 final class AppFactory
 {
@@ -55,6 +56,7 @@ final class AppFactory
             $settings = is_readable($configPath) ? json_decode((string) file_get_contents($configPath), true) : null;
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
+        $app->add(ReaderPreferences::middleware($twig));
         $app->addErrorMiddleware(!$useOAuth, true, true);
 
         $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
@@ -72,6 +74,16 @@ final class AppFactory
                 $response->getBody()->write('Page not found.');
 
                 return $response->withStatus(404);
+            }
+
+            $preferences = $request->getAttribute(ReaderPreferences::class);
+            if ($preferences->requestedLanguage !== null && $preferences->language !== $page['language_code']) {
+                // Keep each translation at its published URL, even when its slug differs.
+                foreach ($page['translations'] as $translation) {
+                    if ($translation['language_code'] === $preferences->language) {
+                        return $response->withHeader('Location', '/'.$preferences->language.'/p/'.rawurlencode($translation['slug']))->withStatus(302);
+                    }
+                }
             }
 
             $canEdit = Roles::canEdit($_SESSION['user'] ?? null);
