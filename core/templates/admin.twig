@@ -3,16 +3,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Administração · Usina Docs</title>
+    <title>Administração · {{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</title>
+    {% include 'site-favicon.twig' %}
     <style>
         body{font:16px system-ui;margin:2rem;max-width:1200px;color:#172033}header,.nav,.search,.actions{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}header{justify-content:space-between}.nav{padding:.9rem 0;border-block:1px solid #d8dee9}.search{margin:1rem 0}.search input{min-width:280px;padding:.5rem}table{width:100%;border-collapse:collapse}th,td{padding:.8rem;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}th{background:#f5f7fa}.page-title{min-width:190px}.language-cell{min-width:220px}.status{display:inline-block;padding:.15rem .45rem;border-radius:999px;font-size:.78rem;font-weight:700}.published{background:#e3f4e9;color:#096b2e}.draft{background:#fff0cf;color:#805000}.absent,.missing{background:#f8e4e4;color:#8b1f2d}.actions{margin-top:.45rem}.actions form,header form{display:inline;margin:0}.actions a,.actions button{font:inherit;font-size:.82rem}.actions button{cursor:pointer}a{color:#1264a3}.empty{padding:2rem;text-align:center;color:#526174}@media(max-width:850px){body{margin:1rem}.catalog{display:block;overflow-x:auto}}
     </style>
 </head>
 <body><main>
-    <header><strong>Usina Docs</strong><form method="post" action="/logout"><button>Sair</button></form></header>
+    <header><strong>{{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</strong><form method="post" action="/logout"><button>Sair</button></form></header>
     <h1>Painel editorial</h1>
     <p>Olá, {{ user.name }}.</p>
-    <nav class="nav">{% if can_manage_users %}<a href="/admin/users">Usuários e grupos</a>{% endif %}<a href="/admin/pages/new">Criar página</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
+    <nav class="nav">{% if can_manage_appearance %}<a href="/admin/appearance">Ajustes de interface</a>{% endif %}{% if can_manage_users %}<a href="/admin/users">Usuários e grupos</a>{% endif %}<a href="/admin/pages/new">Criar página</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
     <h2>Catálogo editorial</h2>
     <form class="search" method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
     <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>

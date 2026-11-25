@@ -1,0 +1,5 @@
+{# Use the asset URL as the icon identity so browsers pick up a newly selected icon.
+   Usa a URL do arquivo como identidade do ícone para o navegador reconhecer uma nova seleção. #}
+{% if site_appearance.favicon_id %}
+    <link rel="icon" href="/media/{{ site_appearance.favicon_id|url_encode }}">
+{% endif %}

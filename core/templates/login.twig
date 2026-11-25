@@ -4,15 +4,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ copy.login }} · Usina Docs</title>
+    <title>{{ copy.login }} · {{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</title>
+    {% include 'site-favicon.twig' %}
     <style>
+        {% include 'site-logo-style.twig' %}
         {% include 'reader-login-style.twig' %}
         {% include 'reader-settings-style.twig' %}
     </style>
 </head>
 <body><main>
     {% include 'reader-settings.twig' %}
-    <h1>Usina Docs</h1>
+    <h1>{% include 'site-logo.twig' with {label: site_appearance.display_name ?: site_default_name|default('Usina Docs')} %}</h1>
     <p>{{ copy.login_prompt }}</p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
     <form class="login-form" method="post" action="/login">

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ajustes de interface · {{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        :root{color-scheme:light;--ink:#183b2d;--paper:#f5f4ec;--panel:#fffef8;--line:#b5c6bd;--muted:#465c52}
+        {% set dark %}
+            color-scheme:dark;--ink:#e9eddd;--paper:#17251e;--panel:#203128;--line:#53685b;--muted:#bfcdbf
+        {% endset %}
+        :root[data-theme="dark"]{ {{ dark }} }
+        @media(prefers-color-scheme:dark){:root[data-theme="auto"]{ {{ dark }} }}
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 system-ui,sans-serif}
+        main{width:min(68rem,calc(100% - 2rem));margin:2rem auto 4rem}
+        h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.05;margin:1rem 0 1.5rem}
+        h2{font-size:1.25rem;margin:0 0 1rem}
+        a{color:inherit;text-underline-offset:.2em}
+        .panel{margin:0 0 1rem;padding:clamp(1rem,3vw,1.5rem);background:var(--panel);border:1px solid var(--line);border-radius:.5rem}
+        .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1.25rem}
+        .field{display:grid;align-content:start;gap:.4rem;min-width:0}
+        label{font-weight:600}
+        input,select,button{max-width:100%;padding:.58rem .65rem;border:1px solid var(--line);border-radius:.3rem;font:inherit;color:inherit;background:var(--panel)}
+        button{color:#fff;background:#205b43;border-color:#205b43;font-weight:650;cursor:pointer}
+        :focus-visible{outline:2px solid currentColor;outline-offset:3px}
+        .help{font-size:.9rem;color:var(--muted);margin:0}
+        .feedback{padding:.8rem 1rem;border-left:4px solid currentColor;background:var(--panel)}
+        .preview{margin:.35rem 0 0;padding:.75rem;min-height:4rem;display:grid;place-items:center;border-radius:.35rem}
+        .preview-light,.preview-icon{background:#fffef8;border:1px solid #cbd3c5}
+        .preview-dark{background:#17251e;border:1px solid #53685b}
+        .preview[hidden]{display:none}
+        .preview img{max-width:100%;max-height:3.5rem;object-fit:contain}
+        .preview-icon img{width:2rem;height:2rem}
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Painel editorial</a>
+    <h1>Ajustes de interface</h1>
+    {% if saved %}<p class="feedback" role="status">Identidade visual salva.</p>{% endif %}
+    {% if error %}<p class="feedback" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="/admin/appearance">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <section class="panel" aria-labelledby="site-identity">
+            <h2 id="site-identity">Identidade do site</h2>
+            <div class="fields">
+                <div class="field">
+                    <label for="display_name">Nome público</label>
+                    <input id="display_name" name="display_name" maxlength="100" value="{{ settings.display_name }}" aria-describedby="name-help">
+                    <p class="help" id="name-help">Deixe em branco para usar o nome padrão do site.</p>
+                </div>
+                <div class="field">
+                    <label for="accent_color">Cor de destaque</label>
+                    <input id="accent_color" name="accent_color" pattern="#[0-9a-fA-F]{6}" placeholder="#087C38" maxlength="7" value="{{ settings.accent_color }}" aria-describedby="color-help">
+                    <p class="help" id="color-help">Código hexadecimal aplicado a detalhes visuais. Em branco, usa a cor padrão.</p>
+                </div>
+            </div>
+        </section>
+        <section class="panel" aria-labelledby="site-assets">
+            <h2 id="site-assets">Ícone e logotipos</h2>
+            <p>Adicione arquivos PNG, JPEG ou WebP na <a href="/admin/media">biblioteca de mídia</a> e selecione-os abaixo.</p>
+            {% set fields = {
+                favicon_id: {label: 'Ícone do navegador', empty: 'Sem ícone personalizado', preview: 'icon'},
+                logo_light_id: {label: 'Logotipo do tema claro', empty: 'Usar a identidade padrão ou o outro logotipo', preview: 'light'},
+                logo_dark_id: {label: 'Logotipo do tema escuro', empty: 'Usar a identidade padrão ou o outro logotipo', preview: 'dark'}
+            } %}
+            <div class="fields">
+                {% for id, field in fields %}
+                    <div class="field">
+                        <label for="{{ id }}">{{ field.label }}</label>
+                        <select id="{{ id }}" name="{{ id }}" data-brand-asset>
+                            <option value="">{{ field.empty }}</option>
+                            {% for image in images %}
+                                <option value="{{ image.id }}"{{ settings[id] == image.id ? ' selected' }}>{{ image.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="preview preview-{{ field.preview }}"{{ settings[id] ? '' : ' hidden' }}>
+                            <img {% if settings[id] %}src="/media/{{ settings[id]|url_encode }}"{% endif %} alt="{{ field.label }}">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        <button type="submit">Salvar identidade visual</button>
+    </form>
+</main>
+<script>
+    // Preview the selected library image locally and leave persistence to the form.
+    // Mostra a imagem selecionada da biblioteca no navegador e deixa a gravação para o formulário.
+    document.querySelectorAll('[data-brand-asset]').forEach(function (select) {
+        const preview = select.nextElementSibling;
+        const image = preview.querySelector('img');
+        select.addEventListener('change', function () {
+            preview.hidden = select.value === '';
+            if (select.value) {
+                image.src = '/media/' + encodeURIComponent(select.value);
+            } else {
+                image.removeAttribute('src');
+            }
+        });
+    });
+</script>
+</body>
+</html>

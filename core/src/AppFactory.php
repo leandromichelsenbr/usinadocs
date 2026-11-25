@@ -20,7 +20,9 @@ use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Media\MediaLibrary;
+use UsinaDocs\Core\Presentation\AppearanceRoutes;
 use UsinaDocs\Core\Presentation\ReaderPreferences;
+use UsinaDocs\Core\Presentation\SiteAppearance;
 
 final class AppFactory
 {
@@ -40,6 +42,7 @@ final class AppFactory
         $artifacts = new ReusableArtifactService($database);
         $packages = new ContentPackageService($database);
         $media = new MediaLibrary($database, $root.'/storage/media');
+        $appearance = new SiteAppearance($database, $media);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
         $app->addBodyParsingMiddleware();
@@ -56,14 +59,29 @@ final class AppFactory
             $settings = is_readable($configPath) ? json_decode((string) file_get_contents($configPath), true) : null;
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
+        AppearanceRoutes::register($app, $twig, $appearance, $media);
         $app->add(ReaderPreferences::middleware($twig));
+        $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {
+            // A request sees one saved identity across its page, icon and logo components.
+            // Cada requisição vê a mesma identidade salva na página, no ícone e nos componentes de logotipo.
+            $settings = $appearance->current();
+            $twig->getEnvironment()->addGlobal('site_appearance', $settings);
+
+            return $next->handle($request->withAttribute(SiteAppearance::class, $settings));
+        });
         $app->addErrorMiddleware(!$useOAuth, true, true);
 
         $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             return $response->withHeader('Location', '/pt/p/bem-vindo')->withStatus(302);
         });
         $app->get('/favicon.ico', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
-            return $response->withStatus(204);
+            // The legacy browser path tracks the current selection without caching a previous redirect.
+            // O endereço tradicional do navegador acompanha a seleção atual sem guardar um redirecionamento anterior.
+            $icon = $request->getAttribute(SiteAppearance::class)['favicon_id'];
+
+            return $icon === null
+                ? $response->withStatus(204)
+                : $response->withHeader('Location', '/media/'.rawurlencode($icon))->withHeader('Cache-Control', 'no-store')->withStatus(302);
         });
         $app->get('/media/{id}', static function ($request,$response,array $a) use ($media) { $item=$media->find($a['id']);if($item===null||!is_file($media->path($item)))return$response->withStatus(404);$stream=fopen($media->path($item),'rb');$response->getBody()->write((string)stream_get_contents($stream));fclose($stream);return$response->withHeader('Content-Type',$item['mime_type'])->withHeader('Content-Length',(string)$item['byte_size']);});
 
@@ -101,7 +119,7 @@ final class AppFactory
         $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });
         $app->get('/admin', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial): ResponseInterface {
             if (!Roles::canEdit($_SESSION['user'] ?? null)) return $response->withHeader('Location', '/login')->withStatus(302);
-            $search=(string)($request->getQueryParams()['q']??'');return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'catalog'=>$editorial->catalog($search),'search'=>$search]);
+            $search=(string)($request->getQueryParams()['q']??'');return $twig->render($response, 'admin.twig', ['user' => $_SESSION['user'], 'catalog'=>$editorial->catalog($search),'search'=>$search,'can_manage_appearance'=>Roles::canManageUsers($_SESSION['user'])]);
         });
         $app->get('/admin/translations', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial,$artifacts): ResponseInterface {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$search=(string)($request->getQueryParams()['q']??'');return$twig->render($response,'translation-review.twig',['pages'=>$editorial->translationReview($search),'artifacts'=>$artifacts->translationReview($search),'search'=>$search]);});
         $app->get('/admin/packages', static function ($request,$response) use ($twig) {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);return$twig->render($response,'packages.twig');});

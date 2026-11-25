@@ -1,15 +1,19 @@
 {% set copy = reader_preferences.text %}
+{% set site_label = site_appearance.display_name ?: site_default_name|default(page.site_name) %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ page.title }} · {{ page.site_name }}</title>
+    <title>{{ page.title }} · {{ site_label }}</title>
+    {% include 'site-favicon.twig' %}
     <style>
+        {% include 'site-logo-style.twig' %}
         :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #172033; background: #f3f6fb; }
         :root[data-theme="dark"] { color-scheme: dark; }
         @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
         {% include 'reader-settings-style.twig' %}
+        {% if site_appearance.accent_color %}main > header { border-top: 3px solid {{ site_appearance.accent_color }}; padding-top: .8rem; }{% endif %}
         body { margin: 0; } main { max-width: 800px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
         header { border-bottom: 1px solid #c7d2e5; padding-bottom: 1rem; margin-bottom: 2.5rem; display:flex; justify-content:space-between; gap:1rem; align-items:start; }
         .brand { color: #1264a3; font-weight: 800; letter-spacing: .03em; } .meta { color: #526174; font-size: .9rem; } .type { display:inline-block; margin-top:.35rem; padding:.15rem .45rem; border-radius:999px; background:#e1edf8; color:#244565; font-size:.8rem; font-weight:700; }
@@ -21,7 +25,11 @@
         .brand, .languages span { color: light-dark(#1264a3, #7fc7ff); }
         .meta, .summary, .citation footer, .diagram-links, .quiz-explanation { color: light-dark(#526174, #bfccdc); }
         .type { background: light-dark(#e1edf8, #183654); color: light-dark(#244565, #edf3ff); }
-        th, .notice { background: light-dark(#eaf4fc, #1c3854); }
+        /* Preserve readable table headers in both ways of entering dark mode.
+           Preserva a leitura dos cabeçalhos de tabela nas duas formas de ativar o tema escuro. */
+        :root[data-theme="dark"] th{background:#1c3854;color:#f2f7ff}
+        @media (prefers-color-scheme: dark) { :root[data-theme="auto"] th{background:#1c3854;color:#f2f7ff} }
+        .notice { background: light-dark(#eaf4fc, #1c3854); }
         td { background: light-dark(transparent, #101d2d); }
         .citation, .diagram, .quiz { background: light-dark(#eaf4fc, #10243a); border-color: light-dark(#1264a3, #7fc7ff); }
         .diagram-node, .quiz-option { background: light-dark(#fff, #183654); color: light-dark(#172033, #edf3ff); }
@@ -33,7 +41,7 @@
 </head>
 <body>
 <main>
-    <header><div><div class="brand">{{ page.site_name }}</div><div class="meta">{{ page.native_name }} · {{ copy.revision }} {{ page.revision_number }}</div><div class="type">{{ copy[page.content_type]|default(copy.reference) }}</div></div><div class="reader-tools"><nav class="languages" aria-label="{{ copy.available_languages }}">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}{% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}{% if can_edit %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions/{{ page.language_code }}"><button type="submit">{{ copy.edit }}</button></form>{% endif %}</nav>{% include 'reader-settings.twig' %}</div></header>
+    <header><div><div class="brand">{% include 'site-logo.twig' with {label: site_label} %}</div><div class="meta">{{ page.native_name }} · {{ copy.revision }} {{ page.revision_number }}</div><div class="type">{{ copy[page.content_type]|default(copy.reference) }}</div></div><div class="reader-tools"><nav class="languages" aria-label="{{ copy.available_languages }}">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}{% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}{% if can_edit %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions/{{ page.language_code }}"><button type="submit">{{ copy.edit }}</button></form>{% endif %}</nav>{% include 'reader-settings.twig' %}</div></header>
     {% if page.language_code != reader_preferences.language and reader_preferences.language not in page.translations|map(item => item.language_code) %}
         <p class="meta">{{ copy.translation_unavailable }}</p>
     {% endif %}
