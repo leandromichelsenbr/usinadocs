@@ -68,6 +68,9 @@ final class SiteAppearanceTest extends TestCase
             self::assertStringContainsString('Portal de teste', $html);
             self::assertStringContainsString('class="site-logo-light" src="/media/'.$light.'"', $html);
             self::assertStringContainsString('class="site-logo-dark" src="/media/'.$dark.'"', $html);
+            // Both theme images remain inside the homepage link.
+            // As imagens dos dois temas ficam dentro do link para a página inicial.
+            self::assertMatchesRegularExpression('~<a class="site-logo-link" href="/"[^>]*>[^<]*<span class="site-logo">.*?site-logo-light.*?site-logo-dark.*?</span>[^<]*</a>~s', $html);
             self::assertStringContainsString('rel="icon" href="/media/'.$icon.'"', $html);
             self::assertStringContainsString('#12704a', $html);
             $favicon = $app->handle($request('GET', '/favicon.ico'));
