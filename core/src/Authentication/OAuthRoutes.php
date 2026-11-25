@@ -45,6 +45,7 @@ final class OAuthRoutes
         $app->get('/login', static function ($request, $response) use ($twig, $client) {
             return $twig->render($response, 'oauth-login.twig', [
                 'providers' => $client->providers(),
+                'next' => LoginReturn::articleComments($request->getQueryParams()['next'] ?? null),
                 'failed' => ($request->getQueryParams()['error'] ?? '') === 'oauth',
             ])->withHeader('Cache-Control', 'no-store');
         });
@@ -55,7 +56,12 @@ final class OAuthRoutes
 
             $state = bin2hex(random_bytes(24));
             $verifier = bin2hex(random_bytes(32));
-            $_SESSION['oauth_pending'][$provider] = ['state' => $state, 'verifier' => $verifier, 'expires' => time() + 600];
+            // Bind the local comment destination to the same OAuth attempt as state and PKCE.
+            // Vincula o destino local do comentário à mesma tentativa OAuth que contém o estado e o PKCE.
+            $_SESSION['oauth_pending'][$provider] = [
+                'state' => $state, 'verifier' => $verifier, 'expires' => time() + 600,
+                'next' => LoginReturn::articleComments($request->getQueryParams()['next'] ?? null),
+            ];
 
             return $response->withStatus(302)
                 ->withHeader('Location', $client->authorizationUrl($provider, $state, $verifier))
@@ -71,8 +77,10 @@ final class OAuthRoutes
                 return $response->withStatus(403)->withHeader('Cache-Control', 'no-store');
             }
             unset($_SESSION['oauth_pending'][$provider]);
+            $next = $pending['next'] ?? null;
+            $retry = '/login?error=oauth'.($next === null ? '' : '&next='.rawurlencode($next));
             if (!is_string($query['code'] ?? null) || $query['code'] === '') {
-                return $response->withStatus(302)->withHeader('Location', '/login?error=oauth');
+                return $response->withStatus(302)->withHeader('Location', $retry);
             }
 
             try {
@@ -81,16 +89,18 @@ final class OAuthRoutes
                     return $response->withStatus(500);
                 }
                 $user = $accounts->signIn($provider, $identity['subject'], $identity['name'], $identity['email'], $identity['verified']);
-                $_SESSION = ['oauth_user_id' => $user['id']];
+                // Carry anonymous view markers across sign-in while replacing the old authentication state.
+                // Preserva as marcas anônimas de visualização no login e substitui o estado anterior de autenticação.
+                $_SESSION = ['oauth_user_id' => $user['id'], 'article_views' => $_SESSION['article_views'] ?? []];
             } catch (Throwable $exception) {
                 // Provider failures may contain credentials or tokens. Return
                 // one message and leave the current browser session unchanged.
                 error_log('Usina Docs OAuth callback failed for '.$provider);
-                return $response->withStatus(302)->withHeader('Location', '/login?error=oauth');
+                return $response->withStatus(302)->withHeader('Location', $retry);
             }
 
             return $response->withStatus(302)->withHeader('Cache-Control', 'no-store')
-                ->withHeader('Location', Roles::canEdit($user) ? '/admin' : '/');
+                ->withHeader('Location', $next ?? (Roles::canEdit($user) ? '/admin' : '/'));
         });
 
         $app->get('/admin/users', static function ($request, $response) use ($twig, $accounts) {

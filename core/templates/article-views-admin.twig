@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Visualizações dos artigos</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: .55rem; text-align: left; border-bottom: 1px solid light-dark(#c7d2e5, #32435d); }
+        td:last-child, th:last-child { text-align: right; }
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Voltar ao painel editorial</a>
+    <h1>Visualizações dos artigos</h1>
+    <p><strong>{{ total|number_format(0, ',', '.') }}</strong> visualizações registradas nos artigos publicados.</p>
+    {# Each row combines all language editions of one article.
+       Cada linha reúne as edições de um artigo em todos os idiomas. #}
+    <table>
+        <thead><tr><th scope="col">Artigo</th><th scope="col">Visualizações</th></tr></thead>
+        <tbody>
+            {% for article in articles %}
+                <tr><td><a href="/{{ article.language_code }}/p/{{ article.slug|url_encode }}">{{ article.title }}</a></td><td>{{ article.views|number_format(0, ',', '.') }}</td></tr>
+            {% else %}
+                <tr><td colspan="2">Nenhum artigo publicado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</main></body>
+</html>

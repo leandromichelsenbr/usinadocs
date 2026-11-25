@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Comentários dos artigos</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        /* Preserve comment paragraphs and wrap long strings so the queue works on narrow screens.
+           Preserva os parágrafos dos comentários e quebra textos longos para a fila funcionar em telas estreitas. */
+        .comment-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+        article { border-top: 1px solid light-dark(#c7d2e5, #32435d); padding-block: 1rem; }
+        button { padding: .45rem .7rem; }
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Voltar ao painel editorial</a>
+    <h1>Comentários dos artigos</h1>
+    {% set statuses = {pending: 'Pendentes', approved: 'Aprovados', rejected: 'Rejeitados'} %}
+    <nav aria-label="Situação dos comentários">
+        {% for value, label in statuses %}
+            <a href="/admin/comments?status={{ value }}"{% if status == value %} aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {% for comment in comments %}
+        <article>
+            <h2><a href="/{{ comment.language_code }}/p/{{ comment.slug|url_encode }}#comments">{{ comment.title|default(comment.slug) }}</a> ({{ comment.language_code|upper }})</h2>
+            <p><strong>{{ comment.author_name }}</strong> · <time datetime="{{ comment.created_at }}">{{ comment.created_at|date('d/m/Y H:i T', site_timezone|default('UTC')) }}</time></p>
+            <p class="comment-body">{{ comment.body }}</p>
+            {# Submit the status the editor saw so the server can detect an intervening moderation.
+               Envia o status que o editor viu para o servidor detectar uma moderação nesse intervalo. #}
+            <form method="post" action="/admin/comments/{{ comment.id }}">
+                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="current" value="{{ status }}">
+                {% if status != 'approved' %}<button name="decision" value="approved">Aprovar</button>{% endif %}
+                {% if status != 'rejected' %}<button name="decision" value="rejected">Rejeitar</button>{% endif %}
+            </form>
+        </article>
+    {% else %}
+        <p>Nenhum comentário nesta situação.</p>
+    {% endfor %}
+</main></body>
+</html>

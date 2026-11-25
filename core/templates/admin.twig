@@ -13,7 +13,9 @@
     <header><strong>{{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</strong><form method="post" action="/logout"><button>Sair</button></form></header>
     <h1>Painel editorial</h1>
     <p>Olá, {{ user.name }}.</p>
-    <nav class="nav">{% if can_manage_appearance %}<a href="/admin/appearance">Ajustes de interface</a>{% endif %}{% if can_manage_users %}<a href="/admin/users">Usuários e grupos</a>{% endif %}<a href="/admin/pages/new">Criar página</a><a href="/admin/authors">Autores</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
+    {# Engagement tools share the editorial panel's editor and administrator access.
+       As ferramentas de interação compartilham o acesso de editores e administradores ao painel editorial. #}
+    <nav class="nav">{% if can_manage_appearance %}<a href="/admin/appearance">Ajustes de interface</a>{% endif %}{% if can_manage_users %}<a href="/admin/users">Usuários e grupos</a>{% endif %}<a href="/admin/pages/new">Criar página</a><a href="/admin/authors">Autores</a><a href="/admin/comments">Comentários</a><a href="/admin/article-views">Visualizações</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
     <h2>Catálogo editorial</h2>
     <form class="search" method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
     <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>

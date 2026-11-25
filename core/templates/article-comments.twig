@@ -1,0 +1,53 @@
+{# Display the discussion in the article edition's language, even if the reader navigates in another one.
+   Exibe a conversa no idioma da edição do artigo, mesmo que o leitor navegue em outro. #}
+{% set messages = {
+    pt: {
+        heading: 'Comentários', empty: 'Ainda não há comentários aprovados.',
+        login: 'Entre para comentar', write: 'Seu comentário',
+        notice: 'Seu nome e comentário ficarão públicos após aprovação.',
+        send: 'Enviar para moderação', pending: 'Comentário enviado. Ele aparecerá após aprovação.',
+        invalid_length: 'Escreva um comentário de 2 a 2.000 caracteres.',
+        rate_limit: 'Você pode enviar até cinco comentários por hora. Tente novamente mais tarde.'
+    },
+    en: {
+        heading: 'Comments', empty: 'There are no approved comments yet.',
+        login: 'Sign in to comment', write: 'Your comment',
+        notice: 'Your name and comment will be public after approval.',
+        send: 'Submit for moderation', pending: 'Comment submitted. It will appear after approval.',
+        invalid_length: 'Write a comment between 2 and 2,000 characters.',
+        rate_limit: 'You can submit up to five comments per hour. Please try again later.'
+    },
+    es: {
+        heading: 'Comentarios', empty: 'Todavía no hay comentarios aprobados.',
+        login: 'Inicia sesión para comentar', write: 'Tu comentario',
+        notice: 'Tu nombre y comentario serán públicos después de la aprobación.',
+        send: 'Enviar para moderación', pending: 'Comentario enviado. Aparecerá después de la aprobación.',
+        invalid_length: 'Escribe un comentario de 2 a 2.000 caracteres.',
+        rate_limit: 'Puedes enviar hasta cinco comentarios por hora. Inténtalo de nuevo más tarde.'
+    }
+}[page.language_code] %}
+<section id="comments" class="article-comments" lang="{{ page.language_code }}" aria-labelledby="comments-title">
+    <h2 id="comments-title">{{ messages.heading }}</h2>
+    {% if engagement.flash %}<p role="status">{{ messages[engagement.flash] }}</p>{% endif %}
+    {% for comment in engagement.comments %}
+        {# Twig escapes names and comment bodies. CSS preserves line breaks without interpreting HTML.
+           O Twig escapa nomes e textos dos comentários. O CSS preserva as quebras de linha sem interpretar HTML. #}
+        <div class="article-comment">
+            <div><strong>{{ comment.author_name }}</strong> <time datetime="{{ comment.created_at }}">{{ comment.created_at|date(page.language_code == 'en' ? 'M j, Y, H:i T' : 'd/m/Y H:i T', site_timezone|default('UTC')) }}</time></div>
+            <p>{{ comment.body }}</p>
+        </div>
+    {% else %}
+        <p>{{ messages.empty }}</p>
+    {% endfor %}
+    {% if engagement.csrf %}
+        <form method="post" action="{{ engagement.path }}/comments">
+            <input type="hidden" name="csrf" value="{{ engagement.csrf }}">
+            <label for="comment-body">{{ messages.write }}</label>
+            <textarea id="comment-body" name="body" minlength="2" maxlength="2000" rows="4" required aria-describedby="comment-notice"></textarea>
+            <small id="comment-notice">{{ messages.notice }}</small>
+            <button type="submit">{{ messages.send }}</button>
+        </form>
+    {% else %}
+        <p><a href="/login?next={{ (engagement.path ~ '#comments')|url_encode }}">{{ messages.login }}</a></p>
+    {% endif %}
+</section>
