@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Textos legais</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        main { max-width: 55rem; }
+        fieldset { min-width: 0; margin: 1rem 0; border: 1px solid light-dark(#708477, #799386); }
+        label { display: grid; gap: .25rem; margin: .75rem 0; }
+        input, textarea, button { font: inherit; padding: .45rem .65rem; }
+        textarea { resize: vertical; }
+        .actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+        .legal-document-list li { margin-block: .35rem; overflow-wrap: anywhere; }
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Voltar ao painel editorial</a>
+    <h1>Textos legais</h1>
+    <p><a href="/admin/legal/new">Adicionar documento</a></p>
+    {% set status_labels = {empty: 'Sem texto', draft: 'Rascunho', published: 'Publicado', changed: 'Publicado com rascunho atualizado'} %}
+    <ul class="legal-document-list">
+        {% for key, item in documents %}
+            <li><a href="/admin/legal/{{ key }}"{% if slug == key and not creating %} aria-current="page"{% endif %}>{{ item.title }}</a> · {{ status_labels[item.status] }}</li>
+        {% endfor %}
+    </ul>
+    {% if editions is not null %}
+        <h2>{{ creating ? 'Novo documento legal' : documents[slug].title }}</h2>
+        {% if documents[slug].status in ['published', 'changed'] and not creating %}
+            <p>Versão pública
+                {% for locale, language in languages %}<a href="/{{ locale }}/legal/{{ slug }}" hreflang="{{ locale }}">{{ language }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+            </p>
+        {% endif %}
+        {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+        {% if saved == 'draft' %}<p role="status">Rascunho salvo.</p>{% endif %}
+        {% if saved == 'published' %}<p role="status">Documento publicado nos três idiomas.</p>{% endif %}
+        <p>Preencha o título e o texto nos três idiomas para publicar. O texto preserva as quebras de linha.</p>
+        <form method="post" action="{{ creating ? '/admin/legal' : '/admin/legal/' ~ slug }}">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            {% if creating %}
+                <label>Endereço permanente
+                    <input name="slug" value="{{ slug }}" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="exemplo-direitos-autorais">
+                </label>
+            {% endif %}
+            {# A single form sends all editions together so the server can validate the complete publication.
+               Um só formulário envia todas as edições juntas para o servidor validar a publicação completa. #}
+            {% for locale, language in languages %}
+                <fieldset>
+                    <legend lang="{{ locale }}">{{ language }}</legend>
+                    <label>Título <input name="editions[{{ locale }}][title]" lang="{{ locale }}" maxlength="160" value="{{ editions[locale].title|default('') }}"></label>
+                    <label>Texto <textarea name="editions[{{ locale }}][body]" lang="{{ locale }}" maxlength="30000" rows="7">{{ editions[locale].body|default('') }}</textarea></label>
+                </fieldset>
+            {% endfor %}
+            <div class="actions">
+                <button type="submit" name="action" value="draft">Salvar rascunho</button>
+                <button type="submit" name="action" value="publish">Publicar nos três idiomas</button>
+            </div>
+        </form>
+    {% endif %}
+</main></body>
+</html>

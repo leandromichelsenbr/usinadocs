@@ -1,0 +1,45 @@
+{% set copy = {
+    pt: {home: 'Início', languages: 'Idiomas disponíveis', updated: 'Atualizado em', date: 'd/m/Y'},
+    en: {home: 'Home', languages: 'Available languages', updated: 'Updated on', date: 'M j, Y'},
+    es: {home: 'Inicio', languages: 'Idiomas disponibles', updated: 'Actualizado el', date: 'd/m/Y'}
+}[locale] %}
+{% set site_label = site_appearance.display_name ?: site_default_name|default('Usina Docs') %}
+<!doctype html>
+<html lang="{{ locale == 'pt' ? 'pt-BR' : locale }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ document.title }} · {{ site_label }}</title>
+    {% for code in languages|keys %}
+        <link rel="alternate" hreflang="{{ code }}" href="/{{ code }}/legal/{{ slug }}">
+    {% endfor %}
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'site-logo-style.twig' %}
+        main { max-width: 53rem; }
+        header, footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+        footer { border-top: 1px solid light-dark(#708477, #799386); padding-top: 1rem; }
+        .legal-body { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: 1.5rem 2rem; }
+        .legal-languages a + a { margin-inline-start: .5rem; }
+    </style>
+</head>
+<body><main>
+    <header>
+        <a href="/?lang={{ locale }}" aria-label="{{ copy.home }}">{% include 'site-logo.twig' with {label: site_label} %}</a>
+        <nav class="legal-languages" aria-label="{{ copy.languages }}">
+            {% for code, language in languages %}
+                <a href="/{{ code }}/legal/{{ slug }}" hreflang="{{ code }}" lang="{{ code }}"{% if code == locale %} aria-current="page"{% endif %}>{{ language }}</a>
+            {% endfor %}
+        </nav>
+    </header>
+    <article>
+        <h1>{{ document.title }}</h1>
+        <p>{{ copy.updated }} <time datetime="{{ document.published_at }}">{{ document.published_at|date(copy.date, site_timezone|default('UTC')) }}</time></p>
+        {# Preserve the administrator's line breaks through CSS and let Twig escape the document text.
+           Preserva as quebras de linha com CSS e deixa o Twig escapar o texto do documento. #}
+        <div class="legal-body">{{ document.body }}</div>
+    </article>
+    <footer>{% include 'legal-links.twig' with {locale: locale} only %}</footer>
+</main></body>
+</html>
