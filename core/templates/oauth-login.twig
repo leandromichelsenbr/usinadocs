@@ -1,4 +1,8 @@
 {% set copy = reader_preferences.text %}
+{# Retain the validated return destination while changing preferences.
+   Preserva o destino de retorno validado ao alterar as preferências. #}
+{% set preference_query = next ? {next: next} : {} %}
+{% if failed %}{% set preference_query = preference_query|merge({error: 'oauth'}) %}{% endif %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
@@ -9,15 +13,15 @@
     <style>
         {% include 'site-logo-style.twig' %}
         {% include 'reader-login-style.twig' %}
-        {% include 'reader-settings-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
     </style>
 </head>
 <body>
-<main>
+<main class="reader-screen">
     {% if site_appearance.display_name or site_appearance.logo_light_id or site_appearance.logo_dark_id %}
         <p>{% include 'site-logo.twig' with {label: site_appearance.display_name ?: site_default_name|default('Usina Docs')} %}</p>
     {% endif %}
-    {% include 'reader-settings.twig' %}
+    {% include 'reader-language.twig' with {query: preference_query} only %}
     <p><a href="/">{{ copy.home }}</a></p>
     {% if account %}
         <h1>{{ copy.account }}</h1>
@@ -41,5 +45,6 @@
        Usa o rodapé público compartilhado nas telas de leitura e de login. #}
     {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
 </main>
+{% include 'reader-theme.twig' with {query: preference_query} only %}
 </body>
 </html>

@@ -15,3 +15,9 @@
 .reader-theme-options a:hover, .reader-theme-options a[aria-current] { background: light-dark(#eaf4fc, #243b55); }
 .reader-theme-options a[aria-current] { font-weight: 700; }
 .languages a:focus-visible, .reader-theme :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+/* Leave the last link reachable beneath the floating control on compact reader screens.
+   Mantém o último link acessível abaixo do controle flutuante nas telas de leitura compactas. */
+@media (max-width: 38rem) {
+    .reader-screen { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px)); }
+}
