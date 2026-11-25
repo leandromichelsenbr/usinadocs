@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\Views\Twig;
 use UsinaDocs\Core\AppFactory;
 use UsinaDocs\Core\Content\ArticleEngagement;
 use UsinaDocs\Core\Content\EditorialService;
@@ -116,6 +117,51 @@ final class ArticleEngagementTest extends TestCase
             self::assertTrue($this->engagement->submitComment('page-welcome', 'pt', $user, 'Comentário válido.'));
         }
         self::assertFalse($this->engagement->submitComment('page-welcome', 'en', $user, 'A sixth comment.'));
+    }
+
+    public function test_card_counts_share_views_and_count_only_approved_comments_in_each_edition(): void
+    {
+        // Seed a repeated article and a second publication to verify the bulk results stay separate.
+        // Prepara um artigo repetido e outra publicação para verificar que a consulta em lote mantém os resultados separados.
+        $empty = $this->editorial->create('Outro artigo', 'outro-artigo', '', '', '', '', 'article');
+        $this->editorial->publish($empty);
+        $this->engagement->incrementViews('page-welcome');
+        $reader = ['id' => 'reader', 'name' => 'Leitor'];
+        foreach (['pt', 'pt', 'pt', 'en', 'en'] as $locale) {
+            $this->engagement->submitComment('page-welcome', $locale, $reader, 'Comentário de teste.');
+        }
+        $this->engagement->moderate(1, 'pending', 'approved', 'editor');
+        $this->engagement->moderate(2, 'pending', 'rejected', 'editor');
+        $this->engagement->moderate(4, 'pending', 'approved', 'editor');
+        $this->engagement->moderate(5, 'pending', 'approved', 'editor');
+
+        self::assertSame([], $this->engagement->countsForArticles([]));
+        $counts = $this->engagement->countsForArticles(['page-welcome', $empty, 'page-welcome']);
+        self::assertCount(2, $counts);
+        self::assertSame(['views' => 1, 'approved_comments' => 1], $counts['page-welcome']['pt']);
+        self::assertSame(['views' => 1, 'approved_comments' => 2], $counts['page-welcome']['en']);
+        self::assertSame(['views' => 0, 'approved_comments' => 0], $counts[$empty]['pt']);
+
+        $this->engagement->moderate(1, 'approved', 'rejected', 'editor');
+        self::assertSame(0, $this->engagement->countsForArticles(['page-welcome'])['page-welcome']['pt']['approved_comments']);
+    }
+
+    public function test_card_labels_use_local_number_format_and_plural_forms(): void
+    {
+        // The card uses the interface language even when its data comes from a fallback edition.
+        // A chamada usa o idioma da interface, mesmo quando os dados vêm de uma edição alternativa.
+        $twig = Twig::create(dirname(__DIR__).'/templates');
+        foreach ([
+            'pt' => ['1.234 visualizações', '1 comentário aprovado'],
+            'en' => ['1,234 views', '1 approved comment'],
+            'es' => ['1.234 visualizaciones', '1 comentario aprobado'],
+        ] as $locale => [$views, $comment]) {
+            $body = $twig->fetch('article-card-counts.twig', [
+                'locale' => $locale, 'counts' => ['views' => 1234, 'approved_comments' => 1],
+            ]);
+            self::assertStringContainsString($views, $body);
+            self::assertStringContainsString($comment, $body);
+        }
     }
 
     public function test_non_articles_do_not_accept_comments_or_register_views(): void
