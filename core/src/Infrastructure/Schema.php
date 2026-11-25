@@ -49,6 +49,9 @@ final class Schema
             $statement->execute(['id' => $id, 'revision' => 'revision-welcome-pt', 'type' => $type, 'position' => $position, 'data' => $data]);
         }
 
+        // OAuth installations bootstrap administrators through a verified invitation.
+        if (($_ENV['USINADOCS_AUTH_MODE'] ?? '') === 'oauth') return;
+
         $email = $_ENV['USINADOCS_ADMIN_EMAIL'] ?? 'admin@example.test';
         $password = $_ENV['USINADOCS_ADMIN_PASSWORD'] ?? 'change-this-password';
         $user = $database->prepare('INSERT OR IGNORE INTO users (id, email, name, password_hash, role, created_at) VALUES (:id, :email, :name, :password_hash, :role, :created_at)');
