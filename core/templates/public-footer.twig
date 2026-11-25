@@ -1,0 +1,6 @@
+{# Show the installed Core build alongside the site's published legal links.
+   Exibe a versão instalada do Core junto aos links legais publicados do site. #}
+{% include 'legal-links.twig' with {locale: locale} only %}
+<p class="site-credit">
+    <small><a href="https://github.com/leandromichelsenbr/usinadocs" lang="en">Powered by Usina Docs</a> · {{ usinadocs_version }}</small>
+</p>

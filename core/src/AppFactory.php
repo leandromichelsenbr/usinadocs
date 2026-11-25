@@ -70,6 +70,16 @@ final class AppFactory
             $settings = is_readable($configPath) ? json_decode((string) file_get_contents($configPath), true) : null;
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
+        // Use release metadata shipped with this installation. An optional deployment stamp identifies the exact source revision.
+        // Usa os metadados de versão desta instalação. Um identificador opcional da implantação indica a revisão exata do código.
+        $version = trim((string) file_get_contents(dirname(__DIR__).'/VERSION'));
+        $revisionFile = dirname(__DIR__).'/BUILD_REVISION';
+        $revision = is_readable($revisionFile) ? trim((string) file_get_contents($revisionFile)) : '';
+        if (preg_match('/\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z/', $revision)) {
+            $version .= ' · '.substr($revision, 0, 7);
+        }
+        $twig->getEnvironment()->addGlobal('usinadocs_version', $version);
+
         AppearanceRoutes::register($app, $twig, $appearance, $media);
         // Legal documents are shared site content and use the same templates under either sign-in mode.
         // Os textos legais são conteúdo do site e usam os mesmos templates nos dois modos de login.

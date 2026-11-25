@@ -19,6 +19,10 @@ Copy-Item .env.example .env
 
 Abra `http://127.0.0.1:8080/pt/p/bem-vindo`.
 
+## Versão no rodapé público
+
+O rodapé lê a versão de `core/VERSION`. Em uma implantação baseada no Git, execute `git rev-parse HEAD > core/BUILD_REVISION` na raiz do checkout usado para a entrega. Distribua esse arquivo junto ao Core e atualize-o quando implantar uma nova revisão.
+
 ## Alterar acesso administrativo
 
 Defina `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD` no arquivo `.env`. Se o administrador já tiver sido criado, sincronize as novas credenciais sem apagar seu banco:

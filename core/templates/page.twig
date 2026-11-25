@@ -129,9 +129,9 @@
         {% endfor %}
     </article>
     {% if engagement %}{% include 'article-comments.twig' %}{% endif %}
-    {# Share the published legal navigation on reader and sign-in screens.
-       Compartilha a navegação legal publicada nas telas de leitura e de login. #}
-    {% include 'legal-links.twig' with {locale: reader_preferences.language} only %}
+    {# Use the shared public footer on reader and sign-in screens.
+       Usa o rodapé público compartilhado nas telas de leitura e de login. #}
+    {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
 </main>
 <dialog class="image-modal" id="image-modal"><div class="image-modal-content"><button type="button" class="image-modal-close">{{ copy.close }}</button><img alt="{{ copy.full_image }}"></div></dialog>
 <script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?{{ copy.correct|json_encode|raw }}:{{ copy.incorrect|json_encode|raw }};feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});const imageModal=document.querySelector('#image-modal'),modalImage=imageModal.querySelector('img');function openImage(source){modalImage.src=source;imageModal.showModal()}document.querySelector('.image-modal-close').addEventListener('click',()=>imageModal.close());imageModal.addEventListener('click',event=>{if(event.target===imageModal)imageModal.close()});document.querySelectorAll('.image-trigger').forEach(button=>button.addEventListener('click',()=>{const image=document.createElement('img');image.src=button.dataset.imageSrc;image.alt=button.dataset.imageAlt||{{ copy.image_alt|json_encode|raw }};image.loading='lazy';image.className='content-image';image.dataset.imageSrc=button.dataset.imageSrc;image.addEventListener('click',()=>openImage(image.dataset.imageSrc));button.replaceWith(image)}));document.querySelectorAll('.content-image').forEach(image=>image.addEventListener('click',()=>openImage(image.dataset.imageSrc||image.src)));</script>
