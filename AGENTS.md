@@ -6,7 +6,9 @@ After validating a requested Usina Docs change, commit and publish it to the off
 
 ## Didactic code comments
 
-Usina Docs is also a learning-oriented project. When creating or changing code, add as many useful didactic comments as practical so that a reader can understand not only what the implementation does, but why it was designed that way.
+Usina Docs is a public learning-oriented project. Whenever you create or edit source code, write didactic comments in both English and Portuguese for the code you add or change. Keep the two versions together and equivalent, with English first and Portuguese next. Explain the intent, how the code works, and why the implementation was chosen, with enough context for a reader learning from the source.
+
+O Usina Docs é um projeto público voltado ao aprendizado. Sempre que criar ou editar um arquivo-fonte, escreva comentários didáticos em inglês e português para o código criado ou alterado. Mantenha as duas versões juntas e equivalentes, com o inglês primeiro e o português em seguida. Explique a intenção, o funcionamento e o motivo das escolhas de implementação, com contexto suficiente para quem está aprendendo pelo código.
 
 Comments should explain, whenever relevant:
 
@@ -23,4 +25,4 @@ Prefer comments immediately above the code they clarify. Use docblocks for publi
 
 Do not add comments that merely restate a variable name, repeat the syntax line by line, preserve obsolete behavior, or hide unclear code. Improve names and structure first, then use comments to preserve context, reasoning and knowledge that the code cannot communicate by itself.
 
-When changing existing code, keep accurate comments and update or remove comments that no longer describe the implementation. New behavior should include proportionate didactic commentary, especially in the editorial domain, content-package compatibility, migrations, authentication, authorization, revision history and backup or restoration flows.
+When changing existing code, keep accurate comments and update both language versions together. Add a missing language to relevant comments in the changed code. Remove comments that no longer describe the implementation. New behavior should include proportionate didactic commentary, especially in the editorial domain, content-package compatibility, migrations, authentication, authorization, revision history and backup or restoration flows.
