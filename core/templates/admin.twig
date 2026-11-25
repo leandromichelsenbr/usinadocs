@@ -10,7 +10,15 @@
     </style>
 </head>
 <body><main>
-    <header><strong>{{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</strong><form method="post" action="/logout"><button>Sair</button></form></header>
+    <header>
+        <strong>{{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</strong>
+        <div class="actions">
+            {# Use the site's public entry point so the shortcut works with any configured homepage.
+               Usa a entrada pública do site para o atalho funcionar com a página inicial de cada instalação. #}
+            <a href="/">Página principal</a>
+            <form method="post" action="/logout"><button>Sair</button></form>
+        </div>
+    </header>
     <h1>Painel editorial</h1>
     <p>Olá, {{ user.name }}.</p>
     {# Engagement tools share the editorial panel's editor and administrator access.
