@@ -19,7 +19,7 @@
     <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>
     {% for page in catalog %}
         <tr>
-            <td class="page-title"><strong>{{ page.title }}</strong>{% if page.pt_status == 'published' %}<div class="actions"><a href="/admin/pages/{{ page.id }}/export">Exportar pacote</a></div>{% endif %}</td>
+            <td class="page-title"><strong>{{ page.title }}</strong><div class="actions"><a href="/admin/pages/{{ page.id }}/release">Prévia, publicação e capa</a></div>{% if page.pt_status == 'published' %}<div class="actions"><a href="/admin/pages/{{ page.id }}/export">Exportar pacote</a></div>{% endif %}</td>
             <td class="language-cell">
                 {% if page.pt_status == 'published' %}<a class="status published" href="/pt/p/{{ page.pt_slug }}">Publicado</a>{% elseif page.pt_status == 'draft' %}<span class="status draft">Rascunho</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
                 <div class="actions">

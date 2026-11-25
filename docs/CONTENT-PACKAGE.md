@@ -263,4 +263,8 @@ Assinaturas criptográficas são opcionais no alfa. Quando adotadas, devem assin
 
 ## Próxima implementação
 
-O núcleo já oferece exportação de página publicada, validação de manifesto, prévia sem escrita e importação transacional conservadora de páginas novas. A próxima evolução deve tratar conflitos e atualizações de conteúdo existente e ampliar o pacote de demonstração para três idiomas, referência estruturada e mídia com licença explícita.
+O núcleo exporta a página publicada e as edições disponíveis, o tipo de conteúdo e a capa opcional. Em `page.json`, os campos opcionais `content_type` e `cover_media_id` identificam o tipo editorial e a imagem das chamadas. O catálogo `media/media.json` registra cada imagem inserida diretamente nos blocos e a capa, com o caminho, o hash SHA-256, o tamanho, o tipo MIME, a origem e a licença. Os binários são armazenados pelo hash, de modo que duas edições podem usar a mesma imagem. Os pacotes anteriores continuam aceitos.
+
+The core exports the published page and its available editions, the content type, and the optional cover. In `page.json`, the optional `content_type` and `cover_media_id` fields identify the editorial type and teaser image. The `media/media.json` catalog records images used directly in blocks and in the cover, with their path, SHA-256 hash, size, MIME type, source and license. Hash-based paths let two editions share the same image. Older packages remain readable.
+
+O núcleo oferece validação de manifesto, prévia sem escrita e importação transacional de páginas. A próxima evolução deve tratar conflitos e atualizações de conteúdo existente e ampliar o pacote de demonstração para três idiomas, referência estruturada e mídia com licença explícita.

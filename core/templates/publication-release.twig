@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Prévia e publicação conjunta</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        body{margin:0;background:#f5f4ec;color:#183b2d;font:1rem/1.5 system-ui,sans-serif}
+        main{width:min(91rem,calc(100% - 2rem));margin:2rem auto 4rem}
+        h1{font-size:clamp(1.8rem,4vw,3rem);line-height:1.1}
+        a{color:inherit}button,select{font:inherit;padding:.45rem .65rem;max-width:100%}
+        .panel,.preview{padding:1rem;border:1px solid #becbc3;border-radius:.45rem;background:#fffef8}
+        .panel{margin-block:1rem}
+        .previews{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1rem;margin-block:1rem}
+        .preview h2{margin:0;font-size:1.2rem}
+        iframe{width:100%;height:34rem;border:1px solid #becbc3;background:white}
+        .cover{display:block;max-width:100%;max-height:9rem;object-fit:contain;margin-block:.6rem}
+        .error{color:#861a2e}
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Voltar ao painel editorial</a>
+    <h1>Prévia e publicação conjunta</h1>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <section class="panel" id="capa" aria-labelledby="cover-heading">
+        <h2 id="cover-heading">Capa das chamadas</h2>
+        <p>Uma capa compartilhada pelos três idiomas, exibida nas chamadas da home. Adicione imagens pela <a href="/admin/media">biblioteca de mídia</a>.</p>
+        {% if release.cover %}<img class="cover" src="/media/{{ release.cover|url_encode }}" alt="Capa atual">{% endif %}
+        <form method="post" action="/admin/pages/{{ page_id }}/cover">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <label for="cover">Imagem</label>
+            <select name="cover" id="cover">
+                <option value="">Sem capa</option>
+                {% for image in images %}<option value="{{ image.id }}"{{ image.id == release.cover ? ' selected' }}>{{ image.title }}</option>{% endfor %}
+            </select>
+            <button type="submit">Salvar capa</button>
+        </form>
+    </section>
+    <section aria-label="Prévias por idioma" class="previews">
+        {% for locale, edition in release.editions %}
+            <section class="preview">
+                <h2 lang="{{ locale }}">{{ edition.label }}</h2>
+                {% if edition.page %}
+                    <p>{{ edition.draft ? 'Rascunho' : 'Versão publicada' }}</p>
+                    {% if edition.missing %}<p class="error">Faltam blocos obrigatórios: {{ edition.missing|join(', ') }}.</p>{% endif %}
+                    {% if edition.draft %}
+                        <p><a href="/admin/pages/{{ page_id }}{{ locale == 'pt' ? '' : '/' ~ locale }}/edit">Editar rascunho</a></p>
+                    {% endif %}
+                    <iframe title="Prévia — {{ edition.label }}" loading="lazy" src="/admin/pages/{{ page_id }}/preview/{{ locale }}"></iframe>
+                {% else %}
+                    <p>Versão ausente.</p>
+                    {% if locale != 'pt' %}
+                        <a href="/admin/pages/{{ page_id }}/translations/{{ locale }}/new">Incluir tradução</a>
+                    {% endif %}
+                {% endif %}
+            </section>
+        {% endfor %}
+    </section>
+    {# Publish the reviewed snapshot so a later edit requires another look.
+       Publica a versão revisada para que uma edição posterior exija nova conferência. #}
+    {% if release.ready %}
+        <form method="post" action="/admin/pages/{{ page_id }}/release">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="snapshot" value="{{ release.snapshot }}">
+            <button type="submit">Publicar nos três idiomas</button>
+        </form>
+    {% else %}
+        <p>Para publicar em conjunto, as três edições devem existir, os rascunhos devem estar completos e pelo menos uma edição precisa ter mudanças.</p>
+    {% endif %}
+</main></body>
+</html>
