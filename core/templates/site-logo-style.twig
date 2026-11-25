@@ -1,0 +1,10 @@
+/* Follow the reader's theme, including operating system changes in automatic mode.
+   Acompanha o tema do leitor, inclusive mudanças no sistema no modo automático. */
+.site-logo { display: inline-block; max-width: min(100%, 15rem); }
+.site-logo img { display: block; max-width: 100%; max-height: 3.5rem; width: auto; height: auto; object-fit: contain; }
+.site-logo .site-logo-dark, :root[data-theme="dark"] .site-logo-light { display: none; }
+:root[data-theme="dark"] .site-logo-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="auto"] .site-logo-light { display: none; }
+    :root[data-theme="auto"] .site-logo-dark { display: block; }
+}
