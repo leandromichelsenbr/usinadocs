@@ -95,4 +95,28 @@ final class OAuthAccessTest extends TestCase
         self::assertStringContainsString('code_challenge_method=S256', $beginUrl);
         self::assertSame(403, $app->handle($request('GET', '/auth/google/callback'))->getStatusCode());
     }
+
+    public function test_comment_sign_in_keeps_only_a_local_article_destination(): void
+    {
+        // Exercise continuation through the real provider route without calling a remote identity service.
+        // Exercita o retorno pela rota real do provedor sem chamar um serviço remoto de identidade.
+        $_SESSION = [];
+        $app = AppFactory::create(dirname(__DIR__), $this->databasePath);
+        $factory = new ServerRequestFactory();
+        $login = $factory->createServerRequest('GET', '/login');
+        $provider = $factory->createServerRequest('GET', '/auth/google');
+        $callback = $factory->createServerRequest('GET', '/auth/google/callback');
+        $next = '/es/p/bienvenido#comments';
+        $params = ['next' => $next];
+
+        $form = $app->handle($login->withQueryParams($params));
+        self::assertStringContainsString('/auth/google?next='.rawurlencode($next), (string) $form->getBody());
+        self::assertSame(302, $app->handle($provider->withQueryParams($params))->getStatusCode());
+        self::assertSame($next, $_SESSION['oauth_pending']['google']['next']);
+        $retry = $app->handle($callback->withQueryParams(['state' => $_SESSION['oauth_pending']['google']['state']]));
+        self::assertSame('/login?error=oauth&next='.rawurlencode($next), $retry->getHeaderLine('Location'));
+
+        $app->handle($provider->withQueryParams(['next' => '//example.test/es/p/bienvenido#comments']));
+        self::assertNull($_SESSION['oauth_pending']['google']['next']);
+    }
 }

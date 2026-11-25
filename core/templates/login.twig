@@ -18,6 +18,9 @@
     <p>{{ copy.login_prompt }}</p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
     <form class="login-form" method="post" action="/login">
+        {# The sign-in handler validates the destination again before redirecting.
+           O controlador de login valida novamente o destino antes de redirecionar. #}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
         <label>{{ copy.email }} <input required type="email" name="email"></label>
         <label>{{ copy.password }} <input required type="password" name="password"></label>
         <button type="submit">{{ copy.login }}</button>

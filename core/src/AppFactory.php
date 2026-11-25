@@ -12,6 +12,7 @@ use Slim\Views\Twig;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Authentication\Authenticator;
+use UsinaDocs\Core\Authentication\LoginReturn;
 use UsinaDocs\Core\Authentication\OAuthAccounts;
 use UsinaDocs\Core\Authentication\OAuthClient;
 use UsinaDocs\Core\Authentication\OAuthRoutes;
@@ -21,12 +22,14 @@ use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Content\PageCovers;
 use UsinaDocs\Core\Content\AuthorDirectory;
+use UsinaDocs\Core\Content\ArticleEngagement;
 use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Media\MediaLibrary;
 use UsinaDocs\Core\Presentation\AppearanceRoutes;
 use UsinaDocs\Core\Presentation\ReaderPreferences;
 use UsinaDocs\Core\Presentation\PublicationRoutes;
 use UsinaDocs\Core\Presentation\AuthorRoutes;
+use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
 
 final class AppFactory
@@ -67,6 +70,8 @@ final class AppFactory
         }
         AppearanceRoutes::register($app, $twig, $appearance, $media);
         AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
+        $engagement = new ArticleEngagement($database);
+        ArticleEngagementRoutes::register($app, $twig, $engagement, $repository);
         PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media);
         $app->add(ReaderPreferences::middleware($twig));
         $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {
@@ -93,7 +98,7 @@ final class AppFactory
         });
         $app->get('/media/{id}', static function ($request,$response,array $a) use ($media) { $item=$media->find($a['id']);if($item===null||!is_file($media->path($item)))return$response->withStatus(404);$stream=fopen($media->path($item),'rb');$response->getBody()->write((string)stream_get_contents($stream));fclose($stream);return$response->withHeader('Content-Type',$item['mime_type'])->withHeader('Content-Length',(string)$item['byte_size']);});
 
-        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig): ResponseInterface {
+        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig, $engagement): ResponseInterface {
             $page = $repository->findByLocalizedSlug((string) $arguments['locale'], (string) $arguments['slug']);
 
             if ($page === null) {
@@ -113,15 +118,38 @@ final class AppFactory
             }
 
             $canEdit = Roles::canEdit($_SESSION['user'] ?? null);
-            return $twig->render($response, 'page.twig', ['page' => $page, 'can_edit' => $canEdit]);
+            // Build engagement only after finding a published article and resolving language redirects.
+            // Prepara a interação apenas após encontrar um artigo publicado e resolver os redirecionamentos de idioma.
+            $readerContext = $page['content_type'] === 'article'
+                ? ArticleEngagementRoutes::readerContext($request, $page, $engagement)
+                : null;
+            if ($readerContext !== null) {
+                $response = $response->withHeader('Cache-Control', 'private, no-store');
+            }
+            return $twig->render($response, 'page.twig', [
+                'page' => $page, 'can_edit' => $canEdit, 'engagement' => $readerContext,
+            ]);
         });
         if (!$useOAuth) {
             $authenticator = new Authenticator($database);
-            $app->get('/login', static fn (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface => $twig->render($response, 'login.twig'));
+            $app->get('/login', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig): ResponseInterface {
+                return $twig->render($response, 'login.twig', [
+                    'next' => LoginReturn::articleComments($request->getQueryParams()['next'] ?? null),
+                ])->withHeader('Cache-Control', 'no-store');
+            });
             $app->post('/login', static function (ServerRequestInterface $request, ResponseInterface $response) use ($authenticator): ResponseInterface {
-                $data = (array) $request->getParsedBody(); $user = $authenticator->attempt((string)($data['email'] ?? ''), (string)($data['password'] ?? ''));
-                if ($user === null) return $response->withHeader('Location', '/login')->withStatus(302);
-                session_regenerate_id(true); $_SESSION['user'] = $user; return $response->withHeader('Location', '/admin')->withStatus(302);
+                $data = (array) $request->getParsedBody();
+                $user = $authenticator->attempt((string) ($data['email'] ?? ''), (string) ($data['password'] ?? ''));
+                // Preserve the comment destination through a password retry and after successful authentication.
+                // Preserva o destino do comentário em nova tentativa de senha e após a autenticação bem-sucedida.
+                $next = LoginReturn::articleComments($data['next'] ?? null);
+                if ($user === null) {
+                    return $response->withHeader('Location', '/login'.($next === null ? '' : '?next='.rawurlencode($next)))->withStatus(302);
+                }
+                session_regenerate_id(true);
+                $_SESSION['user'] = $user;
+                unset($_SESSION['article_comment_csrf'], $_SESSION['comment_moderation_csrf'], $_SESSION['article_comment_flash']);
+                return $response->withHeader('Location', $next ?? '/admin')->withStatus(302);
             });
         }
         $app->post('/logout', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface { $_SESSION = []; session_destroy(); return $response->withHeader('Location', '/')->withStatus(302); });

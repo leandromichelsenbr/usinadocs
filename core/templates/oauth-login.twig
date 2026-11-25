@@ -28,8 +28,10 @@
         <h1>{{ copy.login }}</h1>
         {% if failed %}<p role="alert">{{ copy.login_error }}</p>{% endif %}
         <div class="login-links">
+            {# Pass the validated return path to the provider route that creates the OAuth attempt.
+               Envia o destino de retorno validado à rota do provedor que cria a tentativa OAuth. #}
             {% for provider, label in providers %}
-                <a class="provider" href="/auth/{{ provider }}">{{ copy.provider }} {{ label }}</a>
+                <a class="provider" href="/auth/{{ provider }}{% if next %}?next={{ next|url_encode }}{% endif %}">{{ copy.provider }} {{ label }}</a>
             {% else %}
                 <p>{{ copy.login_unavailable }}</p>
             {% endfor %}

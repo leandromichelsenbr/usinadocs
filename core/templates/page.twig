@@ -42,6 +42,16 @@
         .youtube-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; }
         .article-byline { display: grid; gap: .3rem; border-block: 1px solid light-dark(#c7d2e5, #32435d); padding: .75rem 0; margin-block: 1rem; font-size: .92rem; }
         .article-byline a { color: inherit; text-underline-offset: .2em; }
+        /* Keep comments readable across themes and prevent long strings from widening the article.
+           Mantém os comentários legíveis nos temas e impede que textos longos alarguem o artigo. */
+        .article-comments { border-top: 1px solid light-dark(#c7d2e5, #32435d); margin-top: 3rem; }
+        .article-comments a { color: light-dark(#1264a3, #7fc7ff); }
+        .article-comment { padding: 1rem; margin-block: .75rem; border-radius: .6rem; background: light-dark(#eaf4fc, #10243a); overflow-wrap: anywhere; }
+        .article-comment p { margin-bottom: 0; white-space: pre-wrap; }
+        .article-comment time { font-size: .85rem; }
+        .article-comments form { display: grid; gap: .55rem; margin-top: 1.5rem; }
+        .article-comments textarea, .article-comments button { font: inherit; padding: .45rem .7rem; }
+        .article-comments button { justify-self: start; }
     </style>
 </head>
 <body>
@@ -55,6 +65,16 @@
         <h1>{{ page.title }}</h1>
         {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}
         {% if page.content_type == 'article' %}{% include 'article-byline.twig' %}{% endif %}
+        {# Only the public article route supplies interaction data. Editorial previews stay free of counters and forms.
+           Apenas a rota pública de artigos fornece dados de interação. As prévias editoriais ficam sem contadores e formulários. #}
+        {% if engagement is defined and engagement is not null and engagement.views is not null %}
+            {% set view_copy = {
+                pt: ['visualização', 'visualizações', ',', '.'],
+                en: ['view', 'views', '.', ','],
+                es: ['visualización', 'visualizaciones', ',', '.']
+            }[page.language_code] %}
+            <p class="meta article-views">{{ engagement.views|number_format(0, view_copy[2], view_copy[3]) }} {{ engagement.views == 1 ? view_copy[0] : view_copy[1] }}</p>
+        {% endif %}
         {% for block in page.blocks %}
             <section>
                 {% if block.type == 'text' %}
@@ -108,6 +128,7 @@
             </section>
         {% endfor %}
     </article>
+    {% if engagement %}{% include 'article-comments.twig' %}{% endif %}
 </main>
 <dialog class="image-modal" id="image-modal"><div class="image-modal-content"><button type="button" class="image-modal-close">{{ copy.close }}</button><img alt="{{ copy.full_image }}"></div></dialog>
 <script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?{{ copy.correct|json_encode|raw }}:{{ copy.incorrect|json_encode|raw }};feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});const imageModal=document.querySelector('#image-modal'),modalImage=imageModal.querySelector('img');function openImage(source){modalImage.src=source;imageModal.showModal()}document.querySelector('.image-modal-close').addEventListener('click',()=>imageModal.close());imageModal.addEventListener('click',event=>{if(event.target===imageModal)imageModal.close()});document.querySelectorAll('.image-trigger').forEach(button=>button.addEventListener('click',()=>{const image=document.createElement('img');image.src=button.dataset.imageSrc;image.alt=button.dataset.imageAlt||{{ copy.image_alt|json_encode|raw }};image.loading='lazy';image.className='content-image';image.dataset.imageSrc=button.dataset.imageSrc;image.addEventListener('click',()=>openImage(image.dataset.imageSrc));button.replaceWith(image)}));document.querySelectorAll('.content-image').forEach(image=>image.addEventListener('click',()=>openImage(image.dataset.imageSrc||image.src)));</script>
