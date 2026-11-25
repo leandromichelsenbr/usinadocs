@@ -1,0 +1,15 @@
+{% set icons = {auto: '◐', light: '☀', dark: '☾'} %}
+{# A native disclosure works with keyboard and touch. Each link saves its choice through the existing reader preferences.
+   O controle nativo funciona com teclado e toque. Cada link salva a escolha pelas preferências de leitura existentes. #}
+<details class="article-theme">
+    <summary aria-label="{{ copy.theme }} · {{ copy[reader_preferences.theme] }}" title="{{ copy.theme }}">
+        <span aria-hidden="true">{{ icons[reader_preferences.theme] }}</span>
+    </summary>
+    <nav class="article-theme-options" aria-label="{{ copy.theme }}">
+        {% for mode, icon in icons %}
+            <a href="?theme={{ mode }}"{% if reader_preferences.theme == mode %} aria-current="true"{% endif %}>
+                <span aria-hidden="true">{{ icon }}</span> {{ copy[mode] }}
+            </a>
+        {% endfor %}
+    </nav>
+</details>
