@@ -37,6 +37,9 @@
         .notice { border-left: 4px solid light-dark(#1264a3, #7fc7ff); padding: .75rem 1rem; }
         .reader-tools { display: grid; gap: .7rem; justify-items: end; }
         @media (max-width: 38rem) { header { flex-wrap: wrap; } .reader-tools { justify-items: start; } }
+        .editorial-media { margin: 0; }
+        .editorial-media figcaption { margin-block: .45rem; font-size: .9rem; }
+        .youtube-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; }
     </style>
 </head>
 <body>
@@ -66,14 +69,31 @@
                     <div class="diagram">{% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}<div class="diagram-nodes">{% for node in block.data.nodes %}<span class="diagram-node">{{ node }}</span>{% if not loop.last %}<span class="diagram-arrow">→</span>{% endif %}{% endfor %}</div>{% if block.data.edges %}<ul class="diagram-links">{% for edge in block.data.edges %}<li>{{ edge }}</li>{% endfor %}</ul>{% endif %}</div>
                 {% elseif block.type == 'quiz' %}
                     <div class="quiz" data-answer="{{ block.data.correct|default(0) }}"><h2>{{ block.data.question }}</h2><div class="quiz-options">{% for option in block.data.options %}<button type="button" class="quiz-option" data-choice="{{ loop.index0 }}">{{ option }}</button>{% endfor %}</div><p class="quiz-feedback" hidden></p><p class="quiz-explanation quiz-correct-explanation" hidden>{{ block.data.explanation }}</p><p class="quiz-explanation quiz-error-explanation" hidden>{{ block.data.error_explanation }}{% if block.data.error_url %} <a href="{{ block.data.error_url }}">{{ copy.review }}</a>{% endif %}</p></div>
+                {% elseif block.type == 'youtube' and block.data.video_id %}
+                    {# Build the embed from the validated identifier and keep a link when playback is unavailable.
+                       Monta a incorporação com o identificador validado e mantém um link se a reprodução estiver indisponível. #}
+                    <figure class="editorial-media">
+                        <iframe class="youtube-video" width="560" height="315"
+                            src="https://www.youtube-nocookie.com/embed/{{ block.data.video_id }}"
+                            title="{{ block.data.title|default(copy.video) }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+                            allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                        {% if block.data.caption %}<figcaption>{{ block.data.caption }}</figcaption>{% endif %}
+                        <p><a href="https://www.youtube.com/watch?v={{ block.data.video_id }}">{{ copy.watch_video }}</a></p>
+                    </figure>
                 {% elseif block.type == 'image' %}
+                    {# An illustration's alternative text and caption belong to its localized block.
+                       O texto alternativo e a legenda de uma ilustração pertencem ao bloco localizado. #}
                     {% set image_url = '/media/' ~ block.data.id %}
                     {% set image_label = block.data.button_label|default(copy.load_image) %}
-                    {% if block.data.display|default('static') == 'on_demand' %}
-                        <button type="button" class="image-trigger" data-image-src="{{ image_url }}" data-image-label="{{ image_label }}">{{ image_label }}</button>
-                    {% else %}
-                        <img src="{{ image_url }}" alt="{{ copy.image_alt }}" loading="lazy" class="content-image" data-image-src="{{ image_url }}">
-                    {% endif %}
+                    {% set image_alt = block.data.alt|default(copy.image_alt) %}
+                    <figure class="editorial-media">
+                        {% if block.data.display|default('static') == 'on_demand' %}
+                            <button type="button" class="image-trigger" data-image-src="{{ image_url }}" data-image-label="{{ image_label }}" data-image-alt="{{ image_alt }}">{{ image_label }}</button>
+                        {% else %}
+                            <img src="{{ image_url }}" alt="{{ image_alt }}" loading="lazy" class="content-image" data-image-src="{{ image_url }}">
+                        {% endif %}
+                        {% if block.data.caption %}<figcaption>{{ block.data.caption }}</figcaption>{% endif %}
+                    </figure>
                 {% elseif block.type == 'reference' %}
                     <p><strong>{{ copy.reference_label }}:</strong> <a href="{{ block.data.url }}">{{ block.data.title }}</a></p>
                 {% elseif block.type == 'notice' %}
@@ -86,6 +106,6 @@
     </article>
 </main>
 <dialog class="image-modal" id="image-modal"><div class="image-modal-content"><button type="button" class="image-modal-close">{{ copy.close }}</button><img alt="{{ copy.full_image }}"></div></dialog>
-<script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?{{ copy.correct|json_encode|raw }}:{{ copy.incorrect|json_encode|raw }};feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});const imageModal=document.querySelector('#image-modal'),modalImage=imageModal.querySelector('img');function openImage(source){modalImage.src=source;imageModal.showModal()}document.querySelector('.image-modal-close').addEventListener('click',()=>imageModal.close());imageModal.addEventListener('click',event=>{if(event.target===imageModal)imageModal.close()});document.querySelectorAll('.image-trigger').forEach(button=>button.addEventListener('click',()=>{const image=document.createElement('img');image.src=button.dataset.imageSrc;image.alt='Imagem de apoio';image.loading='lazy';image.className='content-image';image.dataset.imageSrc=button.dataset.imageSrc;image.addEventListener('click',()=>openImage(image.dataset.imageSrc));button.replaceWith(image)}));document.querySelectorAll('.content-image').forEach(image=>image.addEventListener('click',()=>openImage(image.dataset.imageSrc||image.src)));</script>
+<script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?{{ copy.correct|json_encode|raw }}:{{ copy.incorrect|json_encode|raw }};feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});const imageModal=document.querySelector('#image-modal'),modalImage=imageModal.querySelector('img');function openImage(source){modalImage.src=source;imageModal.showModal()}document.querySelector('.image-modal-close').addEventListener('click',()=>imageModal.close());imageModal.addEventListener('click',event=>{if(event.target===imageModal)imageModal.close()});document.querySelectorAll('.image-trigger').forEach(button=>button.addEventListener('click',()=>{const image=document.createElement('img');image.src=button.dataset.imageSrc;image.alt=button.dataset.imageAlt||{{ copy.image_alt|json_encode|raw }};image.loading='lazy';image.className='content-image';image.dataset.imageSrc=button.dataset.imageSrc;image.addEventListener('click',()=>openImage(image.dataset.imageSrc));button.replaceWith(image)}));document.querySelectorAll('.content-image').forEach(image=>image.addEventListener('click',()=>openImage(image.dataset.imageSrc||image.src)));</script>
 </body>
 </html>

@@ -48,6 +48,11 @@ final class PublishedPageRepository
                         if ($artifact === null) return ['id'=>$block['id'],'type'=>'missing_artifact','position'=>(int)$block['position'],'data'=>['title'=>'Artefato indisponível']];
                         $block['type']=$artifact['type'];$data=$artifact['data'];$data['_artifact']=$artifact['meta'];
                     }
+                    if ($block['type'] === 'youtube') {
+                        // Normalize at the public boundary too, since imported packages may bypass the page editor.
+                        // Normaliza também na saída pública, pois pacotes importados podem passar fora do editor.
+                        $data['video_id'] = YouTubeVideo::id($data['url'] ?? null);
+                    }
                     if ($block['type'] === 'table') {
                         $data['headers'] = is_array($data['headers'] ?? null) ? $data['headers'] : array_values(array_filter(array_map('trim', explode('|', (string) ($data['headers'] ?? $data['headers_text'] ?? '')))));
                         $data['rows'] = is_array($data['rows'] ?? null) ? $data['rows'] : array_map(static fn (string $row): array => array_map('trim', explode('|', $row)), array_filter(preg_split('/\R/', (string) ($data['rows'] ?? $data['rows_text'] ?? '')) ?: []));
