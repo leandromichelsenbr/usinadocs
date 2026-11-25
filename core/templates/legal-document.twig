@@ -40,6 +40,6 @@
            Preserva as quebras de linha com CSS e deixa o Twig escapar o texto do documento. #}
         <div class="legal-body">{{ document.body }}</div>
     </article>
-    <footer>{% include 'legal-links.twig' with {locale: locale} only %}</footer>
+    <footer>{% include 'public-footer.twig' with {locale: locale} only %}</footer>
 </main></body>
 </html>

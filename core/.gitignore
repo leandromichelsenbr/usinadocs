@@ -3,3 +3,4 @@
 /database/database.sqlite
 /storage/media/
 /storage/*.zip
+/BUILD_REVISION

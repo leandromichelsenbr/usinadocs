@@ -34,8 +34,8 @@
             <p>{{ copy.no_authors }}</p>
         {% endif %}
     {% endif %}
-    {# Share the published legal navigation on reader and sign-in screens.
-       Compartilha a navegação legal publicada nas telas de leitura e de login. #}
-    {% include 'legal-links.twig' with {locale: reader_preferences.language} only %}
+    {# Use the shared public footer on reader and sign-in screens.
+       Usa o rodapé público compartilhado nas telas de leitura e de login. #}
+    {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
 </main></body>
 </html>
