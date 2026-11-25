@@ -1,59 +1,122 @@
+{% set copy = reader_preferences.text %}
+{% set labels = editorial_labels[reader_preferences.language] %}
+{% set site_label = site_appearance.display_name ?: site_default_name|default('Usina Docs') %}
 <!doctype html>
-<html lang="pt">
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Administração · {{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</title>
+    <title>{{ copy.panel }} · {{ site_label }}</title>
     {% include 'site-favicon.twig' %}
     <style>
-        body{font:16px system-ui;margin:2rem;max-width:1200px;color:#172033}header,.nav,.search,.actions{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap}header{justify-content:space-between}.nav{padding:.9rem 0;border-block:1px solid #d8dee9}.search{margin:1rem 0}.search input{min-width:280px;padding:.5rem}table{width:100%;border-collapse:collapse}th,td{padding:.8rem;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}th{background:#f5f7fa}.page-title{min-width:190px}.language-cell{min-width:220px}.status{display:inline-block;padding:.15rem .45rem;border-radius:999px;font-size:.78rem;font-weight:700}.published{background:#e3f4e9;color:#096b2e}.draft{background:#fff0cf;color:#805000}.absent,.missing{background:#f8e4e4;color:#8b1f2d}.actions{margin-top:.45rem}.actions form,header form{display:inline;margin:0}.actions a,.actions button{font:inherit;font-size:.82rem}.actions button{cursor:pointer}a{color:#1264a3}.empty{padding:2rem;text-align:center;color:#526174}@media(max-width:850px){body{margin:1rem}.catalog{display:block;overflow-x:auto}}
+        {% include 'reader-controls-style.twig' %}
+        :root { color-scheme: light; }
+        :root[data-theme="dark"] { color-scheme: dark; }
+        @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
+        body { font: 1rem/1.45 system-ui, sans-serif; margin: 2rem; max-width: 1200px; background: light-dark(#fff, #0e1624); color: light-dark(#172033, #edf3ff); }
+        header, .nav, .search, .actions { display: flex; gap: .65rem; align-items: center; flex-wrap: wrap; }
+        header { justify-content: space-between; }
+        .nav { padding: .9rem 0; border-block: 1px solid light-dark(#d8dee9, #32435d); }
+        .search { margin: 1rem 0; }
+        .search input { width: min(100%, 18rem); padding: .5rem; }
+        .catalog { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: .8rem; border-bottom: 1px solid light-dark(#ddd, #32435d); text-align: left; vertical-align: top; }
+        th { background: light-dark(#f5f7fa, #17263a); }
+        .page-title { min-width: 13rem; }
+        .language-cell { min-width: 14rem; }
+        .actions { margin-block: .35rem; }
+        .actions form { margin: 0; }
+        a { color: inherit; }
+        button { font: inherit; cursor: pointer; }
+        .status { display: inline-block; padding: .15rem .45rem; border-radius: .3rem; font-size: .8rem; font-weight: 700; background: light-dark(#eef2f8, #273850); }
+        .status.hidden, .status.draft { background: light-dark(#fff1d7, #3b2e15); }
+        .status.published { background: light-dark(#dbf1e5, #203c33); }
+        @media (max-width: 48rem) { body { margin: 1rem; } }
     </style>
 </head>
-<body><main>
+<body><main class="reader-screen">
     <header>
-        <strong>{{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</strong>
+        <strong>{{ site_label }}</strong>
         <div class="actions">
-            {# Use the site's public entry point so the shortcut works with any configured homepage.
-               Usa a entrada pública do site para o atalho funcionar com a página inicial de cada instalação. #}
-            <a href="/">Página principal</a>
-            <form method="post" action="/logout"><button>Sair</button></form>
+            {% include 'reader-language.twig' with {query: search != '' ? {q: search} : {}} only %}
+            <a href="/">{{ labels.homepage }}</a>
+            <form method="post" action="/logout"><button>{{ copy.sign_out }}</button></form>
         </div>
     </header>
-    <h1>Painel editorial</h1>
-    <p>Olá, {{ user.name }}.</p>
-    {# Engagement tools share the editorial panel's editor and administrator access.
-       As ferramentas de interação compartilham o acesso de editores e administradores ao painel editorial. #}
-    {# Legal settings use the same administrator-only access as site appearance.
-       Os textos legais têm o mesmo acesso exclusivo de administradores usado na identidade do site. #}
-    <nav class="nav">{% if can_manage_appearance %}<a href="/admin/appearance">Ajustes de interface</a><a href="/admin/legal">Textos legais</a>{% endif %}{% if can_manage_users %}<a href="/admin/users">Usuários e grupos</a>{% endif %}<a href="/admin/pages/new">Criar página</a><a href="/admin/authors">Autores</a><a href="/admin/comments">Comentários</a><a href="/admin/article-views">Visualizações</a><a href="/admin/models">Modelos editoriais</a><a href="/admin/artifacts">Artefatos reutilizáveis</a><a href="/admin/media">Biblioteca de mídia</a><a href="/admin/translations">Revisar traduções</a><a href="/admin/packages">Importar pacote</a></nav>
-    <h2>Catálogo editorial</h2>
-    <form class="search" method="get" action="/admin"><input name="q" value="{{ search }}" placeholder="Buscar por título"><button>Buscar</button></form>
-    <div class="catalog"><table><thead><tr><th>Página</th><th>Português</th><th>English</th><th>Español</th></tr></thead><tbody>
-    {% for page in catalog %}
-        <tr>
-            <td class="page-title"><strong>{{ page.title }}</strong><div class="actions"><a href="/admin/pages/{{ page.id }}/release">Prévia, publicação e capa</a></div>{% if page.pt_status == 'published' %}<div class="actions"><a href="/admin/pages/{{ page.id }}/export">Exportar pacote</a></div>{% endif %}</td>
-            <td class="language-cell">
-                {% if page.pt_status == 'published' %}<a class="status published" href="/pt/p/{{ page.pt_slug }}">Publicado</a>{% elseif page.pt_status == 'draft' %}<span class="status draft">Rascunho</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
-                <div class="actions">
-                    {% if page.pt_status != 'missing' %}<a href="/admin/pages/{{ page.id }}/history/pt">Histórico</a>{% endif %}
-                    {% if page.pt_has_draft %}<a href="/admin/pages/{{ page.id }}/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/publish"><button>Publicar</button></form>{% elseif page.pt_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/pt"><button>Criar revisão</button></form>{% endif %}
-                </div>
-            </td>
-            <td class="language-cell">
-                {% if page.en_status == 'published' %}<a class="status published" href="/en/p/{{ page.en_slug }}">Publicado</a>{% elseif page.en_status == 'draft' %}<span class="status draft">Rascunho</span>{% elseif page.en_status == 'absent' %}<span class="status absent">Ausente</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
-                <div class="actions">
-                    {% if page.en_status not in ['absent','missing'] %}<a href="/admin/pages/{{ page.id }}/history/en">Histórico</a>{% endif %}
-                    {% if page.en_has_draft %}<a href="/admin/pages/{{ page.id }}/en/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/en/publish"><button>Publicar</button></form>{% elseif page.en_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/en"><button>Criar revisão</button></form>{% elseif page.en_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/en/new">Incluir tradução</a>{% endif %}
-                </div>
-            </td>
-            <td class="language-cell">
-                {% if page.es_status == 'published' %}<a class="status published" href="/es/p/{{ page.es_slug }}">Publicado</a>{% elseif page.es_status == 'draft' %}<span class="status draft">Rascunho</span>{% elseif page.es_status == 'absent' %}<span class="status absent">Ausente</span>{% else %}<span class="status missing">Sem conteúdo</span>{% endif %}
-                <div class="actions">
-                    {% if page.es_status not in ['absent','missing'] %}<a href="/admin/pages/{{ page.id }}/history/es">Histórico</a>{% endif %}
-                    {% if page.es_has_draft %}<a href="/admin/pages/{{ page.id }}/es/edit">Editar rascunho</a><form method="post" action="/admin/pages/{{ page.id }}/es/publish"><button>Publicar</button></form>{% elseif page.es_status == 'published' %}<form method="post" action="/admin/pages/{{ page.id }}/revisions/es"><button>Criar revisão</button></form>{% elseif page.es_status == 'absent' %}<a href="/admin/pages/{{ page.id }}/translations/es/new">Incluir tradução</a>{% endif %}
-                </div>
-            </td>
-        </tr>
-    {% else %}<tr><td class="empty" colspan="4">Nenhuma página encontrada.</td></tr>{% endfor %}
-    </tbody></table></div>
-</main></body></html>
+    <h1>{{ copy.panel }}</h1>
+    <p>{{ labels.hello }} {{ user.name }}.</p>
+    <nav class="nav" aria-label="{{ copy.panel }}">
+        {% if can_manage_appearance %}
+            <a href="/admin/appearance">{{ labels.appearance }}</a>
+            <a href="/admin/legal">{{ labels.legal }}</a>
+        {% endif %}
+        {% if can_manage_users %}<a href="/admin/users">{{ labels.users }}</a>{% endif %}
+        {% for path, label in {
+            'pages/new': 'new_page', authors: 'authors', comments: 'comments', 'article-views': 'views',
+            models: 'models', artifacts: 'artifacts', media: 'media', translations: 'translations', packages: 'packages'
+        } %}
+            <a href="/admin/{{ path }}">{{ labels[label] }}</a>
+        {% endfor %}
+    </nav>
+    <h2>{{ labels.catalog }}</h2>
+    <form class="search" method="get" action="/admin">
+        <input name="q" value="{{ search }}" placeholder="{{ labels.search_title }}" aria-label="{{ labels.search_title }}">
+        <button>{{ labels.search }}</button>
+    </form>
+    <div class="catalog"><table>
+        <thead><tr><th scope="col">{{ labels.page }}</th>{% for code, name in reader_preferences.languages %}<th scope="col" lang="{{ code }}">{{ name }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for page in catalog %}
+            {% set admin_page = '/admin/pages/' ~ page.id %}
+            <tr>
+                <td class="page-title">
+                    <strong>{{ page.title }}</strong>
+                    {% if page.hidden %}<span class="status hidden">{{ labels.hidden }}</span>{% endif %}
+                    <div class="actions"><a href="{{ admin_page }}/release">{{ labels.release }}</a></div>
+                    {% if page.pt_status == 'published' %}
+                        <div class="actions"><a href="{{ admin_page }}/export">{{ labels.export }}</a></div>
+                        {# Visibility is an article-wide action. It leaves editions and drafts available to editors.
+                           A visibilidade vale para o artigo inteiro. Edições e rascunhos continuam disponíveis aos editores. #}
+                        {% if page.content_type == 'article' or page.hidden %}
+                            <form method="post" action="{{ admin_page }}/visibility">
+                                <input type="hidden" name="csrf" value="{{ csrf }}">
+                                <input type="hidden" name="q" value="{{ search }}">
+                                <button type="submit" name="hidden" value="{{ page.hidden ? '0' : '1' }}">{{ page.hidden ? labels.show : labels.hide }}</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% for code in reader_preferences.languages|keys %}
+                    {% set status = page[code ~ '_status'] %}
+                    {% set draft = page[code ~ '_has_draft'] %}
+                    {% set edit_path = admin_page ~ (code == 'pt' ? '' : '/' ~ code) %}
+                    <td class="language-cell">
+                        {% if status == 'published' and not page.hidden %}
+                            <a class="status published" href="/{{ code }}/p/{{ page[code ~ '_slug']|url_encode }}">{{ labels.published }}</a>
+                        {% else %}
+                            <span class="status {{ status }}">{{ labels[status] }}</span>
+                        {% endif %}
+                        <div class="actions">
+                            {% if status not in ['missing', 'absent'] %}<a href="{{ admin_page }}/history/{{ code }}">{{ labels.history }}</a>{% endif %}
+                            {% if draft %}
+                                <a href="{{ edit_path }}/edit">{{ labels.edit_draft }}</a>
+                                <form method="post" action="{{ edit_path }}/publish"><button>{{ labels.publish }}</button></form>
+                                <a href="{{ admin_page }}/revisions/{{ code }}/discard">{{ labels.discard }}</a>
+                            {% elseif status == 'published' %}
+                                <form method="post" action="{{ admin_page }}/revisions{% if code != 'pt' %}/{{ code }}{% endif %}"><button>{{ labels.new_revision }}</button></form>
+                            {% elseif code != 'pt' and status == 'absent' %}
+                                <a href="{{ admin_page }}/translations/{{ code }}/new">{{ labels.new_translation }}</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                {% endfor %}
+            </tr>
+        {% else %}
+            <tr><td colspan="4">{{ labels.empty }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</main>
+{% include 'reader-theme.twig' with {query: search != '' ? {q: search} : {}} only %}
+</body></html>

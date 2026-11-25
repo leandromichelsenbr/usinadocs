@@ -1,1 +1,61 @@
-<!doctype html><html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Histórico de revisões · Usina Docs</title><style>body{font:16px system-ui;margin:2rem;max-width:1000px}table{width:100%;border-collapse:collapse}th,td{padding:.75rem;border-bottom:1px solid #ddd;text-align:left}.current{color:#096b2e;font-weight:700}form{display:inline}</style><body><main><p><a href="/admin">← Painel editorial</a></p><h1>Histórico de revisões · {{ language|upper }}</h1><p>Restaurar cria um novo rascunho e nunca altera ou exclui as revisões existentes.</p><table><thead><tr><th>Revisão</th><th>Título</th><th>Estado</th><th>Blocos</th><th>Data</th><th>Ações</th></tr></thead><tbody>{% for revision in history %}<tr><td>{{ revision.number }}</td><td>{{ revision.title }}</td><td class="{{ revision.is_current ? 'current' : '' }}">{{ revision.is_current ? 'publicada atual' : (revision.status == 'draft' ? 'rascunho' : 'publicada anteriormente') }}</td><td>{{ revision.block_count }}</td><td>{{ revision.published_at|default(revision.created_at) }}</td><td>{% if current and revision.id != current.id %}<a href="/admin/pages/{{ page_id }}/compare/{{ language }}?from={{ revision.id }}&to={{ current.id }}">Comparar com a atual</a> · {% endif %}{% if revision.status == 'published' and not revision.is_current %}<form method="post" action="/admin/pages/{{ page_id }}/restore/{{ language }}/{{ revision.id }}"><button>Restaurar como rascunho</button></form>{% endif %}</td></tr>{% endfor %}</tbody></table></main></body></html>
+{% set labels = editorial_labels[reader_preferences.language] %}
+{% set path = '/admin/pages/' ~ page_id %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ labels.revision_history }} · Usina Docs</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+        main { max-width: 68rem; margin-block: 2rem; }
+        .history { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th,td { padding: .75rem; border-bottom: 1px solid light-dark(#becabe, #53685b); text-align: left; }
+        .current { font-weight: 700; }
+        td form { display: inline-block; margin: .15rem 0; }
+    </style>
+</head>
+<body><main class="reader-screen">
+    <p><a href="/admin">← {{ reader_preferences.text.panel }}</a></p>
+    {% include 'reader-language.twig' with {query: show_archived ? {archived: '1'} : {}} only %}
+    <h1>{{ labels.revision_history }} · {{ language|upper }}</h1>
+    <p>{{ labels.restore_note }}</p>
+    {% if history|filter(revision => revision.archived) %}
+        <p><a href="{{ path }}/history/{{ language }}{{ show_archived ? '' : '?archived=1' }}">{{ show_archived ? labels.hide_archived : labels.show_archived }}</a></p>
+    {% endif %}
+    <div class="history"><table>
+        <thead><tr>{% for field in ['revision', 'title', 'state', 'blocks', 'date', 'actions'] %}<th scope="col">{{ labels[field] }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {# Archived snapshots stay in storage but only appear here when the editor requests them.
+           As revisões arquivadas ficam gravadas e só aparecem aqui quando o editor solicita. #}
+        {% for revision in history|filter(revision => show_archived or not revision.archived) %}
+            <tr>
+                <td>{{ revision.number }}</td><td>{{ revision.title }}</td>
+                <td class="{{ revision.is_current ? 'current' : '' }}">{{ labels[revision.is_current ? 'current' : (revision.archived ? 'archived' : (revision.status == 'published' ? 'previous' : revision.status))] }}</td>
+                <td>{{ revision.block_count }}</td><td>{{ revision.published_at|default(revision.created_at) }}</td>
+                <td>
+                    {% if current and revision.id != current.id %}
+                        <a href="{{ path }}/compare/{{ language }}?from={{ revision.id }}&amp;to={{ current.id }}">{{ labels.compare }}</a>
+                    {% endif %}
+                    {% if revision.status == 'draft' %}
+                        <a href="{{ path }}/revisions/{{ language }}/discard">{{ labels.discard }}</a>
+                    {% elseif revision.status == 'published' and not revision.is_current %}
+                        {% if not revision.archived %}
+                            <form method="post" action="{{ path }}/restore/{{ language }}/{{ revision.id }}"><button>{{ labels.restore }}</button></form>
+                        {% endif %}
+                        <form method="post" action="{{ path }}/revisions/{{ language }}/{{ revision.id }}/archive">
+                            <input type="hidden" name="csrf" value="{{ csrf }}">
+                            <button type="submit" name="archived" value="{{ revision.archived ? '0' : '1' }}">{{ revision.archived ? labels.unarchive : labels.archive }}</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</main>
+{% include 'reader-theme.twig' with {query: show_archived ? {archived: '1'} : {}} only %}
+</body></html>
