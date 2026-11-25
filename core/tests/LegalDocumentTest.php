@@ -82,6 +82,10 @@ final class LegalDocumentTest extends TestCase
             self::assertSame(200, $response->getStatusCode());
             self::assertStringContainsString('<h1>'.$edition['title'].'</h1>', (string) $response->getBody());
             self::assertStringContainsString(htmlspecialchars($edition['body']), (string) $response->getBody());
+            // The shared switcher retains the document identity across languages.
+            // O seletor compartilhado mantém a identidade do documento ao trocar de idioma.
+            self::assertStringContainsString('href="/es/p/legal-privacidade?lang=es"', (string) $response->getBody());
+            self::assertStringContainsString('class="reader-theme"', (string) $response->getBody());
         }
         $switch = $this->request('GET', '/pt/p/legal-privacidade')->withQueryParams(['lang' => 'en']);
         self::assertSame('/en/p/legal-privacidade', $this->app->handle($switch)->getHeaderLine('Location'));

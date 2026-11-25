@@ -8,20 +8,15 @@
     {% include 'site-favicon.twig' %}
     <style>
         {% include 'reader-login-style.twig' %}
-        {% include 'reader-settings-style.twig' %}
-        main{max-width:49rem}.biography{white-space:pre-wrap;overflow-wrap:anywhere}.language-links{display:flex;gap:1rem;margin-block:1rem}
+        {% include 'reader-controls-style.twig' %}
+        main{max-width:49rem}.biography{white-space:pre-wrap;overflow-wrap:anywhere}.languages{margin-block:1rem}
         .author-list li{margin-block:.6rem}
     </style>
 </head>
-<body><main>
+<body><main class="reader-screen">
     <p><a href="/">{{ copy.home }}</a>{% if profile %} · <a href="/{{ locale }}/p/autores">{{ copy.authors }}</a>{% endif %}</p>
-    {% include 'reader-settings.twig' %}
-    <nav class="language-links" aria-label="{{ copy.available_languages }}">
-        {% for code, label in reader_preferences.languages %}
-            {% set path = profile ? 'autor-' ~ profile.slug : 'autores' %}
-            <a href="/{{ code }}/p/{{ path }}" lang="{{ code }}"{{ locale == code ? ' aria-current="page"' }}>{{ label }}</a>
-        {% endfor %}
-    </nav>
+    {% set localized_slug = profile ? 'autor-' ~ profile.slug : 'autores' %}
+    {% include 'reader-language.twig' with {localized_slug: localized_slug, active_language: locale} only %}
     {% if profile %}
         <h1>{{ profile.name }}</h1>
         {% if biography_language != locale %}<p>{{ copy.author_bio_fallback }}</p>{% endif %}
@@ -37,5 +32,7 @@
     {# Use the shared public footer on reader and sign-in screens.
        Usa o rodapé público compartilhado nas telas de leitura e de login. #}
     {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
-</main></body>
+</main>
+{% include 'reader-theme.twig' only %}
+</body>
 </html>

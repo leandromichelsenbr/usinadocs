@@ -62,6 +62,10 @@ final class AuthorBiographyTest extends TestCase
             $directory = $app->handle($request('GET', '/en/p/autores'));
             self::assertSame(200, $directory->getStatusCode());
             self::assertStringContainsString('/en/p/autor-bia-teste', (string) $directory->getBody());
+            // The directory switches to the directory; a profile switches to the same author.
+            // O diretório aponta para o diretório. Um perfil aponta para o mesmo autor.
+            self::assertStringContainsString('href="/es/p/autores?lang=es"', (string) $directory->getBody());
+            self::assertStringContainsString('href="/es/p/autor-bia-teste?lang=es"', (string) $english->getBody());
         } finally {
             $_SESSION = [];
             unlink($path);

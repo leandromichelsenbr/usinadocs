@@ -1,4 +1,7 @@
 {% set copy = reader_preferences.text %}
+{# Retain the validated return destination while changing preferences.
+   Preserva o destino de retorno validado ao alterar as preferências. #}
+{% set preference_query = next ? {next: next} : {} %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
@@ -9,11 +12,11 @@
     <style>
         {% include 'site-logo-style.twig' %}
         {% include 'reader-login-style.twig' %}
-        {% include 'reader-settings-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
     </style>
 </head>
-<body><main>
-    {% include 'reader-settings.twig' %}
+<body><main class="reader-screen">
+    {% include 'reader-language.twig' with {query: preference_query} only %}
     <h1>{% include 'site-logo.twig' with {label: site_appearance.display_name ?: site_default_name|default('Usina Docs')} %}</h1>
     <p>{{ copy.login_prompt }}</p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
@@ -29,5 +32,7 @@
     {# Use the shared public footer on reader and sign-in screens.
        Usa o rodapé público compartilhado nas telas de leitura e de login. #}
     {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
-</main></body>
+</main>
+{% include 'reader-theme.twig' with {query: preference_query} only %}
+</body>
 </html>

@@ -1,7 +1,7 @@
 {% set copy = {
-    pt: {home: 'Início', languages: 'Idiomas disponíveis', updated: 'Atualizado em', date: 'd/m/Y'},
-    en: {home: 'Home', languages: 'Available languages', updated: 'Updated on', date: 'M j, Y'},
-    es: {home: 'Inicio', languages: 'Idiomas disponibles', updated: 'Actualizado el', date: 'd/m/Y'}
+    pt: {home: 'Início', updated: 'Atualizado em', date: 'd/m/Y'},
+    en: {home: 'Home', updated: 'Updated on', date: 'M j, Y'},
+    es: {home: 'Inicio', updated: 'Actualizado el', date: 'd/m/Y'}
 }[locale] %}
 {% set site_label = site_appearance.display_name ?: site_default_name|default('Usina Docs') %}
 <!doctype html>
@@ -17,21 +17,17 @@
     <style>
         {% include 'reader-login-style.twig' %}
         {% include 'site-logo-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
         main { max-width: 53rem; }
         header, footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
         footer { border-top: 1px solid light-dark(#708477, #799386); padding-top: 1rem; }
         .legal-body { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: 1.5rem 2rem; }
-        .legal-languages a + a { margin-inline-start: .5rem; }
     </style>
 </head>
-<body><main>
+<body><main class="reader-screen">
     <header>
         {% include 'site-logo.twig' with {label: site_label, home_locale: locale, home_label: copy.home} %}
-        <nav class="legal-languages" aria-label="{{ copy.languages }}">
-            {% for code, language in languages %}
-                <a href="/{{ code }}/p/legal-{{ slug }}" hreflang="{{ code }}" lang="{{ code }}"{% if code == locale %} aria-current="page"{% endif %}>{{ language }}</a>
-            {% endfor %}
-        </nav>
+        {% include 'reader-language.twig' with {localized_slug: 'legal-' ~ slug, active_language: locale} only %}
     </header>
     <article>
         <h1>{{ document.title }}</h1>
@@ -41,5 +37,7 @@
         <div class="legal-body">{{ document.body }}</div>
     </article>
     <footer>{% include 'public-footer.twig' with {locale: locale} only %}</footer>
-</main></body>
+</main>
+{% include 'reader-theme.twig' only %}
+</body>
 </html>

@@ -111,6 +111,13 @@ final class OAuthAccessTest extends TestCase
 
         $form = $app->handle($login->withQueryParams($params));
         self::assertStringContainsString('/auth/google?next='.rawurlencode($next), (string) $form->getBody());
+        // Changing either preference must keep the validated comment destination and the sign-in error.
+        // Alterar qualquer preferência deve preservar o retorno validado ao comentário e o erro de login.
+        $retryForm = (string) $app->handle($login->withQueryParams(['next' => $next, 'error' => 'oauth']))->getBody();
+        $query = '?next='.rawurlencode($next).'&amp;error=oauth&amp;';
+        self::assertStringContainsString('href="'.$query.'lang=es"', $retryForm);
+        self::assertStringContainsString('href="'.$query.'theme=dark"', $retryForm);
+        self::assertStringNotContainsString('class="reader-settings"', $retryForm);
         self::assertSame(302, $app->handle($provider->withQueryParams($params))->getStatusCode());
         self::assertSame($next, $_SESSION['oauth_pending']['google']['next']);
         $retry = $app->handle($callback->withQueryParams(['state' => $_SESSION['oauth_pending']['google']['state']]));
