@@ -73,7 +73,8 @@ final class AppFactory
         AppearanceRoutes::register($app, $twig, $appearance, $media);
         // Legal documents are shared site content and use the same templates under either sign-in mode.
         // Os textos legais são conteúdo do site e usam os mesmos templates nos dois modos de login.
-        LegalDocumentRoutes::register($app, $twig, new LegalDocuments($database));
+        $legalDocuments = new LegalDocuments($database);
+        LegalDocumentRoutes::register($app, $twig, $legalDocuments);
         AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
         $engagement = new ArticleEngagement($database);
         ArticleEngagementRoutes::register($app, $twig, $engagement, $repository);
@@ -103,10 +104,17 @@ final class AppFactory
         });
         $app->get('/media/{id}', static function ($request,$response,array $a) use ($media) { $item=$media->find($a['id']);if($item===null||!is_file($media->path($item)))return$response->withStatus(404);$stream=fopen($media->path($item),'rb');$response->getBody()->write((string)stream_get_contents($stream));fclose($stream);return$response->withHeader('Content-Type',$item['mime_type'])->withHeader('Content-Length',(string)$item['byte_size']);});
 
-        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig, $engagement): ResponseInterface {
+        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig, $engagement, $legalDocuments): ResponseInterface {
             $page = $repository->findByLocalizedSlug((string) $arguments['locale'], (string) $arguments['slug']);
 
             if ($page === null) {
+                // Fall back to legal documents only when no published editorial page claims this address.
+                // Consulta os textos legais apenas quando nenhuma página editorial publicada usa esse endereço.
+                $legal = LegalDocumentRoutes::readerResponse(
+                    $request, $response, $twig, $legalDocuments, $arguments['locale'], $arguments['slug']
+                );
+                if ($legal !== null) return $legal;
+
                 $response->getBody()->write('Page not found.');
 
                 return $response->withStatus(404);

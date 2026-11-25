@@ -5,7 +5,7 @@
     {% set label = {pt: 'Textos legais', en: 'Legal documents', es: 'Documentos legales'}[locale] %}
     <nav class="legal-links" lang="{{ locale }}" aria-label="{{ label }}">
         {% for link in links %}
-            <a href="/{{ locale }}/legal/{{ link.slug }}">{{ link.title }}</a>{% if not loop.last %} <span aria-hidden="true">·</span> {% endif %}
+            <a href="/{{ locale }}/p/legal-{{ link.slug }}">{{ link.title }}</a>{% if not loop.last %} <span aria-hidden="true">·</span> {% endif %}
         {% endfor %}
     </nav>
 {% endif %}

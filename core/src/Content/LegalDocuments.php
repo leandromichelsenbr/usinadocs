@@ -105,6 +105,17 @@ final class LegalDocuments
             $texts[$locale] = ['title' => $title, 'body' => $body];
         }
 
+        // Check the shared public namespace before announcing a legal page that an article would mask.
+        // Confere os endereços públicos compartilhados antes de anunciar um texto legal que um artigo ocultaria.
+        if ($publish) {
+            $claimed = $this->db->prepare("SELECT 1 FROM page_localizations
+                WHERE slug = ? AND language_code IN ('pt', 'en', 'es') AND published_revision_id IS NOT NULL");
+            $claimed->execute(['legal-'.$slug]);
+            if ($claimed->fetchColumn()) {
+                throw new InvalidArgumentException('Uma página editorial já usa o endereço público deste documento.');
+            }
+        }
+
         // One upsert makes all translations visible together. A draft write leaves the published snapshot intact.
         // Um upsert torna todas as traduções visíveis juntas. Salvar o rascunho preserva a versão pública.
         $conflict = $create ? 'DO NOTHING' : 'DO UPDATE SET
