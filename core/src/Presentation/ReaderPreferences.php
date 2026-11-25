@@ -123,9 +123,7 @@ final class ReaderPreferences
 
             // Public pages and their redirects can differ with saved preferences
             // or the browser language. Never share those variants across readers.
-            // Legal pages also use the reader's theme and accept explicit language switches.
-            // Páginas legais também usam o tema do leitor e aceitam mudanças explícitas de idioma.
-            if (preg_match('~^/(?:$|login$|[a-z-]+/(?:p|legal)/)~i', $request->getUri()->getPath())) {
+            if (preg_match('~^/(?:$|login$|[a-z-]+/p/)~i', $request->getUri()->getPath())) {
                 $response = $response->withAddedHeader('Vary', 'Accept-Language, Cookie');
             }
             if ($request->getMethod() === 'HEAD') {

@@ -30,7 +30,7 @@
         <h2>{{ creating ? 'Novo documento legal' : documents[slug].title }}</h2>
         {% if documents[slug].status in ['published', 'changed'] and not creating %}
             <p>Versão pública
-                {% for locale, language in languages %}<a href="/{{ locale }}/legal/{{ slug }}" hreflang="{{ locale }}">{{ language }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+                {% for locale, language in languages %}<a href="/{{ locale }}/p/legal-{{ slug }}" hreflang="{{ locale }}">{{ language }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
             </p>
         {% endif %}
         {% if error %}<p role="alert">{{ error }}</p>{% endif %}

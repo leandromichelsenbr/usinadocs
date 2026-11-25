@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{{ document.title }} · {{ site_label }}</title>
     {% for code in languages|keys %}
-        <link rel="alternate" hreflang="{{ code }}" href="/{{ code }}/legal/{{ slug }}">
+        <link rel="alternate" hreflang="{{ code }}" href="/{{ code }}/p/legal-{{ slug }}">
     {% endfor %}
     {% include 'site-favicon.twig' %}
     <style>
@@ -29,7 +29,7 @@
         <a href="/?lang={{ locale }}" aria-label="{{ copy.home }}">{% include 'site-logo.twig' with {label: site_label} %}</a>
         <nav class="legal-languages" aria-label="{{ copy.languages }}">
             {% for code, language in languages %}
-                <a href="/{{ code }}/legal/{{ slug }}" hreflang="{{ code }}" lang="{{ code }}"{% if code == locale %} aria-current="page"{% endif %}>{{ language }}</a>
+                <a href="/{{ code }}/p/legal-{{ slug }}" hreflang="{{ code }}" lang="{{ code }}"{% if code == locale %} aria-current="page"{% endif %}>{{ language }}</a>
             {% endfor %}
         </nav>
     </header>

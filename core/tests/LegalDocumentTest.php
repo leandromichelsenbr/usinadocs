@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
+use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Infrastructure\Schema;
 
@@ -69,29 +70,29 @@ final class LegalDocumentTest extends TestCase
         $partial = ['csrf' => $_SESSION['legal_csrf'], 'editions' => ['pt' => $editions['pt']]];
         self::assertSame(422, $this->app->handle($post->withParsedBody($partial + ['action' => 'publish']))->getStatusCode());
         self::assertSame(303, $this->app->handle($post->withParsedBody($partial + ['action' => 'draft']))->getStatusCode());
-        self::assertSame(404, $this->app->handle($this->request('GET', '/pt/legal/privacidade'))->getStatusCode());
-        self::assertStringNotContainsString('href="/pt/legal/privacidade"', (string) $this->app->handle($page)->getBody());
+        self::assertSame(404, $this->app->handle($this->request('GET', '/pt/p/legal-privacidade'))->getStatusCode());
+        self::assertStringNotContainsString('href="/pt/p/legal-privacidade"', (string) $this->app->handle($page)->getBody());
 
         $published = $this->app->handle($post->withParsedBody([
             'csrf' => $_SESSION['legal_csrf'], 'editions' => $editions, 'action' => 'publish',
         ]));
         self::assertSame(303, $published->getStatusCode());
         foreach ($editions as $locale => $edition) {
-            $response = $this->app->handle($this->request('GET', "/$locale/legal/privacidade"));
+            $response = $this->app->handle($this->request('GET', "/$locale/p/legal-privacidade"));
             self::assertSame(200, $response->getStatusCode());
             self::assertStringContainsString('<h1>'.$edition['title'].'</h1>', (string) $response->getBody());
             self::assertStringContainsString(htmlspecialchars($edition['body']), (string) $response->getBody());
         }
-        $switch = $this->request('GET', '/pt/legal/privacidade')->withQueryParams(['lang' => 'en']);
-        self::assertSame('/en/legal/privacidade', $this->app->handle($switch)->getHeaderLine('Location'));
+        $switch = $this->request('GET', '/pt/p/legal-privacidade')->withQueryParams(['lang' => 'en']);
+        self::assertSame('/en/p/legal-privacidade', $this->app->handle($switch)->getHeaderLine('Location'));
 
         $editions['pt']['title'] = 'Rascunho de alteração';
         self::assertSame(303, $this->app->handle($post->withParsedBody([
             'csrf' => $_SESSION['legal_csrf'], 'editions' => $editions, 'action' => 'draft',
         ]))->getStatusCode());
         $body = (string) $this->app->handle($page)->getBody();
-        self::assertStringContainsString('href="/pt/legal/privacidade">Privacidade</a>', $body);
-        self::assertStringContainsString('<h1>Privacidade</h1>', (string) $this->app->handle($this->request('GET', '/pt/legal/privacidade'))->getBody());
+        self::assertStringContainsString('href="/pt/p/legal-privacidade">Privacidade</a>', $body);
+        self::assertStringContainsString('<h1>Privacidade</h1>', (string) $this->app->handle($this->request('GET', '/pt/p/legal-privacidade'))->getBody());
         self::assertStringContainsString('Publicado com rascunho atualizado', (string) $this->app->handle($this->request('GET', $route))->getBody());
     }
 
@@ -108,6 +109,26 @@ final class LegalDocumentTest extends TestCase
         self::assertSame('/admin/legal/direitos-autorais?saved=draft', $this->app->handle($new)->getHeaderLine('Location'));
         self::assertSame(422, $this->app->handle($new)->getStatusCode());
         self::assertSame(200, $this->app->handle($this->request('GET', '/admin/legal/direitos-autorais'))->getStatusCode());
+    }
+
+    public function test_legal_publication_preserves_existing_editorial_urls(): void
+    {
+        // An editorial page published before the feature keeps its address and blocks a conflicting legal publication.
+        // Uma página editorial publicada antes do recurso conserva seu endereço e impede uma publicação legal conflitante.
+        $editorial = new EditorialService(Database::connect($this->path));
+        $page = $editorial->create('Página editorial', 'legal-privacidade', '', '', '', '', 'reference');
+        $editorial->publish($page);
+        $_SESSION['user'] = ['role' => 'administrator'];
+        $this->app->handle($this->request('GET', '/admin/legal/privacidade'));
+        $publication = $this->request('POST', '/admin/legal/privacidade')->withParsedBody([
+            'csrf' => $_SESSION['legal_csrf'], 'action' => 'publish',
+            'editions' => array_fill_keys(['pt', 'en', 'es'], ['title' => 'Documento legal', 'body' => 'Texto trilíngue']),
+        ]);
+
+        self::assertSame(422, $this->app->handle($publication)->getStatusCode());
+        $public = $this->app->handle($this->request('GET', '/pt/p/legal-privacidade'));
+        self::assertSame(200, $public->getStatusCode());
+        self::assertStringContainsString('<h1>Página editorial</h1>', (string) $public->getBody());
     }
 
     private function request(string $method, string $path): ServerRequestInterface

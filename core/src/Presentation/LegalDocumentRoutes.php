@@ -21,22 +21,6 @@ final class LegalDocumentRoutes
         // Consulta o rodapé apenas nos templates públicos que o usam, evitando consultas extras para arquivos e telas administrativas.
         $twig->getEnvironment()->addFunction(new TwigFunction('legal_links', $documents->links(...)));
 
-        $app->get('/{locale:pt|en|es}/legal/{slug:[a-z0-9-]+}', static function ($request, $response, array $args) use ($twig, $documents) {
-            $locale = $args['locale'];
-            $slug = $args['slug'];
-            $document = $documents->published($slug, $locale);
-            if ($document === null) return $response->withStatus(404);
-
-            $preferences = $request->getAttribute(ReaderPreferences::class);
-            if ($preferences->requestedLanguage !== null && $preferences->language !== $locale) {
-                return $response->withStatus(302)->withHeader('Location', '/'.$preferences->language.'/legal/'.$slug);
-            }
-
-            return $twig->render($response, 'legal-document.twig', [
-                'document' => $document, 'slug' => $slug, 'locale' => $locale, 'languages' => LegalDocuments::LANGUAGES,
-            ])->withHeader('Cache-Control', 'no-cache');
-        });
-
         // Legal publication is an installation setting, restricted to administrators in either sign-in mode.
         // A publicação legal é uma configuração da instalação, restrita a administradores em ambos os modos de login.
         $screen = static function (
@@ -104,6 +88,34 @@ final class LegalDocumentRoutes
         };
         $app->post('/admin/legal', $save);
         $app->post('/admin/legal/{slug:[a-z0-9-]+}', $save);
+    }
+
+    public static function readerResponse(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        Twig $twig,
+        LegalDocuments $documents,
+        string $locale,
+        string $pathSlug,
+    ): ?ResponseInterface {
+        // Serve legal documents in the public page URL family, after checking regular editorial pages.
+        // Serve os textos legais no padrão de URLs das páginas públicas, após consultar as páginas editoriais.
+        if (!isset(LegalDocuments::LANGUAGES[$locale]) || !preg_match('/\Alegal-([a-z0-9-]+)\z/', $pathSlug, $matches)) {
+            return null;
+        }
+
+        $slug = $matches[1];
+        $document = $documents->published($slug, $locale);
+        if ($document === null) return null;
+
+        $preferences = $request->getAttribute(ReaderPreferences::class);
+        if ($preferences->requestedLanguage !== null && $preferences->language !== $locale) {
+            return $response->withStatus(302)->withHeader('Location', '/'.$preferences->language.'/p/legal-'.$slug);
+        }
+
+        return $twig->render($response, 'legal-document.twig', [
+            'document' => $document, 'slug' => $slug, 'locale' => $locale, 'languages' => LegalDocuments::LANGUAGES,
+        ])->withHeader('Cache-Control', 'no-cache');
     }
 
     private static function canManage(): bool
