@@ -1,0 +1,48 @@
+{% set editing = profile.editing_slug|default(profile.slug|default('')) %}
+{% if error and profile.editing_slug is not defined %}{% set editing = '' %}{% endif %}
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Cadastro de autores</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        main{max-width:56rem} label{display:block;margin-block:1rem}.field{display:block;box-sizing:border-box;width:100%;padding:.5rem;font:inherit}
+        button{font:inherit;padding:.55rem .9rem}textarea{min-height:6rem}.authors{padding-left:1.25rem}.authors li{margin:.35rem 0}
+    </style>
+</head>
+<body><main>
+    <a href="/admin">Painel editorial</a>
+    <h1>Autores</h1>
+    <p><a href="/pt/p/autores">Ver página pública de autores</a></p>
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    {% if saved %}<p role="status">Biografia salva.</p>{% endif %}
+    <section aria-labelledby="form-title">
+        <h2 id="form-title">{{ editing ? 'Editar biografia' : 'Novo autor' }}</h2>
+        <form method="post" action="/admin/authors{{ editing ? '/' ~ editing : '' }}">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <label>Nome público<input class="field" name="name" required maxlength="120" value="{{ profile.name|default('') }}"></label>
+            {% if editing %}
+                <p>Endereço público: <a href="/pt/p/autor-{{ editing }}">/pt/p/autor-{{ editing }}</a></p>
+            {% else %}
+                <label>Identificador do endereço<input class="field" name="slug" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="{{ profile.slug|default('') }}"></label>
+            {% endif %}
+            <label>Biografia em português <textarea class="field" name="bio_pt" required maxlength="8000">{{ profile.bio_pt|default('') }}</textarea></label>
+            <label>Biografia em inglês <textarea class="field" name="bio_en" maxlength="8000">{{ profile.bio_en|default('') }}</textarea></label>
+            <label>Biografia em espanhol <textarea class="field" name="bio_es" maxlength="8000">{{ profile.bio_es|default('') }}</textarea></label>
+            <button type="submit">Salvar biografia</button>
+        </form>
+        {% if editing %}<p><a href="/admin/authors">Cadastrar outro autor</a></p>{% endif %}
+    </section>
+    <section aria-labelledby="directory-title">
+        <h2 id="directory-title">Autores cadastrados</h2>
+        {% if directory %}
+            <ul class="authors">{% for author in directory %}<li><a href="/admin/authors/{{ author.slug }}">{{ author.name }}</a></li>{% endfor %}</ul>
+        {% else %}
+            <p>Nenhum autor cadastrado.</p>
+        {% endif %}
+    </section>
+</main></body>
+</html>

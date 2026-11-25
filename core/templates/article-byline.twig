@@ -1,0 +1,20 @@
+{% set copy = reader_preferences.text %}
+{% set first = page.first_published_at %}
+{% set last = page.published_at %}
+{% set timezone = site_timezone|default('UTC') %}
+{% set date_format = reader_preferences.language == 'en' ? 'M j, Y, H:i T' : 'd/m/Y H:i T' %}
+{% if page.authors or first %}
+    <aside class="article-byline" lang="{{ reader_preferences.language_tag }}" aria-label="{{ copy.publication_details }}">
+        {% if page.authors %}
+            <div><strong>{{ copy.by_author }}</strong>
+                {% for author in page.authors %}<a rel="author" href="/{{ page.language_code }}/p/autor-{{ author.slug }}">{{ author.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+        {% endif %}
+        {% if first %}
+            <div>{{ copy.first_published }} <time datetime="{{ first }}">{{ first|date(date_format, timezone) }}</time></div>
+        {% endif %}
+        {% if first and last and first != last %}
+            <div>{{ copy.last_updated }} <time datetime="{{ last }}">{{ last|date(date_format, timezone) }}</time></div>
+        {% endif %}
+    </aside>
+{% endif %}

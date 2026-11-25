@@ -61,6 +61,18 @@ final class PublishedPageRepository
 
     private function withBlocks(array $page): array
     {
+        if ($page['content_type'] === 'article') {
+            // Each edition keeps its first publication date as later revisions are released.
+            // Cada edição mantém a data da primeira publicação quando saem revisões posteriores.
+            $dates = $this->database->prepare(
+                "SELECT published_at FROM page_revisions WHERE page_id=:page AND language_code=:locale
+                 AND status='published' AND published_at IS NOT NULL ORDER BY julianday(published_at), number LIMIT 1"
+            );
+            $dates->execute(['page'=>$page['page_id'], 'locale'=>$page['language_code']]);
+            $page['first_published_at'] = $dates->fetchColumn() ?: null;
+            $page['authors'] = (new AuthorDirectory($this->database))->byline($page['page_id']);
+        }
+
         $blocksStatement = $this->database->prepare(
             'SELECT id, type, position, data FROM blocks WHERE page_revision_id = :revision ORDER BY position ASC'
         );

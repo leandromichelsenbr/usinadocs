@@ -22,6 +22,9 @@
 <body><main>
     <a href="/admin">Voltar ao painel editorial</a>
     <h1>Prévia e publicação conjunta</h1>
+    {% if release.editions.pt.page.content_type == 'article' %}
+        <p><a href="/admin/pages/{{ page_id }}/authors">Editar assinatura do artigo</a></p>
+    {% endif %}
     {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
     <section class="panel" id="capa" aria-labelledby="cover-heading">
         <h2 id="cover-heading">Capa das chamadas</h2>

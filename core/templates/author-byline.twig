@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Assinatura do artigo</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        label{display:block;margin:.55rem 0}fieldset{margin-block:1rem}button{font:inherit;padding:.55rem .9rem}
+    </style>
+</head>
+<body><main>
+    <a href="/admin/pages/{{ page_id }}/release">Voltar à publicação</a>
+    <h1>Assinatura do artigo</h1>
+    <p>Selecione os autores que devem assinar as três edições do artigo.</p>
+    <p><a href="/admin/authors">Cadastrar ou editar biografias</a></p>
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    {% if directory %}
+        <form method="post" action="/admin/pages/{{ page_id }}/authors">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <fieldset>
+                <legend>Autores</legend>
+                {% for author in directory %}
+                    <label><input type="checkbox" name="authors[]" value="{{ author.slug }}"{{ author.slug in selected ? ' checked' }}> {{ author.name }}</label>
+                {% endfor %}
+            </fieldset>
+            <button type="submit">Salvar assinatura</button>
+        </form>
+    {% endif %}
+</main></body>
+</html>
