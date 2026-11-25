@@ -1,0 +1,11 @@
+{# Format counts in the interface language. The caller supplies counts for the edition linked by the card.
+   Formata os totais no idioma da interface. Quem inclui o componente informa os totais da edição vinculada pela chamada. #}
+{% set labels = {
+    pt: {view: 'visualização', views: 'visualizações', comment: 'comentário aprovado', comments: 'comentários aprovados', thousands: '.'},
+    en: {view: 'view', views: 'views', comment: 'approved comment', comments: 'approved comments', thousands: ','},
+    es: {view: 'visualización', views: 'visualizaciones', comment: 'comentario aprobado', comments: 'comentarios aprobados', thousands: '.'}
+}[locale] %}
+<p class="article-card-counts">
+    <span>{{ counts.views|number_format(0, '', labels.thousands) }} {{ counts.views == 1 ? labels.view : labels.views }}</span>
+    <span>{{ counts.approved_comments|number_format(0, '', labels.thousands) }} {{ counts.approved_comments == 1 ? labels.comment : labels.comments }}</span>
+</p>

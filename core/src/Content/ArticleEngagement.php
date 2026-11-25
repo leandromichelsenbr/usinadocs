@@ -53,6 +53,41 @@ final class ArticleEngagement
         )->fetchAll();
     }
 
+    /**
+     * @param list<string> $pageIds
+     * @return array<string, array<string, array{views: int, approved_comments: int}>>
+     */
+    public function countsForArticles(array $pageIds): array
+    {
+        // Featured and section lists can repeat a page, so look up all displayed articles in one query.
+        // O destaque e as editorias podem repetir uma página, então consulta todos os artigos exibidos de uma vez.
+        $pageIds = array_values(array_unique($pageIds));
+        if ($pageIds === []) return [];
+
+        // Views belong to the article. Count only approved comments in the edition linked by the card.
+        // As visualizações pertencem ao artigo. Conta apenas os comentários aprovados na edição vinculada pela chamada.
+        $placeholders = implode(', ', array_fill(0, count($pageIds), '?'));
+        $statement = $this->db->prepare(
+            "SELECT l.page_id, l.language_code, COALESCE(v.views, 0) AS views, COUNT(c.id) AS approved_comments
+             FROM page_localizations l
+             LEFT JOIN article_views v ON v.page_id = l.page_id
+             LEFT JOIN article_comments c ON c.page_id = l.page_id AND c.language_code = l.language_code AND c.status = 'approved'
+             WHERE l.published_revision_id IS NOT NULL AND l.page_id IN ($placeholders)
+             GROUP BY l.page_id, l.language_code, v.views"
+        );
+        $statement->execute($pageIds);
+
+        $counts = [];
+        foreach ($statement as $edition) {
+            $counts[$edition['page_id']][$edition['language_code']] = [
+                'views' => (int) $edition['views'],
+                'approved_comments' => (int) $edition['approved_comments'],
+            ];
+        }
+
+        return $counts;
+    }
+
     public function approvedComments(string $pageId, string $locale): array
     {
         // The public query returns display fields only and never includes the account identifier.
