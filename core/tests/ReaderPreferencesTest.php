@@ -76,7 +76,7 @@ final class ReaderPreferencesTest extends TestCase
             self::assertStringContainsString('href="/en/p/translated-article?lang=en"', $html);
             self::assertStringContainsString('href="?lang=es"', $html);
             self::assertStringNotContainsString('class="reader-settings"', $html);
-            self::assertStringContainsString('<details class="article-theme">', $html);
+            self::assertStringContainsString('<details class="reader-theme">', $html);
             self::assertStringContainsString('href="?theme=light" aria-current="true"', $html);
             self::assertStringContainsString('href="?theme=auto"', $html);
             self::assertStringContainsString('href="?theme=dark"', $html);

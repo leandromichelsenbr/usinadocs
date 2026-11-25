@@ -1,0 +1,11 @@
+{# Use each published slug when available. On a shared page or missing edition, save the choice at the current address.
+   Usa o endereço de cada edição publicada quando disponível. Em uma página compartilhada ou sem edição, salva a escolha no endereço atual. #}
+{% set translations = translations|default([]) %}
+{% set active_language = active_language|default(reader_preferences.language) %}
+<nav class="languages" aria-label="{{ reader_preferences.text.language }}">
+    {% for code, label in reader_preferences.languages %}
+        {% set translation = translations|filter(item => item.language_code == code)|first %}
+        {% set path = translation ? '/' ~ code ~ '/p/' ~ translation.slug|url_encode : '' %}
+        <a href="{{ path }}?lang={{ code }}" lang="{{ code }}" title="{{ label }}" aria-label="{{ label }}"{% if path %} hreflang="{{ code }}"{% endif %}{% if active_language == code %} aria-current="page"{% endif %}>{{ code|upper }}</a>
+    {% endfor %}
+</nav>

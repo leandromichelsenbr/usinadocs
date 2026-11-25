@@ -1,0 +1,17 @@
+/* Share the direct language switches across reader screens.
+   Compartilha as opções diretas de idioma nas telas de leitura. */
+.languages { display: flex; gap: .4rem; flex-wrap: wrap; }
+.languages a { border: 1px solid light-dark(#c7d2e5, #32435d); border-radius: .4rem; padding: .3rem .55rem; color: inherit; font-size: .85rem; text-decoration: none; }
+.languages a[aria-current="page"] { font-weight: 700; border-color: currentColor; color: light-dark(#1264a3, #7fc7ff); }
+
+/* Keep the three theme choices above the lower-left trigger and clear of phone safe areas.
+   Mantém as três opções acima do controle no canto inferior esquerdo e fora das áreas reservadas do celular. */
+.reader-theme { position: fixed; z-index: 2; left: max(1rem, env(safe-area-inset-left)); bottom: max(1rem, env(safe-area-inset-bottom)); }
+.reader-theme summary, .reader-theme-options { background: light-dark(#fff, #17263a); color: light-dark(#172033, #edf3ff); border: 1px solid light-dark(#70829a, #6e819d); border-radius: .55rem; box-shadow: 0 .15rem .6rem #0002; }
+.reader-theme summary { list-style: none; display: grid; place-items: center; width: 2.65rem; height: 2.65rem; cursor: pointer; font-size: 1.2rem; }
+.reader-theme summary::-webkit-details-marker { display: none; }
+.reader-theme-options { position: absolute; bottom: calc(100% + .4rem); left: 0; min-width: max-content; padding: .25rem; }
+.reader-theme-options a { display: block; padding: .45rem .65rem; color: inherit; text-decoration: none; }
+.reader-theme-options a:hover, .reader-theme-options a[aria-current] { background: light-dark(#eaf4fc, #243b55); }
+.reader-theme-options a[aria-current] { font-weight: 700; }
+.languages a:focus-visible, .reader-theme :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
