@@ -1,5 +1,5 @@
 {% set copy = reader_preferences.text %}
-{% set labels = editorial_labels[reader_preferences.language] %}
+{% set labels = editorial_labels[reader_preferences.language]|merge({sections: editor_form_labels[reader_preferences.language].sections}) %}
 {% set site_label = site_appearance.display_name ?: site_default_name|default('Usina Docs') %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
@@ -53,7 +53,7 @@
         {% endif %}
         {% if can_manage_users %}<a href="/admin/users">{{ labels.users }}</a>{% endif %}
         {% for path, label in {
-            'pages/new': 'new_page', authors: 'authors', comments: 'comments', 'article-views': 'views',
+            'pages/new': 'new_page', sections: 'sections', authors: 'authors', comments: 'comments', 'article-views': 'views',
             models: 'models', artifacts: 'artifacts', media: 'media', translations: 'translations', packages: 'packages'
         } %}
             <a href="/admin/{{ path }}">{{ labels[label] }}</a>

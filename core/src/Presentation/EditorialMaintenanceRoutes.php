@@ -17,6 +17,7 @@ final class EditorialMaintenanceRoutes
     public static function register(App $app, Twig $twig, EditorialService $editorial, EditorialMaintenance $maintenance): void
     {
         $twig->getEnvironment()->addGlobal('editorial_labels', require dirname(__DIR__, 2).'/config/editorial-labels.php');
+        $twig->getEnvironment()->addGlobal('editor_form_labels', require dirname(__DIR__, 2).'/config/editor-form-labels.php');
         $page = '/admin/pages/{id}';
         $language = '{language:pt|en|es}';
         $history = static fn (array $args): string => '/admin/pages/'.$args['id'].'/history/'.$args['language'];

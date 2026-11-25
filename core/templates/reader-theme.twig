@@ -9,7 +9,7 @@
     </summary>
     <nav class="reader-theme-options" aria-label="{{ copy.theme }}">
         {% for mode, icon in icons %}
-            <a href="?{{ query|merge({theme: mode})|url_encode }}"{% if reader_preferences.theme == mode %} aria-current="true"{% endif %}>
+            <a href="{{ preference_path|default('') }}?{{ query|merge({theme: mode})|url_encode }}"{% if reader_preferences.theme == mode %} aria-current="true"{% endif %}>
                 <span aria-hidden="true">{{ icon }}</span> {{ copy[mode] }}
             </a>
         {% endfor %}

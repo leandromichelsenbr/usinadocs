@@ -1,0 +1,20 @@
+<script>
+{
+    // A preference link navigates away, so warn only after a field or block has changed.
+    // Um link de preferência navega para outra página. O aviso só aparece após alterar um campo ou bloco.
+    const warn = event => {
+        event.preventDefault();
+        event.returnValue = true;
+    };
+    const mark = () => window.addEventListener('beforeunload', warn);
+    document.querySelectorAll('form[data-warn-unsaved]').forEach(form => {
+        if (form.dataset.warnUnsaved === 'dirty') mark();
+        form.addEventListener('input', mark);
+        form.addEventListener('change', mark);
+        form.addEventListener('click', event => {
+            if (event.target.closest('[data-editor-changes] button')) mark();
+        });
+        form.addEventListener('submit', () => window.removeEventListener('beforeunload', warn));
+    });
+}
+</script>
