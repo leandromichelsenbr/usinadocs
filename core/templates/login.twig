@@ -1,1 +1,25 @@
-<!doctype html><html lang="pt"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Entrar · Usina Docs</title><body><main><h1>Usina Docs</h1><p>Entre para administrar o conteúdo.</p>{% if error %}<p role="alert">{{ error }}</p>{% endif %}<form method="post" action="/login"><label>E-mail <input required type="email" name="email"></label><label>Senha <input required type="password" name="password"></label><button>Entrar</button></form><p><a href="/pt/p/bem-vindo">Voltar à página pública</a></p></main></body></html>
+{% set copy = reader_preferences.text %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ copy.login }} · Usina Docs</title>
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-settings-style.twig' %}
+    </style>
+</head>
+<body><main>
+    {% include 'reader-settings.twig' %}
+    <h1>Usina Docs</h1>
+    <p>{{ copy.login_prompt }}</p>
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    <form class="login-form" method="post" action="/login">
+        <label>{{ copy.email }} <input required type="email" name="email"></label>
+        <label>{{ copy.password }} <input required type="password" name="password"></label>
+        <button type="submit">{{ copy.login }}</button>
+    </form>
+    <p><a href="/">{{ copy.home }}</a></p>
+</main></body>
+</html>

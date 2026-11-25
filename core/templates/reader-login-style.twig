@@ -1,0 +1,12 @@
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
+body { margin: 0; background: light-dark(#f5f4ec, #17251e); color: light-dark(#183b2d, #e9eddd); font: 1rem/1.55 system-ui, sans-serif; }
+main { box-sizing: border-box; max-width: 34rem; margin: clamp(2rem, 10vw, 6rem) auto; padding: 1.5rem; }
+h1 { font-size: 2.25rem; margin: .5rem 0; }
+a { color: inherit; }
+.login-links { display: grid; gap: .75rem; margin: 1.5rem 0; }
+.provider { display: block; padding: .7rem 1rem; border: 1px solid light-dark(#285a43, #759783); background: light-dark(#fffef8, #203128); border-radius: .35rem; text-decoration: none; font-weight: 650; }
+.provider:hover, .provider:focus-visible { background: light-dark(#e5efcd, #304833); }
+.login-form { display: grid; gap: .75rem; margin: 1.25rem 0; }
+.login-form label { display: grid; gap: .2rem; }
