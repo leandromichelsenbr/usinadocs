@@ -69,6 +69,17 @@ final class ReaderPreferencesTest extends TestCase
             self::assertStringContainsString('El artículo todavía no se ha publicado', $html);
             self::assertStringContainsString('Texto original', $html);
             self::assertStringNotContainsString('article-in-draft', $html);
+
+            // Direct links use each published slug and retain the preference fallback for missing editions.
+            // Os links diretos usam o endereço de cada edição publicada e preservam a preferência para edições ausentes.
+            self::assertStringContainsString('href="/pt/p/artigo?lang=pt"', $html);
+            self::assertStringContainsString('href="/en/p/translated-article?lang=en"', $html);
+            self::assertStringContainsString('href="?lang=es"', $html);
+            self::assertStringNotContainsString('class="reader-settings"', $html);
+            self::assertStringContainsString('<details class="article-theme">', $html);
+            self::assertStringContainsString('href="?theme=light" aria-current="true"', $html);
+            self::assertStringContainsString('href="?theme=auto"', $html);
+            self::assertStringContainsString('href="?theme=dark"', $html);
         } finally {
             unlink($path);
         }

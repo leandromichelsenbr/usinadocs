@@ -12,17 +12,21 @@
         :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #172033; background: #f3f6fb; }
         :root[data-theme="dark"] { color-scheme: dark; }
         @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
-        {% include 'reader-settings-style.twig' %}
         {% if site_appearance.accent_color %}main > header { border-top: 3px solid {{ site_appearance.accent_color }}; padding-top: .8rem; }{% endif %}
         body { margin: 0; } main { max-width: 800px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
         header { border-bottom: 1px solid #c7d2e5; padding-bottom: 1rem; margin-bottom: 2.5rem; display:flex; justify-content:space-between; gap:1rem; align-items:start; }
         .brand { color: #1264a3; font-weight: 800; letter-spacing: .03em; } .meta { color: #526174; font-size: .9rem; } .type { display:inline-block; margin-top:.35rem; padding:.15rem .45rem; border-radius:999px; background:#e1edf8; color:#244565; font-size:.8rem; font-weight:700; }
-        .languages { display:flex; gap:.4rem; flex-wrap:wrap; justify-content:end; } .languages a,.languages span { border:1px solid #c7d2e5; border-radius:.4rem; padding:.25rem .5rem; color:inherit; font-size:.85rem; text-decoration:none; } .languages span { font-weight:700; border-color:#1264a3; color:#1264a3; }
+        /* Keep the language choices together and the account and editor actions in their own group.
+           Agrupa as opções de idioma e mantém as ações de conta e edição em um grupo próprio. */
+        .languages, .reader-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+        .languages a, .reader-actions a, .reader-actions button { border: 1px solid light-dark(#c7d2e5, #32435d); border-radius: .4rem; padding: .3rem .55rem; color: inherit; background: transparent; font: inherit; font-size: .85rem; text-decoration: none; }
+        .languages a[aria-current="page"] { font-weight: 700; border-color: currentColor; color: light-dark(#1264a3, #7fc7ff); }
+        .reader-actions button { cursor: pointer; }
         h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin-bottom: .6rem; } .summary { color: #3c4a5d; font-size: 1.2rem; line-height: 1.6; }
         section { margin-top:1.6rem; line-height:1.7; } pre { overflow:auto; padding:1rem; border-radius:.6rem; background:#172033; color:#ecf3ff; } .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{padding:.65rem;border:1px solid #c7d2e5;text-align:left}th{background:#eaf4fc}.citation{margin:1.5rem 0;padding:1rem 1.25rem;border-left:4px solid #1264a3;background:#eaf4fc;border-radius:0 .5rem .5rem 0}.citation p{margin:0 0 .75rem;font-style:italic}.citation footer{font-size:.92rem;color:#3c4a5d}.diagram{padding:1rem;border:1px solid #c7d2e5;border-radius:.6rem;background:#f8fbff}.diagram h2{margin:.1rem 0 1rem}.diagram-nodes{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}.diagram-node{padding:.45rem .7rem;border:1px solid #1264a3;border-radius:.45rem;background:#eaf4fc;font-weight:650}.diagram-arrow{color:#1264a3;font-weight:800}.diagram-links{margin:.8rem 0 0;padding-left:1.2rem;font-size:.9rem;color:#526174}.quiz{padding:1.25rem;border:1px solid #c7d2e5;border-radius:.6rem;background:#f8fbff}.quiz h2{margin:.1rem 0 .8rem}.quiz-options{display:grid;gap:.55rem}.quiz-option{padding:.65rem .75rem;border:1px solid #c7d2e5;border-radius:.45rem;background:white;text-align:left;cursor:pointer}.quiz-option:hover{border-color:#1264a3}.quiz-feedback{margin:.9rem 0 0;font-weight:650}.quiz-feedback.is-correct{color:#096b2e}.quiz-feedback.is-wrong{color:#8b1f2d}.quiz-explanation{margin:.35rem 0 0;color:#526174}.image-trigger{padding:.65rem .9rem;border:1px solid #1264a3;border-radius:.45rem;background:#eaf4fc;color:#1264a3;font-weight:700;cursor:pointer}.image-trigger:hover{background:#d8ebfa}.content-image{display:block;max-width:100%;height:auto;border:1px solid #c7d2e5;border-radius:.6rem;cursor:zoom-in}.image-modal{width:calc(100vw - 2rem);max-width:1200px;height:calc(100vh - 2rem);padding:0;border:0;border-radius:.7rem;background:#0e1624;color:#edf3ff}.image-modal::backdrop{background:rgba(0,0,0,.72)}.image-modal-content{height:100%;overflow:auto;padding:1rem;box-sizing:border-box}.image-modal-close{position:sticky;top:0;float:right;padding:.45rem .65rem;border:1px solid #7fc7ff;border-radius:.35rem;background:#183654;color:#edf3ff;cursor:pointer}.image-modal img{display:block;max-width:none;height:auto;clear:both;margin:1rem auto 0}
         :root { color: light-dark(#172033, #edf3ff); background: light-dark(#f3f6fb, #0e1624); }
-        header, th, td, .languages a, .languages span { border-color: light-dark(#c7d2e5, #32435d); }
-        .brand, .languages span { color: light-dark(#1264a3, #7fc7ff); }
+        header, th, td { border-color: light-dark(#c7d2e5, #32435d); }
+        .brand { color: light-dark(#1264a3, #7fc7ff); }
         .meta, .summary, .citation footer, .diagram-links, .quiz-explanation { color: light-dark(#526174, #bfccdc); }
         .type { background: light-dark(#e1edf8, #183654); color: light-dark(#244565, #edf3ff); }
         /* Preserve readable table headers in both ways of entering dark mode.
@@ -52,11 +56,45 @@
         .article-comments form { display: grid; gap: .55rem; margin-top: 1.5rem; }
         .article-comments textarea, .article-comments button { font: inherit; padding: .45rem .7rem; }
         .article-comments button { justify-self: start; }
+        /* Keep the three theme choices above the lower-left trigger and clear of phone safe areas.
+           Mantém as três opções acima do controle no canto inferior esquerdo e fora das áreas reservadas do celular. */
+        .article-theme { position: fixed; z-index: 2; left: max(1rem, env(safe-area-inset-left)); bottom: max(1rem, env(safe-area-inset-bottom)); }
+        .article-theme summary, .article-theme-options { background: light-dark(#fff, #17263a); color: light-dark(#172033, #edf3ff); border: 1px solid light-dark(#70829a, #6e819d); border-radius: .55rem; box-shadow: 0 .15rem .6rem #0002; }
+        .article-theme summary { list-style: none; display: grid; place-items: center; width: 2.65rem; height: 2.65rem; cursor: pointer; font-size: 1.2rem; }
+        .article-theme summary::-webkit-details-marker { display: none; }
+        .article-theme-options { position: absolute; bottom: calc(100% + .4rem); left: 0; min-width: max-content; padding: .25rem; }
+        .article-theme-options a { display: block; padding: .45rem .65rem; color: inherit; text-decoration: none; }
+        .article-theme-options a:hover, .article-theme-options a[aria-current] { background: light-dark(#eaf4fc, #243b55); }
+        .article-theme-options a[aria-current] { font-weight: 700; }
+        .languages a:focus-visible, .reader-actions :focus-visible, .article-theme :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
     </style>
 </head>
 <body>
 <main>
-    <header><div><div class="brand">{% include 'site-logo.twig' with {label: site_label} %}</div><div class="meta">{{ page.native_name }} · {{ copy.revision }} {{ page.revision_number }}</div><div class="type">{{ copy[page.content_type]|default(copy.reference) }}</div></div><div class="reader-tools"><nav class="languages" aria-label="{{ copy.available_languages }}">{% for translation in page.translations %}{% if translation.language_code == page.language_code %}<span>{{ translation.language_code|upper }}</span>{% else %}<a href="/{{ translation.language_code }}/p/{{ translation.slug }}">{{ translation.language_code|upper }}</a>{% endif %}{% endfor %}{% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}{% if can_edit %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions/{{ page.language_code }}"><button type="submit">{{ copy.edit }}</button></form>{% endif %}</nav>{% include 'reader-settings.twig' %}</div></header>
+    <header>
+        <div>
+            <div class="brand">{% include 'site-logo.twig' with {label: site_label} %}</div>
+            <div class="meta">{{ page.native_name }} · {{ copy.revision }} {{ page.revision_number }}</div>
+            <div class="type">{{ copy[page.content_type]|default(copy.reference) }}</div>
+        </div>
+        <div class="reader-tools">
+            {# Use each published slug directly. For an unavailable edition, save the language and keep the current content.
+               Usa diretamente o endereço de cada edição publicada. Se faltar uma edição, salva o idioma e mantém o conteúdo atual. #}
+            <nav class="languages" aria-label="{{ copy.language }}">
+                {% for code, label in reader_preferences.languages %}
+                    {% set translation = page.translations|filter(item => item.language_code == code)|first %}
+                    {% set path = translation and not editorial_preview ? '/' ~ code ~ '/p/' ~ translation.slug|url_encode : '' %}
+                    <a href="{{ path }}?lang={{ code }}" lang="{{ code }}" title="{{ label }}" aria-label="{{ label }}"{% if path %} hreflang="{{ code }}"{% endif %}{% if page.language_code == code %} aria-current="page"{% endif %}>{{ code|upper }}</a>
+                {% endfor %}
+            </nav>
+            {% if oauth_enabled or can_edit %}
+                <div class="reader-actions">
+                    {% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}
+                    {% if can_edit %}<form method="post" action="/admin/pages/{{ page.page_id }}/revisions/{{ page.language_code }}"><button type="submit">{{ copy.edit }}</button></form>{% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </header>
     {% if page.language_code != reader_preferences.language and reader_preferences.language not in page.translations|map(item => item.language_code) %}
         <p class="meta">{{ copy.translation_unavailable }}</p>
     {% endif %}
@@ -133,6 +171,7 @@
        Usa o rodapé público compartilhado nas telas de leitura e de login. #}
     {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
 </main>
+{% include 'article-theme.twig' %}
 <dialog class="image-modal" id="image-modal"><div class="image-modal-content"><button type="button" class="image-modal-close">{{ copy.close }}</button><img alt="{{ copy.full_image }}"></div></dialog>
 <script>document.querySelectorAll('.quiz').forEach(quiz=>{quiz.querySelectorAll('.quiz-option').forEach(button=>button.addEventListener('click',()=>{const correct=button.dataset.choice===quiz.dataset.answer,feedback=quiz.querySelector('.quiz-feedback'),correctExplanation=quiz.querySelector('.quiz-correct-explanation'),errorExplanation=quiz.querySelector('.quiz-error-explanation');feedback.hidden=false;feedback.textContent=correct?{{ copy.correct|json_encode|raw }}:{{ copy.incorrect|json_encode|raw }};feedback.className='quiz-feedback '+(correct?'is-correct':'is-wrong');correctExplanation.hidden=!correct;errorExplanation.hidden=correct;}))});const imageModal=document.querySelector('#image-modal'),modalImage=imageModal.querySelector('img');function openImage(source){modalImage.src=source;imageModal.showModal()}document.querySelector('.image-modal-close').addEventListener('click',()=>imageModal.close());imageModal.addEventListener('click',event=>{if(event.target===imageModal)imageModal.close()});document.querySelectorAll('.image-trigger').forEach(button=>button.addEventListener('click',()=>{const image=document.createElement('img');image.src=button.dataset.imageSrc;image.alt=button.dataset.imageAlt||{{ copy.image_alt|json_encode|raw }};image.loading='lazy';image.className='content-image';image.dataset.imageSrc=button.dataset.imageSrc;image.addEventListener('click',()=>openImage(image.dataset.imageSrc));button.replaceWith(image)}));document.querySelectorAll('.content-image').forEach(image=>image.addEventListener('click',()=>openImage(image.dataset.imageSrc||image.src)));</script>
 </body>
