@@ -20,11 +20,13 @@ use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Content\PageCovers;
+use UsinaDocs\Core\Content\AuthorDirectory;
 use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Media\MediaLibrary;
 use UsinaDocs\Core\Presentation\AppearanceRoutes;
 use UsinaDocs\Core\Presentation\ReaderPreferences;
 use UsinaDocs\Core\Presentation\PublicationRoutes;
+use UsinaDocs\Core\Presentation\AuthorRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
 
 final class AppFactory
@@ -64,6 +66,7 @@ final class AppFactory
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
         AppearanceRoutes::register($app, $twig, $appearance, $media);
+        AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
         PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media);
         $app->add(ReaderPreferences::middleware($twig));
         $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {

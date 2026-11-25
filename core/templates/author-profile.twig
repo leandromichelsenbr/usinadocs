@@ -1,0 +1,38 @@
+{% set copy = reader_preferences.text %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ profile ? profile.name : copy.authors }} · {{ site_appearance.display_name ?: site_default_name|default('Usina Docs') }}</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-settings-style.twig' %}
+        main{max-width:49rem}.biography{white-space:pre-wrap;overflow-wrap:anywhere}.language-links{display:flex;gap:1rem;margin-block:1rem}
+        .author-list li{margin-block:.6rem}
+    </style>
+</head>
+<body><main>
+    <p><a href="/">{{ copy.home }}</a>{% if profile %} · <a href="/{{ locale }}/p/autores">{{ copy.authors }}</a>{% endif %}</p>
+    {% include 'reader-settings.twig' %}
+    <nav class="language-links" aria-label="{{ copy.available_languages }}">
+        {% for code, label in reader_preferences.languages %}
+            {% set path = profile ? 'autor-' ~ profile.slug : 'autores' %}
+            <a href="/{{ code }}/p/{{ path }}" lang="{{ code }}"{{ locale == code ? ' aria-current="page"' }}>{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {% if profile %}
+        <h1>{{ profile.name }}</h1>
+        {% if biography_language != locale %}<p>{{ copy.author_bio_fallback }}</p>{% endif %}
+        <div class="biography" lang="{{ biography_language }}">{{ biography }}</div>
+    {% else %}
+        <h1>{{ copy.authors }}</h1>
+        {% if directory %}
+            <ul class="author-list">{% for author in directory %}<li><a href="/{{ locale }}/p/autor-{{ author.slug }}">{{ author.name }}</a></li>{% endfor %}</ul>
+        {% else %}
+            <p>{{ copy.no_authors }}</p>
+        {% endif %}
+    {% endif %}
+</main></body>
+</html>
