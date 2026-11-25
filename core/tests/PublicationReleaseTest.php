@@ -10,6 +10,7 @@ use UsinaDocs\Core\AppFactory;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\PageCovers;
+use UsinaDocs\Core\Content\PageAlerts;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Infrastructure\Schema;
@@ -65,6 +66,18 @@ final class PublicationReleaseTest extends TestCase
             $preview = $app->handle($request('GET', '/admin/pages/'.$page.'/preview/pt'));
             self::assertStringContainsString('Conteúdo editorial', (string) $preview->getBody());
             self::assertSame('no-store', $preview->getHeaderLine('Cache-Control'));
+
+            // The alert requires the release token and applies to the article as a whole.
+            // O alerta exige o token de publicação e se aplica ao artigo inteiro.
+            $alertPath = '/admin/pages/'.$page.'/critical-alert';
+            $alerts = new PageAlerts($db);
+            self::assertFalse($alerts->isCritical($page));
+            self::assertSame(403, $app->handle($request('POST', $alertPath)->withParsedBody(['critical'=>'1']))->getStatusCode());
+            foreach (['1', '1', '0'] as $choice) {
+                $alert = $request('POST', $alertPath)->withParsedBody(['csrf'=>$_SESSION['release_csrf'], 'critical'=>$choice]);
+                self::assertSame(303, $app->handle($alert)->getStatusCode());
+                self::assertSame($choice === '1', $alerts->isCritical($page));
+            }
 
             $coverRequest = $request('POST', '/admin/pages/'.$page.'/cover')->withParsedBody([
                 'csrf'=>$_SESSION['release_csrf'], 'cover'=>$image,

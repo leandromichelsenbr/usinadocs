@@ -21,6 +21,7 @@ use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Content\PageCovers;
+use UsinaDocs\Core\Content\PageAlerts;
 use UsinaDocs\Core\Content\AuthorDirectory;
 use UsinaDocs\Core\Content\ArticleEngagement;
 use UsinaDocs\Core\Content\LegalDocuments;
@@ -88,7 +89,7 @@ final class AppFactory
         AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
         $engagement = new ArticleEngagement($database);
         ArticleEngagementRoutes::register($app, $twig, $engagement, $repository);
-        PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media);
+        PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media, new PageAlerts($database));
         $app->add(ReaderPreferences::middleware($twig));
         $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {
             // A request sees one saved identity across its page, icon and logo components.

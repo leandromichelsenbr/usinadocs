@@ -12,6 +12,7 @@ use Slim\App;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\PageCovers;
+use UsinaDocs\Core\Content\PageAlerts;
 use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Media\MediaLibrary;
@@ -25,8 +26,9 @@ final class PublicationRoutes
         PublishedPageRepository $pages,
         PageCovers $covers,
         MediaLibrary $media,
+        PageAlerts $alerts,
     ): void {
-        $display = static function (ResponseInterface $response, string $pageId, ?string $error = null) use ($twig, $batch, $media): ResponseInterface {
+        $display = static function (ResponseInterface $response, string $pageId, ?string $error = null) use ($twig, $batch, $media, $alerts): ResponseInterface {
             $release = $batch->preview($pageId);
             if ($release === null) {
                 return $response->withStatus(404);
@@ -37,6 +39,7 @@ final class PublicationRoutes
                 'page_id' => $pageId,
                 'release' => $release,
                 'images' => $media->all(),
+                'critical' => $alerts->isCritical($pageId),
                 'csrf' => $_SESSION['release_csrf'],
                 'error' => $error,
             ])->withHeader('Cache-Control', 'no-store');
@@ -71,6 +74,22 @@ final class PublicationRoutes
             }
 
             return $response->withHeader('Location', '/admin/pages/'.$args['id'].'/release')->withStatus(303);
+        });
+
+        // Treat the shared alert as an editorial setting, with the same role and token protection as the cover.
+        // Trata o alerta compartilhado como opção editorial, com a mesma proteção de papel e token da capa.
+        $app->post('/admin/pages/{id}/critical-alert', static function ($request, $response, array $args) use ($alerts, $batch, $display) {
+            if (!self::authorizedPost($request)) return $response->withStatus(403);
+            if ($batch->preview($args['id']) === null) return $response->withStatus(404);
+            $critical = ((array) $request->getParsedBody())['critical'] ?? null;
+            if (!in_array($critical, ['0', '1'], true)) return $response->withStatus(422);
+            try {
+                $alerts->setCritical($args['id'], $critical === '1');
+            } catch (InvalidArgumentException $error) {
+                return $display($response->withStatus(422), $args['id'], $error->getMessage());
+            }
+
+            return $response->withHeader('Location', '/admin/pages/'.$args['id'].'/release#alerta')->withStatus(303);
         });
 
         $app->post('/admin/pages/{id}/cover', static function ($request, $response, array $args) use ($batch, $covers, $display) {
