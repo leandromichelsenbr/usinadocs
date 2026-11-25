@@ -37,6 +37,9 @@
             {% endfor %}
         </div>
     {% endif %}
+    {# Share the published legal navigation on reader and sign-in screens.
+       Compartilha a navegação legal publicada nas telas de leitura e de login. #}
+    {% include 'legal-links.twig' with {locale: reader_preferences.language} only %}
 </main>
 </body>
 </html>

@@ -26,5 +26,8 @@
         <button type="submit">{{ copy.login }}</button>
     </form>
     <p><a href="/">{{ copy.home }}</a></p>
+    {# Share the published legal navigation on reader and sign-in screens.
+       Compartilha a navegação legal publicada nas telas de leitura e de login. #}
+    {% include 'legal-links.twig' with {locale: reader_preferences.language} only %}
 </main></body>
 </html>

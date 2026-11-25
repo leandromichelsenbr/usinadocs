@@ -23,6 +23,7 @@ use UsinaDocs\Core\Content\ContentPackageService;
 use UsinaDocs\Core\Content\PageCovers;
 use UsinaDocs\Core\Content\AuthorDirectory;
 use UsinaDocs\Core\Content\ArticleEngagement;
+use UsinaDocs\Core\Content\LegalDocuments;
 use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Media\MediaLibrary;
 use UsinaDocs\Core\Presentation\AppearanceRoutes;
@@ -30,6 +31,7 @@ use UsinaDocs\Core\Presentation\ReaderPreferences;
 use UsinaDocs\Core\Presentation\PublicationRoutes;
 use UsinaDocs\Core\Presentation\AuthorRoutes;
 use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
+use UsinaDocs\Core\Presentation\LegalDocumentRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
 
 final class AppFactory
@@ -69,6 +71,9 @@ final class AppFactory
             OAuthRoutes::register($app, $twig, new OAuthClient(is_array($settings) ? $settings : []), new OAuthAccounts($database));
         }
         AppearanceRoutes::register($app, $twig, $appearance, $media);
+        // Legal documents are shared site content and use the same templates under either sign-in mode.
+        // Os textos legais são conteúdo do site e usam os mesmos templates nos dois modos de login.
+        LegalDocumentRoutes::register($app, $twig, new LegalDocuments($database));
         AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
         $engagement = new ArticleEngagement($database);
         ArticleEngagementRoutes::register($app, $twig, $engagement, $repository);

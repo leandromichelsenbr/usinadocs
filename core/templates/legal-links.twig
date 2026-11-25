@@ -1,0 +1,11 @@
+{# Build navigation from published documents so drafts and default form names never appear as public links.
+   Monta a navegação com documentos publicados para manter rascunhos e nomes iniciais do formulário fora dos links públicos. #}
+{% set links = legal_links(locale) %}
+{% if links %}
+    {% set label = {pt: 'Textos legais', en: 'Legal documents', es: 'Documentos legales'}[locale] %}
+    <nav class="legal-links" lang="{{ locale }}" aria-label="{{ label }}">
+        {% for link in links %}
+            <a href="/{{ locale }}/legal/{{ link.slug }}">{{ link.title }}</a>{% if not loop.last %} <span aria-hidden="true">·</span> {% endif %}
+        {% endfor %}
+    </nav>
+{% endif %}
