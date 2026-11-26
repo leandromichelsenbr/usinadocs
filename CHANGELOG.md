@@ -18,6 +18,8 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Automatic deploy of `main` to news.usinabr.com.br after the core tests pass, through an SSH key restricted to a server-side deploy script with database backup and rollback (`deploy/usina-news/`).
+
 - Optional news homepage (`USINADOCS_NEWS_HOME=1`) with latest articles and editorial sections, configurable site name and time zone, brought from the Usina News installation.
 - Theme-aware colors for quiz feedback.
 
