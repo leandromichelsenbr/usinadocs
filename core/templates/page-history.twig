@@ -44,10 +44,10 @@
                         <a href="{{ path }}/revisions/{{ language }}/discard">{{ labels.discard }}</a>
                     {% elseif revision.status == 'published' and not revision.is_current %}
                         {% if not revision.archived %}
-                            <form method="post" action="{{ path }}/restore/{{ language }}/{{ revision.id }}"><button>{{ labels.restore }}</button></form>
+                            <form method="post" action="{{ path }}/restore/{{ language }}/{{ revision.id }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button>{{ labels.restore }}</button></form>
                         {% endif %}
                         <form method="post" action="{{ path }}/revisions/{{ language }}/{{ revision.id }}/archive">
-                            <input type="hidden" name="csrf" value="{{ csrf }}">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
                             <button type="submit" name="archived" value="{{ revision.archived ? '0' : '1' }}">{{ revision.archived ? labels.unarchive : labels.archive }}</button>
                         </form>
                     {% endif %}

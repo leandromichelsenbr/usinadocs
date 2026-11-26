@@ -41,7 +41,7 @@
         <div class="actions">
             {% include 'reader-language.twig' with {query: search != '' ? {q: search} : {}} only %}
             <a href="/">{{ labels.homepage }}</a>
-            <form method="post" action="/logout"><button>{{ copy.sign_out }}</button></form>
+            <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button>{{ copy.sign_out }}</button></form>
         </div>
     </header>
     <h1>{{ copy.panel }}</h1>
@@ -80,7 +80,7 @@
                            A visibilidade vale para o artigo inteiro. Edições e rascunhos continuam disponíveis aos editores. #}
                         {% if page.content_type == 'article' or page.hidden %}
                             <form method="post" action="{{ admin_page }}/visibility">
-                                <input type="hidden" name="csrf" value="{{ csrf }}">
+                                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
                                 <input type="hidden" name="q" value="{{ search }}">
                                 <button type="submit" name="hidden" value="{{ page.hidden ? '0' : '1' }}">{{ page.hidden ? labels.show : labels.hide }}</button>
                             </form>
@@ -101,10 +101,10 @@
                             {% if status not in ['missing', 'absent'] %}<a href="{{ admin_page }}/history/{{ code }}">{{ labels.history }}</a>{% endif %}
                             {% if draft %}
                                 <a href="{{ edit_path }}/edit">{{ labels.edit_draft }}</a>
-                                <form method="post" action="{{ edit_path }}/publish"><button>{{ labels.publish }}</button></form>
+                                <form method="post" action="{{ edit_path }}/publish"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button>{{ labels.publish }}</button></form>
                                 <a href="{{ admin_page }}/revisions/{{ code }}/discard">{{ labels.discard }}</a>
                             {% elseif status == 'published' %}
-                                <form method="post" action="{{ admin_page }}/revisions{% if code != 'pt' %}/{{ code }}{% endif %}"><button>{{ labels.new_revision }}</button></form>
+                                <form method="post" action="{{ admin_page }}/revisions{% if code != 'pt' %}/{{ code }}{% endif %}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button>{{ labels.new_revision }}</button></form>
                             {% elseif code != 'pt' and status == 'absent' %}
                                 <a href="{{ admin_page }}/translations/{{ code }}/new">{{ labels.new_translation }}</a>
                             {% endif %}

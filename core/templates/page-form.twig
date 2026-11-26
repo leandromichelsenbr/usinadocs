@@ -37,7 +37,7 @@
     <h1>{{ heading }}</h1>
     {% if missing %}<p class="warning"><strong>{{ fields.publication_blocked }}</strong> {{ fields.required_artifacts }}: {{ missing }}.</p>{% endif %}
     {% if section_error %}<p class="warning" role="alert">{{ fields.unavailable_section }}</p>{% endif %}
-    <form id="editor" method="post" data-warn-unsaved="{{ submitted ? 'dirty' : '' }}" action="{{ page and page.language is defined ? '/admin/pages/' ~ page.page_id ~ '/' ~ page.language : (page ? '/admin/pages/' ~ page.page_id : '/admin/pages') }}">
+    <form id="editor" method="post" data-warn-unsaved="{{ submitted ? 'dirty' : '' }}" action="{{ page and page.language is defined ? '/admin/pages/' ~ page.page_id ~ '/' ~ page.language : (page ? '/admin/pages/' ~ page.page_id : '/admin/pages') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <label>{{ fields.model }} <select name="content_type" id="content-type">
             {% for model in models %}<option value="{{ model.content_type }}"{% if content_type == model.content_type %} selected{% endif %}>{{ model.label }}</option>{% endfor %}
         </select></label>
@@ -61,7 +61,7 @@
     </form>
     <div class="editor-actions">
         {% if page and page.language is defined and page.language != 'pt' %}
-            <form method="post" action="/admin/pages/{{ page.page_id }}/{{ page.language }}/publish"><button type="submit">{{ fields.publish_translation }}</button></form>
+            <form method="post" action="/admin/pages/{{ page.page_id }}/{{ page.language }}/publish"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button type="submit">{{ fields.publish_translation }}</button></form>
         {% endif %}
         {% if page %}<a href="/admin/pages/{{ page.page_id }}/revisions/{{ edition }}/discard">{{ labels.discard }}</a>{% endif %}
         <a href="/admin">{{ labels.cancel }}</a>

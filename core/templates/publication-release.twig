@@ -31,7 +31,7 @@
         <p>Uma capa compartilhada pelos três idiomas, exibida nas chamadas da home. Adicione imagens pela <a href="/admin/media">biblioteca de mídia</a>.</p>
         {% if release.cover %}<img class="cover" src="/media/{{ release.cover|url_encode }}" alt="Capa atual">{% endif %}
         <form method="post" action="/admin/pages/{{ page_id }}/cover">
-            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <label for="cover">Imagem</label>
             <select name="cover" id="cover">
                 <option value="">Sem capa</option>
@@ -46,7 +46,7 @@
         <section class="panel" id="alerta" aria-labelledby="critical-heading">
             <h2 id="critical-heading">Alerta crítico nas chamadas</h2>
             <form method="post" action="/admin/pages/{{ page_id }}/critical-alert">
-                <input type="hidden" name="csrf" value="{{ csrf }}">
+                <input type="hidden" name="csrf" value="{{ csrf_token() }}">
                 <label for="critical">Exibição</label>
                 <select name="critical" id="critical">
                     <option value="0"{{ not critical ? ' selected' }}>Sem alerta</option>
@@ -80,7 +80,7 @@
        Publica a versão revisada para que uma edição posterior exija nova conferência. #}
     {% if release.ready %}
         <form method="post" action="/admin/pages/{{ page_id }}/release">
-            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <input type="hidden" name="snapshot" value="{{ release.snapshot }}">
             <button type="submit">Publicar nos três idiomas</button>
         </form>

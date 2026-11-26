@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
@@ -83,7 +84,7 @@ final class ArticleEngagementTest extends TestCase
         $_SESSION['user'] = ['id' => 'reader', 'name' => 'Leitor', 'email' => 'reader@example.test', 'role' => 'reader'];
         $this->app->handle($article);
         self::assertSame(403, $this->app->handle($post)->getStatusCode());
-        $post = $post->withParsedBody(['body' => $comment, 'csrf' => $_SESSION['article_comment_csrf']]);
+        $post = $post->withParsedBody(['body' => $comment, 'csrf' => CsrfToken::current()]);
         $sent = $this->app->handle($post);
         self::assertSame(303, $sent->getStatusCode());
         self::assertSame(self::PT.'#comments', $sent->getHeaderLine('Location'));
@@ -96,7 +97,7 @@ final class ArticleEngagementTest extends TestCase
         $queue = (string) $this->app->handle($this->request('GET', '/admin/comments'))->getBody();
         self::assertStringContainsString('&lt;strong&gt;Texto do leitor&lt;/strong&gt;', $queue);
         $decision = $this->request('POST', '/admin/comments/1')->withParsedBody([
-            'csrf' => $_SESSION['comment_moderation_csrf'], 'current' => 'pending', 'decision' => 'approved',
+            'csrf' => CsrfToken::current(), 'current' => 'pending', 'decision' => 'approved',
         ]);
         self::assertSame(303, $this->app->handle($decision)->getStatusCode());
         self::assertSame(409, $this->app->handle($decision)->getStatusCode());
@@ -172,7 +173,7 @@ final class ArticleEngagementTest extends TestCase
         $body = (string) $this->app->handle($this->request('GET', self::PT))->getBody();
         self::assertStringNotContainsString('id="comments"', $body);
         self::assertSame(0, $this->engagement->viewCount('page-welcome'));
-        self::assertSame(404, $this->app->handle($this->request('POST', self::PT.'/comments'))->getStatusCode());
+        self::assertSame(404, $this->app->handle($this->request('POST', self::PT.'/comments')->withHeader(CsrfToken::HEADER, CsrfToken::current()))->getStatusCode());
     }
 
     private function request(string $method, string $path): ServerRequestInterface

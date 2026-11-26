@@ -16,6 +16,7 @@ use UsinaDocs\Core\Content\PageAlerts;
 use UsinaDocs\Core\Content\PublicationBatch;
 use UsinaDocs\Core\Content\PublishedPageRepository;
 use UsinaDocs\Core\Media\MediaLibrary;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class PublicationRoutes
 {
@@ -33,14 +34,12 @@ final class PublicationRoutes
             if ($release === null) {
                 return $response->withStatus(404);
             }
-            $_SESSION['release_csrf'] ??= bin2hex(random_bytes(32));
 
             return $twig->render($response, 'publication-release.twig', [
                 'page_id' => $pageId,
                 'release' => $release,
                 'images' => $media->all(),
                 'critical' => $alerts->isCritical($pageId),
-                'csrf' => $_SESSION['release_csrf'],
                 'error' => $error,
             ])->withHeader('Cache-Control', 'no-store');
         };
@@ -109,10 +108,11 @@ final class PublicationRoutes
 
     private static function authorizedPost(ServerRequestInterface $request): bool
     {
-        // Keep the form protected in both OAuth and password-based installations.
-        // Protege o formulário em instalações com OAuth e com senha.
-        $token = ((array) $request->getParsedBody())['csrf'] ?? null;
-        return Roles::canEdit($_SESSION['user'] ?? null) && is_string($token)
-            && isset($_SESSION['release_csrf']) && hash_equals($_SESSION['release_csrf'], $token);
+        // EN: The CsrfToken middleware already rejected forged requests; checking again here keeps
+        // this route safe even if it is ever registered on an application without that middleware.
+        // PT: O middleware CsrfToken já recusou requisições forjadas; conferir de novo aqui mantém
+        // a rota segura mesmo se um dia ela for registrada numa aplicação sem esse middleware.
+        $token = ((array) $request->getParsedBody())[CsrfToken::FIELD] ?? null;
+        return Roles::canEdit($_SESSION['user'] ?? null) && CsrfToken::isValid($token);
     }
 }

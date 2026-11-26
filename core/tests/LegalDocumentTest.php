@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
@@ -67,14 +68,14 @@ final class LegalDocumentTest extends TestCase
             'en' => ['title' => 'Privacy', 'body' => 'English body'],
             'es' => ['title' => 'Privacidad', 'body' => 'Texto en español'],
         ];
-        $partial = ['csrf' => $_SESSION['legal_csrf'], 'editions' => ['pt' => $editions['pt']]];
+        $partial = ['csrf' => CsrfToken::current(), 'editions' => ['pt' => $editions['pt']]];
         self::assertSame(422, $this->app->handle($post->withParsedBody($partial + ['action' => 'publish']))->getStatusCode());
         self::assertSame(303, $this->app->handle($post->withParsedBody($partial + ['action' => 'draft']))->getStatusCode());
         self::assertSame(404, $this->app->handle($this->request('GET', '/pt/p/legal-privacidade'))->getStatusCode());
         self::assertStringNotContainsString('href="/pt/p/legal-privacidade"', (string) $this->app->handle($page)->getBody());
 
         $published = $this->app->handle($post->withParsedBody([
-            'csrf' => $_SESSION['legal_csrf'], 'editions' => $editions, 'action' => 'publish',
+            'csrf' => CsrfToken::current(), 'editions' => $editions, 'action' => 'publish',
         ]));
         self::assertSame(303, $published->getStatusCode());
         foreach ($editions as $locale => $edition) {
@@ -92,7 +93,7 @@ final class LegalDocumentTest extends TestCase
 
         $editions['pt']['title'] = 'Rascunho de alteração';
         self::assertSame(303, $this->app->handle($post->withParsedBody([
-            'csrf' => $_SESSION['legal_csrf'], 'editions' => $editions, 'action' => 'draft',
+            'csrf' => CsrfToken::current(), 'editions' => $editions, 'action' => 'draft',
         ]))->getStatusCode());
         $body = (string) $this->app->handle($page)->getBody();
         self::assertStringContainsString('href="/pt/p/legal-privacidade">Privacidade</a>', $body);
@@ -107,7 +108,7 @@ final class LegalDocumentTest extends TestCase
         $_SESSION['user'] = ['role' => 'administrator'];
         self::assertSame(200, $this->app->handle($this->request('GET', '/admin/legal/new'))->getStatusCode());
         $new = $this->request('POST', '/admin/legal')->withParsedBody([
-            'csrf' => $_SESSION['legal_csrf'], 'slug' => 'direitos-autorais', 'action' => 'draft',
+            'csrf' => CsrfToken::current(), 'slug' => 'direitos-autorais', 'action' => 'draft',
             'editions' => ['pt' => ['title' => 'Direitos autorais']],
         ]);
         self::assertSame('/admin/legal/direitos-autorais?saved=draft', $this->app->handle($new)->getHeaderLine('Location'));
@@ -125,7 +126,7 @@ final class LegalDocumentTest extends TestCase
         $_SESSION['user'] = ['role' => 'administrator'];
         $this->app->handle($this->request('GET', '/admin/legal/privacidade'));
         $publication = $this->request('POST', '/admin/legal/privacidade')->withParsedBody([
-            'csrf' => $_SESSION['legal_csrf'], 'action' => 'publish',
+            'csrf' => CsrfToken::current(), 'action' => 'publish',
             'editions' => array_fill_keys(['pt', 'en', 'es'], ['title' => 'Documento legal', 'body' => 'Texto trilíngue']),
         ]);
 

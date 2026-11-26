@@ -11,6 +11,7 @@ use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\EditorialMaintenance;
 use UsinaDocs\Core\Content\EditorialService;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class EditorialMaintenanceRoutes
 {
@@ -30,7 +31,7 @@ final class EditorialMaintenanceRoutes
 
             return $twig->render($response, 'page-history.twig', [
                 'history' => $revisions, 'current' => $current[0] ?? null,
-                'page_id' => $args['id'], 'language' => $args['language'], 'csrf' => self::token(),
+                'page_id' => $args['id'], 'language' => $args['language'],
                 'show_archived' => ($request->getQueryParams()['archived'] ?? '') === '1',
             ])->withHeader('Cache-Control', 'no-store');
         });
@@ -44,7 +45,7 @@ final class EditorialMaintenanceRoutes
                 if ($revision['status'] === 'draft') {
                     return $twig->render($response, 'discard-page-draft.twig', [
                         'page_id' => $args['id'], 'language' => $args['language'],
-                        'draft' => $revision, 'csrf' => self::token(),
+                        'draft' => $revision,
                     ])->withHeader('Cache-Control', 'no-store');
                 }
             }
@@ -89,17 +90,12 @@ final class EditorialMaintenanceRoutes
         });
     }
 
-    public static function token(): string
-    {
-        return $_SESSION['editorial_maintenance_csrf'] ??= bin2hex(random_bytes(32));
-    }
 
     private static function authorized(ServerRequestInterface $request): bool
     {
-        // The session token also protects state changes on installations using password authentication.
-        // O token de sessão também protege alterações em instalações com autenticação por senha.
-        $token = ((array) $request->getParsedBody())['csrf'] ?? null;
-        return Roles::canEdit($_SESSION['user'] ?? null) && is_string($token)
-            && isset($_SESSION['editorial_maintenance_csrf']) && hash_equals($_SESSION['editorial_maintenance_csrf'], $token);
+        // EN: Shared session token, also enforced by the CsrfToken middleware for every POST.
+        // PT: Token de sessão compartilhado, também exigido pelo middleware CsrfToken em todo POST.
+        $token = ((array) $request->getParsedBody())[CsrfToken::FIELD] ?? null;
+        return Roles::canEdit($_SESSION['user'] ?? null) && CsrfToken::isValid($token);
     }
 }

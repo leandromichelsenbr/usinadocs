@@ -6,6 +6,11 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ## Unreleased
 
+### Security
+
+- Application-wide CSRF protection: every POST must carry the session token, sent by all administrative, login, logout and comment forms; the token rotates at sign-in.
+- Password-mode session cookies are now `HttpOnly` and `SameSite=Lax` with strict session mode.
+
 ### Removed
 
 - Laravel 12 prototype from the main tree; it remains available at the `v0.1.0-laravel-prototype` tag (ADR-001).

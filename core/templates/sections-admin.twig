@@ -37,7 +37,7 @@
     {% if editing %}<p><a href="/admin/sections">{{ fields.section_new }}</a></p>{% endif %}
     <h2>{{ editing ? fields.section_edit : fields.section_new }}</h2>
     <form method="post" action="/admin/sections{{ editing ? '/' ~ editing|url_encode : '' }}" data-warn-unsaved>
-        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
         {# Titles can change independently of the stable identifier referenced by existing articles.
            Os títulos podem mudar sem alterar o identificador referenciado pelos artigos existentes. #}
         {% if editing %}

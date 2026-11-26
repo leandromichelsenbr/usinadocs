@@ -92,6 +92,8 @@ final class OAuthRoutes
                 // Carry anonymous view markers across sign-in while replacing the old authentication state.
                 // Preserva as marcas anônimas de visualização no login e substitui o estado anterior de autenticação.
                 $_SESSION = ['oauth_user_id' => $user['id'], 'article_views' => $_SESSION['article_views'] ?? []];
+                // EN: Replacing $_SESSION also drops the pre-login CSRF token; CsrfToken creates a new one on next use.
+                // PT: Substituir $_SESSION também descarta o token CSRF anterior ao login; o CsrfToken cria outro no próximo uso.
             } catch (Throwable $exception) {
                 // Provider failures may contain credentials or tokens. Return
                 // one message and leave the current browser session unchanged.

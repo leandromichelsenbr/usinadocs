@@ -20,7 +20,7 @@
     {# Submit the visible revision ID to avoid deleting a replacement draft after a concurrent edit.
        Envia o identificador da revisão exibida para evitar excluir um rascunho substituto após uma edição concorrente. #}
     <form method="post" action="/admin/pages/{{ page_id }}/revisions/{{ language }}/discard">
-        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="revision" value="{{ draft.id }}">
         <button type="submit">{{ labels.discard }}</button>
     </form>

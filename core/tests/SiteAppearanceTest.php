@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
@@ -53,7 +54,7 @@ final class SiteAppearanceTest extends TestCase
                 'accent_color' => '#12704a',
             ];
             self::assertSame(403, $app->handle($update->withParsedBody($input))->getStatusCode());
-            $input['csrf'] = $_SESSION['appearance_csrf'];
+            $input['csrf'] = CsrfToken::current();
             self::assertSame(303, $app->handle($update->withParsedBody($input))->getStatusCode());
             self::assertSame(422, $app->handle($update->withParsedBody(array_replace($input, [
                 'display_name' => 'Mudança inválida',

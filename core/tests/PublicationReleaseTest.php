@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
@@ -74,22 +75,22 @@ final class PublicationReleaseTest extends TestCase
             self::assertFalse($alerts->isCritical($page));
             self::assertSame(403, $app->handle($request('POST', $alertPath)->withParsedBody(['critical'=>'1']))->getStatusCode());
             foreach (['1', '1', '0'] as $choice) {
-                $alert = $request('POST', $alertPath)->withParsedBody(['csrf'=>$_SESSION['release_csrf'], 'critical'=>$choice]);
+                $alert = $request('POST', $alertPath)->withParsedBody(['csrf'=>CsrfToken::current(), 'critical'=>$choice]);
                 self::assertSame(303, $app->handle($alert)->getStatusCode());
                 self::assertSame($choice === '1', $alerts->isCritical($page));
             }
 
             $coverRequest = $request('POST', '/admin/pages/'.$page.'/cover')->withParsedBody([
-                'csrf'=>$_SESSION['release_csrf'], 'cover'=>$image,
+                'csrf'=>CsrfToken::current(), 'cover'=>$image,
             ]);
             self::assertSame(303, $app->handle($coverRequest)->getStatusCode());
             $publish = $request('POST', $release)->withParsedBody([
-                'csrf'=>$_SESSION['release_csrf'], 'snapshot'=>$snapshot[1],
+                'csrf'=>CsrfToken::current(), 'snapshot'=>$snapshot[1],
             ]);
             self::assertSame(409, $app->handle($publish)->getStatusCode());
             self::assertSame(0, (int) $db->query("SELECT COUNT(*) FROM page_localizations WHERE page_id=".$db->quote($page)." AND published_revision_id IS NOT NULL")->fetchColumn());
             preg_match('/name="snapshot" value="([0-9a-f]+)"/', (string) $app->handle($request('GET', $release))->getBody(), $fresh);
-            self::assertSame(303, $app->handle($publish->withParsedBody(['csrf'=>$_SESSION['release_csrf'],'snapshot'=>$fresh[1]]))->getStatusCode());
+            self::assertSame(303, $app->handle($publish->withParsedBody(['csrf'=>CsrfToken::current(),'snapshot'=>$fresh[1]]))->getStatusCode());
             $published = $db->query("SELECT COUNT(*) AS editions, COUNT(DISTINCT published_at) AS stamps FROM page_revisions WHERE page_id=".$db->quote($page)." AND status='published'")->fetch();
             self::assertSame(['editions'=>3, 'stamps'=>1], $published);
 

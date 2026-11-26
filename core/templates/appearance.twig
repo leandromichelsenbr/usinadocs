@@ -41,7 +41,7 @@
     {% if saved %}<p class="feedback" role="status">Identidade visual salva.</p>{% endif %}
     {% if error %}<p class="feedback" role="alert">{{ error }}</p>{% endif %}
     <form method="post" action="/admin/appearance">
-        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <section class="panel" aria-labelledby="site-identity">
             <h2 id="site-identity">Identidade do site</h2>
             <div class="fields">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
@@ -39,7 +40,7 @@ final class AuthorBiographyTest extends TestCase
             $post = $request('POST', '/admin/authors');
             $data = ['slug'=>'bia-teste','name'=>'Bia Teste','bio_pt'=>'Biografia em português','bio_en'=>'English biography'];
             self::assertSame(403, $app->handle($post->withParsedBody($data))->getStatusCode());
-            $data['csrf'] = $_SESSION['author_csrf'];
+            $data['csrf'] = CsrfToken::current();
             self::assertSame(303, $app->handle($post->withParsedBody($data))->getStatusCode());
             self::assertSame(422, $app->handle($post->withParsedBody($data))->getStatusCode());
             $byline = $request('POST', '/admin/pages/'.$page.'/authors');

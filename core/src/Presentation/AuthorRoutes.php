@@ -11,6 +11,7 @@ use Slim\App;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\AuthorDirectory;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class AuthorRoutes
 {
@@ -52,10 +53,9 @@ final class AuthorRoutes
         });
 
         $admin = static function (ResponseInterface $response, ?array $profile = null, ?string $error = null, bool $saved = false) use ($twig, $authors): ResponseInterface {
-            $_SESSION['author_csrf'] ??= bin2hex(random_bytes(32));
             return $twig->render($response, 'authors-admin.twig', [
                 'directory'=>$authors->all(), 'profile'=>$profile, 'error'=>$error,
-                'saved'=>$saved, 'csrf'=>$_SESSION['author_csrf'],
+                'saved'=>$saved,
             ])->withHeader('Cache-Control', 'no-store');
         };
         $app->get('/admin/authors', static function ($request, $response) use ($admin) {
@@ -85,10 +85,9 @@ final class AuthorRoutes
         $app->post('/admin/authors/{slug}', $save);
 
         $byline = static function (ResponseInterface $response, string $id, ?string $error = null) use ($twig, $authors): ResponseInterface {
-            $_SESSION['author_csrf'] ??= bin2hex(random_bytes(32));
             return $twig->render($response, 'author-byline.twig', [
                 'page_id'=>$id, 'directory'=>$authors->all(), 'selected'=>array_column($authors->byline($id), 'slug'),
-                'csrf'=>$_SESSION['author_csrf'], 'error'=>$error,
+                'error'=>$error,
             ])->withHeader('Cache-Control', 'no-store');
         };
         $app->get('/admin/pages/{id}/authors', static function ($request, $response, array $args) use ($byline, $authors) {
@@ -116,10 +115,9 @@ final class AuthorRoutes
 
     private static function validPost(ServerRequestInterface $request): bool
     {
-        // A session token also protects the forms on password-based installations.
-        // Um token de sessão protege os formulários também nas instalações com senha.
-        $token = ((array) $request->getParsedBody())['csrf'] ?? null;
-        return self::mayEdit() && is_string($token) && isset($_SESSION['author_csrf'])
-            && hash_equals($_SESSION['author_csrf'], $token);
+        // EN: Same shared session token enforced by the CsrfToken middleware, checked again as defense in depth.
+        // PT: O mesmo token de sessão exigido pelo middleware CsrfToken, conferido de novo como defesa em profundidade.
+        $token = ((array) $request->getParsedBody())[CsrfToken::FIELD] ?? null;
+        return self::mayEdit() && CsrfToken::isValid($token);
     }
 }

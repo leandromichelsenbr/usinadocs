@@ -12,6 +12,7 @@ use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\ArticleEngagement;
 use UsinaDocs\Core\Content\PublishedPageRepository;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class ArticleEngagementRoutes
 {
@@ -48,16 +49,14 @@ final class ArticleEngagementRoutes
             $flash = [];
         }
 
-        if (isset($_SESSION['user']['id'])) {
-            $_SESSION['article_comment_csrf'] ??= bin2hex(random_bytes(32));
-        }
-
         return [
             'views' => $views,
             'comments' => $engagement->approvedComments($pageId, $locale),
             'path' => $path,
             'flash' => $flash['message'] ?? null,
-            'csrf' => isset($_SESSION['user']['id']) ? $_SESSION['article_comment_csrf'] : null,
+            // EN: Only signed-in readers see the comment form, so only they receive the token.
+            // PT: Só leitores autenticados veem o formulário de comentário; só eles recebem o token.
+            'csrf' => isset($_SESSION['user']['id']) ? CsrfToken::current() : null,
         ];
     }
 
@@ -73,7 +72,7 @@ final class ArticleEngagementRoutes
 
             $user = $_SESSION['user'] ?? null;
             $input = (array) $request->getParsedBody();
-            if (!isset($user['id']) || !self::validToken($input['csrf'] ?? null, 'article_comment_csrf')) {
+            if (!isset($user['id']) || !CsrfToken::isValid($input[CsrfToken::FIELD] ?? null)) {
                 return $response->withStatus(403);
             }
 
@@ -95,18 +94,16 @@ final class ArticleEngagementRoutes
 
             $query = $request->getQueryParams();
             $status = in_array($query['status'] ?? null, ArticleEngagement::COMMENT_STATUSES, true) ? $query['status'] : 'pending';
-            $_SESSION['comment_moderation_csrf'] ??= bin2hex(random_bytes(32));
 
             return $twig->render($response, 'comments-admin.twig', [
                 'status' => $status,
-                'csrf' => $_SESSION['comment_moderation_csrf'],
                 'comments' => $engagement->moderationQueue($status),
             ])->withHeader('Cache-Control', 'no-store');
         });
         $app->post('/admin/comments/{id:[0-9]+}', static function ($request, $response, array $args) use ($engagement) {
             $user = $_SESSION['user'] ?? null;
             $input = (array) $request->getParsedBody();
-            if (!Roles::canEdit($user) || !self::validToken($input['csrf'] ?? null, 'comment_moderation_csrf')) {
+            if (!Roles::canEdit($user) || !CsrfToken::isValid($input[CsrfToken::FIELD] ?? null)) {
                 return $response->withStatus(403);
             }
 
@@ -137,12 +134,5 @@ final class ArticleEngagementRoutes
     private static function path(array $page): string
     {
         return '/'.$page['language_code'].'/p/'.rawurlencode($page['slug']);
-    }
-
-    private static function validToken(mixed $token, string $key): bool
-    {
-        // Each form uses its own session token, including on installations with password sign-in.
-        // Cada formulário usa seu próprio token de sessão, inclusive em instalações com login por senha.
-        return is_string($token) && isset($_SESSION[$key]) && hash_equals($_SESSION[$key], $token);
     }
 }
