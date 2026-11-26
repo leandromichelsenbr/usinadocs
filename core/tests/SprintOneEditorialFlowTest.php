@@ -7,6 +7,7 @@ namespace UsinaDocs\Core\Tests;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
+use UsinaDocs\Core\Security\CsrfToken;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Infrastructure\Schema;
@@ -43,7 +44,7 @@ final class SprintOneEditorialFlowTest extends TestCase
         ];
 
         $create = (new ServerRequestFactory())
-            ->createServerRequest('POST', '/admin/pages')
+            ->createServerRequest('POST', '/admin/pages')->withHeader(CsrfToken::HEADER, CsrfToken::current())
             ->withParsedBody([
                 'title' => 'Fluxo editorial da Sprint 1',
                 'slug' => 'fluxo-sprint-1',
@@ -70,7 +71,7 @@ final class SprintOneEditorialFlowTest extends TestCase
         self::assertSame('Conteúdo inicial da Sprint 1.', $reopenedBlocks[1]['data']['body']);
         self::assertSame("User Function SprintUm()\nReturn", $reopenedBlocks[2]['data']['code']);
 
-        $publish = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish'));
+        $publish = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish')->withHeader(CsrfToken::HEADER, CsrfToken::current()));
         self::assertSame('/admin', $publish->getHeaderLine('Location'));
         $public = $app->handle((new ServerRequestFactory())->createServerRequest('GET', '/pt/p/fluxo-sprint-1'));
         $publicBody = (string) $public->getBody();
@@ -80,13 +81,13 @@ final class SprintOneEditorialFlowTest extends TestCase
         self::assertStringContainsString('Conteúdo inicial da Sprint 1.', $publicBody);
         self::assertStringContainsString('User Function SprintUm()', $publicBody);
 
-        $revision = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/revisions/pt'));
+        $revision = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/revisions/pt')->withHeader(CsrfToken::HEADER, CsrfToken::current()));
         self::assertSame('/admin/pages/'.$pageId.'/edit', $revision->getHeaderLine('Location'));
         $updatedBlocks = $initialBlocks;
         $updatedBlocks[1]['data']['body'] = 'Conteúdo atualizado na revisão 2.';
         $updatedBlocks = [$updatedBlocks[2], $updatedBlocks[0], $updatedBlocks[1]];
         $saveRevision = (new ServerRequestFactory())
-            ->createServerRequest('POST', '/admin/pages/'.$pageId)
+            ->createServerRequest('POST', '/admin/pages/'.$pageId)->withHeader(CsrfToken::HEADER, CsrfToken::current())
             ->withParsedBody([
                 'title' => 'Fluxo editorial da Sprint 1 — revisão 2',
                 'summary' => 'Segunda revisão da página simples.',
@@ -106,7 +107,7 @@ final class SprintOneEditorialFlowTest extends TestCase
 
         $blocksWithoutRequiredText = [$updatedBlocks[0], $updatedBlocks[1]];
         $saveInvalidRevision = (new ServerRequestFactory())
-            ->createServerRequest('POST', '/admin/pages/'.$pageId)
+            ->createServerRequest('POST', '/admin/pages/'.$pageId)->withHeader(CsrfToken::HEADER, CsrfToken::current())
             ->withParsedBody([
                 'title' => 'Fluxo editorial da Sprint 1 — revisão incompleta',
                 'summary' => 'Tentativa sem o bloco obrigatório de texto.',
@@ -116,7 +117,7 @@ final class SprintOneEditorialFlowTest extends TestCase
         self::assertSame('/admin', $app->handle($saveInvalidRevision)->getHeaderLine('Location'));
         self::assertSame(['code', 'heading'], array_column($editorial->blocksForDraft($pageId, 'pt'), 'type'));
 
-        $blockedPublish = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish'));
+        $blockedPublish = $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish')->withHeader(CsrfToken::HEADER, CsrfToken::current()));
         self::assertSame(302, $blockedPublish->getStatusCode());
         self::assertSame('/admin/pages/'.$pageId.'/edit?missing=Explica%C3%A7%C3%A3o', $blockedPublish->getHeaderLine('Location'));
         $validationScreen = $app->handle(
@@ -132,7 +133,7 @@ final class SprintOneEditorialFlowTest extends TestCase
         self::assertStringNotContainsString('revisão incompleta', $publicAfterBlockedPublish);
 
         $restoreValidRevision = (new ServerRequestFactory())
-            ->createServerRequest('POST', '/admin/pages/'.$pageId)
+            ->createServerRequest('POST', '/admin/pages/'.$pageId)->withHeader(CsrfToken::HEADER, CsrfToken::current())
             ->withParsedBody([
                 'title' => 'Fluxo editorial da Sprint 1 — revisão 2',
                 'summary' => 'Segunda revisão da página simples.',
@@ -141,7 +142,7 @@ final class SprintOneEditorialFlowTest extends TestCase
             ]);
         self::assertSame('/admin', $app->handle($restoreValidRevision)->getHeaderLine('Location'));
 
-        $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish'));
+        $app->handle((new ServerRequestFactory())->createServerRequest('POST', '/admin/pages/'.$pageId.'/publish')->withHeader(CsrfToken::HEADER, CsrfToken::current()));
         $history = $editorial->revisionHistory($pageId, 'pt');
         self::assertCount(2, $history);
         self::assertSame([2, 1], array_column($history, 'number'));

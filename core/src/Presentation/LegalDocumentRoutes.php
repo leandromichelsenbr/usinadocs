@@ -12,6 +12,7 @@ use Slim\Views\Twig;
 use Twig\TwigFunction;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\LegalDocuments;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class LegalDocumentRoutes
 {
@@ -31,11 +32,10 @@ final class LegalDocumentRoutes
             ?string $error = null,
             ?string $saved = null,
         ) use ($twig, $documents): ResponseInterface {
-            $_SESSION['legal_csrf'] ??= bin2hex(random_bytes(32));
             return $twig->render($response, 'legal-admin.twig', [
                 'documents' => $documents->listing(), 'slug' => $slug, 'editions' => $editions,
                 'creating' => $creating, 'languages' => LegalDocuments::LANGUAGES,
-                'csrf' => $_SESSION['legal_csrf'], 'error' => $error, 'saved' => $saved,
+                'error' => $error, 'saved' => $saved,
             ])->withHeader('Cache-Control', 'no-store');
         };
 
@@ -59,9 +59,9 @@ final class LegalDocumentRoutes
             $input = (array) $request->getParsedBody();
             $csrf = $input['csrf'] ?? null;
 
-            // Check the session token before accepting any draft or publication, including on password installations.
-            // Confere o token de sessão antes de aceitar rascunhos ou publicações, inclusive em instalações com senha.
-            if (!self::canManage() || !is_string($csrf) || !isset($_SESSION['legal_csrf']) || !hash_equals($_SESSION['legal_csrf'], $csrf)) {
+            // EN: Check the shared session token (also enforced by the CsrfToken middleware) before accepting any draft or publication.
+            // PT: Confere o token de sessão compartilhado (também exigido pelo middleware CsrfToken) antes de aceitar rascunhos ou publicações.
+            if (!self::canManage() || !CsrfToken::isValid($csrf)) {
                 return $response->withStatus(403);
             }
 

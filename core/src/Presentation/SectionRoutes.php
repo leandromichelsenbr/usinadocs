@@ -11,16 +11,16 @@ use Slim\App;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\ArticleSections;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class SectionRoutes
 {
     public static function register(App $app, Twig $twig, ArticleSections $sections): void
     {
         $show = static function (ResponseInterface $response, ?array $section = null, ?string $error = null, bool $saved = false) use ($twig, $sections): ResponseInterface {
-            $_SESSION['section_csrf'] ??= bin2hex(random_bytes(32));
             return $twig->render($response, 'sections-admin.twig', [
                 'sections' => $sections->all(), 'section' => $section, 'error' => $error,
-                'saved' => $saved, 'csrf' => $_SESSION['section_csrf'],
+                'saved' => $saved,
             ])->withHeader('Cache-Control', 'no-store');
         };
         $app->get('/admin/sections', static function (ServerRequestInterface $request, ResponseInterface $response) use ($show, $sections): ResponseInterface {
@@ -36,10 +36,11 @@ final class SectionRoutes
         $save = static function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($show, $sections): ResponseInterface {
             $input = (array) $request->getParsedBody();
             $token = $input['csrf'] ?? null;
-            // Check the same editorial role on both routes, and protect the write with a session token.
-            // Confere o papel editorial nas duas rotas e protege a gravação com um token de sessão.
-            if (!Roles::canEdit($_SESSION['user'] ?? null) || !is_string($token)
-                || !isset($_SESSION['section_csrf']) || !hash_equals($_SESSION['section_csrf'], $token)) {
+            // EN: Check the same editorial role on both routes and confirm the shared session token
+            // (also enforced by the CsrfToken middleware).
+            // PT: Confere o papel editorial nas duas rotas e o token de sessão compartilhado
+            // (também exigido pelo middleware CsrfToken).
+            if (!Roles::canEdit($_SESSION['user'] ?? null) || !CsrfToken::isValid($token)) {
                 return $response->withStatus(403);
             }
             $slug = $args['slug'] ?? null;

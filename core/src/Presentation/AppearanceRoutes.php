@@ -11,6 +11,7 @@ use Slim\App;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Media\MediaLibrary;
+use UsinaDocs\Core\Security\CsrfToken;
 
 final class AppearanceRoutes
 {
@@ -24,12 +25,9 @@ final class AppearanceRoutes
             ?string $error = null,
             bool $saved = false
         ) use ($twig, $media): ResponseInterface {
-            $_SESSION['appearance_csrf'] ??= bin2hex(random_bytes(32));
-
             return $twig->render($response, 'appearance.twig', [
                 'settings' => $settings,
                 'images' => $media->all(),
-                'csrf' => $_SESSION['appearance_csrf'],
                 'error' => $error,
                 'saved' => $saved,
             ])->withHeader('Cache-Control', 'no-store');
@@ -52,8 +50,7 @@ final class AppearanceRoutes
 
             // The token proves that the administrator opened the form in this session before submitting it.
             // O token comprova que o administrador abriu o formulário nesta sessão antes de enviá-lo.
-            if (!Roles::canManageUsers($_SESSION['user'] ?? null) || !is_string($token)
-                || !isset($_SESSION['appearance_csrf']) || !hash_equals($_SESSION['appearance_csrf'], $token)) {
+            if (!Roles::canManageUsers($_SESSION['user'] ?? null) || !CsrfToken::isValid($token)) {
                 return $response->withStatus(403);
             }
 

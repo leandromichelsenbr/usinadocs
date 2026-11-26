@@ -38,7 +38,7 @@
         {% if saved == 'published' %}<p role="status">Documento publicado nos três idiomas.</p>{% endif %}
         <p>Preencha o título e o texto nos três idiomas para publicar. O texto preserva as quebras de linha.</p>
         <form method="post" action="{{ creating ? '/admin/legal' : '/admin/legal/' ~ slug }}">
-            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             {% if creating %}
                 <label>Endereço permanente
                     <input name="slug" value="{{ slug }}" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="exemplo-direitos-autorais">

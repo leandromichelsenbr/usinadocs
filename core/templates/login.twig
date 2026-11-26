@@ -20,7 +20,7 @@
     <h1>{% include 'site-logo.twig' with {label: site_appearance.display_name ?: site_default_name|default('Usina Docs')} %}</h1>
     <p>{{ copy.login_prompt }}</p>
     {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-    <form class="login-form" method="post" action="/login">
+    <form class="login-form" method="post" action="/login"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         {# The sign-in handler validates the destination again before redirecting.
            O controlador de login valida novamente o destino antes de redirecionar. #}
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}

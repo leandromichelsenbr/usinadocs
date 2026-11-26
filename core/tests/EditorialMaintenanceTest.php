@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -51,7 +52,7 @@ final class EditorialMaintenanceTest extends TestCase
         self::assertStringContainsString('q=Manuten%C3%A7%C3%A3o&amp;lang=es', $dashboard);
         self::assertStringContainsString('class="reader-theme"', $dashboard);
         $path = '/admin/pages/'.$this->page;
-        $token = $_SESSION['editorial_maintenance_csrf'];
+        $token = CsrfToken::current();
         self::assertSame(403, $this->request('POST', $path.'/visibility', ['hidden' => '1'])->getStatusCode());
         self::assertSame(303, $this->request('POST', $path.'/visibility', ['hidden' => '1', 'csrf' => $token])->getStatusCode());
         $public = ['/pt/p/manutencao-editorial', '/en/p/editorial-maintenance'];
@@ -81,7 +82,7 @@ final class EditorialMaintenanceTest extends TestCase
         $path = '/admin/pages/'.$this->page;
         $history = $path.'/history/pt';
         $this->request('GET', $history);
-        $body = ['archived' => '1', 'csrf' => $_SESSION['editorial_maintenance_csrf']];
+        $body = ['archived' => '1', 'csrf' => CsrfToken::current()];
         self::assertSame(409, $this->request('POST', $path.'/revisions/pt/'.$current.'/archive', $body)->getStatusCode());
         self::assertSame(303, $this->request('POST', $path.'/revisions/pt/'.$old.'/archive', $body)->getStatusCode());
         self::assertStringNotContainsString('Manutenção editorial', (string) $this->request('GET', $history)->getBody());

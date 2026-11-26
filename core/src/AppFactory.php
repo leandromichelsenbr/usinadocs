@@ -39,6 +39,8 @@ use UsinaDocs\Core\Presentation\AuthorRoutes;
 use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
 use UsinaDocs\Core\Presentation\LegalDocumentRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
+use UsinaDocs\Core\Security\CsrfToken;
+use Twig\TwigFunction;
 
 final class AppFactory
 {
@@ -62,11 +64,36 @@ final class AppFactory
         $appearance = new SiteAppearance($database, $media);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
         $app = SlimAppFactory::create();
+        // EN: Slim runs middleware in reverse order of registration (last added runs first).
+        // These three are registered first so they run last, right before the route:
+        // routing -> body parsing -> CSRF check -> route. Routing comes first so unknown
+        // paths and wrong methods still answer 404/405; body parsing comes before the CSRF
+        // check so the form field is available.
+        // PT: O Slim executa os middlewares na ordem inversa do registro (o último
+        // registrado roda primeiro). Estes três são registrados antes dos demais para rodar
+        // por último, logo antes da rota: roteamento -> leitura do corpo -> verificação de
+        // CSRF -> rota. O roteamento vem antes para que caminhos inexistentes e métodos
+        // errados continuem respondendo 404/405; a leitura do corpo vem antes da verificação
+        // para que o campo do formulário esteja disponível.
+        $app->add(CsrfToken::middleware());
         $app->addBodyParsingMiddleware();
+        $app->addRoutingMiddleware();
+        // EN: Every template can print the session token with {{ csrf_token() }}.
+        // PT: Todo template pode imprimir o token da sessão com {{ csrf_token() }}.
+        $twig->getEnvironment()->addFunction(new TwigFunction('csrf_token', CsrfToken::current(...)));
         if (session_status() !== PHP_SESSION_ACTIVE) {
             if ($useOAuth) {
                 session_name('usinadocs_oauth');
                 session_set_cookie_params(['path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
+                ini_set('session.use_strict_mode', '1');
+            } else {
+                // EN: Password mode may run over plain HTTP during local evaluation, so the cookie
+                // cannot require Secure. HttpOnly keeps scripts from reading it and SameSite=Lax
+                // stops browsers from sending it with cross-site POSTs, a second layer over the token.
+                // PT: O modo senha pode rodar em HTTP simples na avaliação local, então o cookie
+                // não pode exigir Secure. HttpOnly impede que scripts o leiam e SameSite=Lax faz o
+                // navegador não enviá-lo em POSTs vindos de outros sites, uma segunda camada além do token.
+                session_set_cookie_params(['path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
                 ini_set('session.use_strict_mode', '1');
             }
             session_start();
@@ -185,7 +212,10 @@ final class AppFactory
                 }
                 session_regenerate_id(true);
                 $_SESSION['user'] = $user;
-                unset($_SESSION['article_comment_csrf'], $_SESSION['comment_moderation_csrf'], $_SESSION['article_comment_flash']);
+                // EN: A new identity gets a new CSRF token, so a token obtained before sign-in is useless afterwards.
+                // PT: Uma nova identidade recebe um novo token CSRF; um token obtido antes do login deixa de valer.
+                CsrfToken::rotate();
+                unset($_SESSION['article_comment_flash']);
                 return $response->withHeader('Location', $next ?? '/admin')->withStatus(302);
             });
         }
@@ -198,7 +228,6 @@ final class AppFactory
             return $twig->render($response, 'admin.twig', [
                 'user' => $_SESSION['user'], 'catalog' => $editorial->catalog($search), 'search' => $search,
                 'can_manage_appearance' => Roles::canManageUsers($_SESSION['user']),
-                'csrf' => EditorialMaintenanceRoutes::token(),
             ])->withHeader('Cache-Control', 'no-store');
         });
         $app->get('/admin/translations', static function (ServerRequestInterface $request, ResponseInterface $response) use ($twig, $editorial,$artifacts): ResponseInterface {if(!Roles::canEdit($_SESSION['user'] ?? null))return$response->withHeader('Location','/login')->withStatus(302);$search=(string)($request->getQueryParams()['q']??'');return$twig->render($response,'translation-review.twig',['pages'=>$editorial->translationReview($search),'artifacts'=>$artifacts->translationReview($search),'search'=>$search]);});

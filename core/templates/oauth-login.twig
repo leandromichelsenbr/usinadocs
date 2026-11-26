@@ -27,7 +27,7 @@
         <h1>{{ copy.account }}</h1>
         <p>{{ account.name }}</p>
         {% if can_access_editor %}<p><a href="/admin">{{ copy.panel }}</a></p>{% endif %}
-        <form method="post" action="/logout"><button type="submit">{{ copy.sign_out }}</button></form>
+        <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button type="submit">{{ copy.sign_out }}</button></form>
     {% else %}
         <h1>{{ copy.login }}</h1>
         {% if failed %}<p role="alert">{{ copy.login_error }}</p>{% endif %}

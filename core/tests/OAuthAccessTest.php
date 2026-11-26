@@ -7,6 +7,7 @@ namespace UsinaDocs\Core\Tests;
 use PHPUnit\Framework\TestCase;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use UsinaDocs\Core\AppFactory;
+use UsinaDocs\Core\Security\CsrfToken;
 use UsinaDocs\Core\Authentication\OAuthAccounts;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Infrastructure\Schema;
@@ -78,7 +79,9 @@ final class OAuthAccessTest extends TestCase
         self::assertSame(403, $app->handle($request('GET', '/admin/users'))->getStatusCode());
 
         $_SESSION = ['oauth_user_id' => $administrator['id']];
-        $manage = $request('POST', '/admin/users/'.$reader['id'].'/group')->withParsedBody(['group' => 'reader']);
+        // EN: The token is valid, so the first 403 below comes from the OAuth Origin check.
+        // PT: O token é válido; por isso o primeiro 403 abaixo vem da verificação de Origin do OAuth.
+        $manage = $request('POST', '/admin/users/'.$reader['id'].'/group')->withParsedBody(['group' => 'reader'])->withHeader(CsrfToken::HEADER, CsrfToken::current());
         self::assertSame(403, $app->handle($manage)->getStatusCode());
         self::assertSame(200, $app->handle($request('GET', '/admin/users'))->getStatusCode());
         self::assertSame(303, $app->handle($manage->withHeader('Origin', 'https://news.example.test'))->getStatusCode());

@@ -26,7 +26,7 @@
     <section aria-labelledby="form-title">
         <h2 id="form-title">{{ editing ? fields.edit_bio : fields.new_author }}</h2>
         <form method="post" data-warn-unsaved action="/admin/authors{{ editing ? '/' ~ editing : '' }}">
-            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <label>{{ fields.public_name }}<input class="field" name="name" required maxlength="120" value="{{ profile.name|default('') }}"></label>
             {% if editing %}
                 <p>{{ fields.address }}: <a href="/pt/p/autor-{{ editing }}">/pt/p/autor-{{ editing }}</a></p>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace UsinaDocs\Core\Tests;
 
+use UsinaDocs\Core\Security\CsrfToken;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
@@ -49,7 +50,7 @@ final class EditorialSectionsTest extends TestCase
         $body = ['slug' => 'infra', 'title_pt' => 'Infraestrutura', 'title_en' => 'Infrastructure', 'title_es' => 'Infraestructura', 'blocked' => '0'];
         self::assertSame(403, $this->request('POST', $path, $body)->getStatusCode());
         self::assertSame(200, $this->request('GET', $path)->getStatusCode());
-        $body['csrf'] = $_SESSION['section_csrf'];
+        $body['csrf'] = CsrfToken::current();
         self::assertSame(303, $this->request('POST', $path, $body)->getStatusCode());
         self::assertSame(422, $this->request('POST', $path, $body)->getStatusCode());
         self::assertSame(422, $this->request('POST', $path, array_replace($body, ['slug'=>'other', 'title_en'=>'']))->getStatusCode());
@@ -104,7 +105,11 @@ final class EditorialSectionsTest extends TestCase
 
     private function request(string $method, string $path, array $body = [], array $query = []): ResponseInterface
     {
-        $request = (new ServerRequestFactory())->createServerRequest($method, $path);
+        // EN: Every helper request carries the session CSRF header, so these tests exercise the
+        // editorial rules; the body field is still checked by the section routes themselves.
+        // PT: Toda requisição do auxiliar leva o cabeçalho CSRF da sessão, para que estes testes
+        // exercitem as regras editoriais; o campo do corpo continua conferido pelas rotas de editorias.
+        $request = (new ServerRequestFactory())->createServerRequest($method, $path)->withHeader(CsrfToken::HEADER, CsrfToken::current());
         return $this->app->handle($request->withParsedBody($body)->withQueryParams($query));
     }
 }

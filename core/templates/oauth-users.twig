@@ -30,7 +30,7 @@
                         <td>{{ user.email ?? '—' }}</td>
                         <td>{{ user.provider == 'google' ? 'Google' : 'Microsoft' }}</td>
                         <td>
-                            <form method="post" action="/admin/users/{{ user.id }}/group">
+                            <form method="post" action="/admin/users/{{ user.id }}/group"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
                                 <select name="group" aria-label="Grupo de {{ user.name }}">
                                     {% for group in groups %}
                                         <option value="{{ group.id }}"{% if user.role == group.id %} selected{% endif %}>{{ group.name }}</option>
