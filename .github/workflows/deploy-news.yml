@@ -1,0 +1,83 @@
+name: Deploy Usina News
+
+# EN: Publishes main to news.usinabr.com.br after the core tests pass. The job
+# only opens an SSH connection; the server key is restricted to a forced
+# command, so it can run the installation's deploy script and nothing else.
+# The script (outside this repository, because it is installation-specific)
+# backs up the database, syncs the checkout with origin/main, runs migrations
+# with the same PHP configuration as the site and rolls the code back if the
+# homepage stops answering.
+# PT: Publica a main em news.usinabr.com.br depois que os testes do núcleo
+# passam. O job apenas abre uma conexão SSH; a chave no servidor é restrita a
+# um comando forçado, então só consegue executar o script de deploy da
+# instalação e nada mais. O script (fora deste repositório, por ser específico
+# da instalação) faz backup do banco, sincroniza o checkout com origin/main,
+# roda as migrações com a mesma configuração de PHP do site e reverte o código
+# se a página inicial deixar de responder.
+
+on:
+  # EN: Runs when "Core tests" finishes; the job below continues only for a
+  # successful push to main, never for pull requests.
+  # PT: Roda quando "Core tests" termina; o job abaixo só continua para um push
+  # bem-sucedido na main, nunca para pull requests.
+  workflow_run:
+    workflows: [Core tests]
+    types: [completed]
+    branches: [main]
+  # EN: Manual run from the Actions tab, for example after configuring secrets.
+  # PT: Execução manual pela aba Actions, por exemplo depois de configurar os secrets.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# EN: Two merges in a row must not deploy at the same time; the newest waits.
+# PT: Dois merges seguidos não podem publicar ao mesmo tempo; o mais novo espera.
+concurrency:
+  group: deploy-news
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment:
+      name: news.usinabr.com.br
+      url: https://news.usinabr.com.br/
+    env:
+      DEPLOY_HOST: ${{ secrets.NEWS_DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.NEWS_DEPLOY_USER }}
+      DEPLOY_KEY: ${{ secrets.NEWS_DEPLOY_KEY }}
+      KNOWN_HOSTS: ${{ secrets.NEWS_KNOWN_HOSTS }}
+    steps:
+      # EN: Forks and fresh clones have no secrets; skip instead of failing.
+      # PT: Forks e clones novos não têm os secrets; o job é pulado em vez de falhar.
+      - name: Check deploy configuration
+        id: config
+        run: |
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_USER" ] || [ -z "$DEPLOY_KEY" ] || [ -z "$KNOWN_HOSTS" ]; then
+            echo "::notice::Deploy secrets are not configured; skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # EN: known_hosts is pinned from a secret, so a spoofed server cannot
+      # receive the connection (no ssh-keyscan at deploy time).
+      # PT: O known_hosts vem de um secret fixo, para que um servidor falso não
+      # receba a conexão (sem ssh-keyscan na hora do deploy).
+      - name: Run the server deploy script
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/known_hosts ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=20 "$DEPLOY_USER@$DEPLOY_HOST" deploy
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
