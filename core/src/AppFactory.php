@@ -10,6 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Slim\Factory\AppFactory as SlimAppFactory;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Content\PublishedPageRepository;
+use UsinaDocs\Core\Content\NewsArticles;
 use UsinaDocs\Core\Infrastructure\Database;
 use UsinaDocs\Core\Authentication\Authenticator;
 use UsinaDocs\Core\Authentication\LoginReturn;
@@ -55,6 +56,11 @@ final class AppFactory
 
         $database = Database::connect($databasePath);
         $repository = new PublishedPageRepository($database);
+        // EN: The news homepage is optional. Installations that publish a newspaper (such as Usina News)
+        // set USINADOCS_NEWS_HOME=1; every other installation keeps the documentation homepage.
+        // PT: A página inicial de notícias é opcional. Instalações que publicam um jornal (como a Usina News)
+        // definem USINADOCS_NEWS_HOME=1; as demais mantêm a página inicial de documentação.
+        $news = ($_ENV['USINADOCS_NEWS_HOME'] ?? '') === '1' ? new NewsArticles($database) : null;
         $useOAuth = ($_ENV['USINADOCS_AUTH_MODE'] ?? '') === 'oauth';
         $editorial = new EditorialService($database);
         $artifacts = new ReusableArtifactService($database);
@@ -63,6 +69,14 @@ final class AppFactory
         $covers = new PageCovers($database, $media);
         $appearance = new SiteAppearance($database, $media);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
+        if ($news !== null) {
+            // EN: The newspaper's name and newsroom time zone are installation settings, so the same
+            // core can power other publications. The defaults keep the current Usina News behavior.
+            // PT: O nome do jornal e o fuso da redação são configurações da instalação, para que o mesmo
+            // núcleo atenda outras publicações. Os padrões mantêm o comportamento atual da Usina News.
+            $twig->getEnvironment()->addGlobal('site_default_name', (string) ($_ENV['USINADOCS_SITE_NAME'] ?? 'Usina News'));
+            $twig->getEnvironment()->addGlobal('site_timezone', (string) ($_ENV['USINADOCS_TIMEZONE'] ?? 'America/Sao_Paulo'));
+        }
         $app = SlimAppFactory::create();
         // EN: Slim runs middleware in reverse order of registration (last added runs first).
         // These three are registered first so they run last, right before the route:
@@ -139,9 +153,47 @@ final class AppFactory
         });
         $app->addErrorMiddleware(!$useOAuth, true, true);
 
-        $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
-            return $response->withHeader('Location', '/pt/p/bem-vindo')->withStatus(302);
-        });
+        if ($news === null) {
+            $app->get('/', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
+                return $response->withHeader('Location', '/pt/p/bem-vindo')->withStatus(302);
+            });
+        } else {
+            // EN: Both URLs show the same reader homepage, so links to /pt/p/inicio keep working
+            // while the web server root is configured.
+            // PT: Os dois endereços mostram a mesma página inicial, para que links para /pt/p/inicio
+            // continuem funcionando enquanto a raiz do servidor web é configurada.
+            $homepage = static function (
+                ServerRequestInterface $request,
+                ResponseInterface $response
+            ) use ($twig, $news, $root, $engagement, $sections): ResponseInterface {
+                $language = $request->getAttribute(ReaderPreferences::class)->language;
+                $translations = require $root.'/config/news-reader-copy.php';
+                $copy = $translations[$language];
+                // EN: Use published section names from the directory so edits and blocks take effect on the homepage.
+                // PT: Usa os nomes do cadastro para refletir as alterações e os bloqueios na página inicial.
+                $channels = [];
+                foreach ($sections->all() as $section) {
+                    if ($section['blocked']) continue;
+                    $slug = $section['slug'];
+                    $channels[$slug] = ['name' => $section['title_'.$language], 'articles' => $news->latest(3, $slug, $language)];
+                }
+
+                // EN: Fetch one snapshot of counts for all cards, including articles repeated in a section.
+                // PT: Busca os totais de todas as chamadas de uma vez, inclusive de artigos repetidos numa editoria.
+                $latest = $news->latest(6, null, $language);
+                $listedArticles = array_merge($latest, ...array_column($channels, 'articles'));
+                $counts = $engagement->countsForArticles(array_column($listedArticles, 'page_id'));
+
+                return $twig->render($response, 'news-home.twig', [
+                    'latest' => $latest,
+                    'engagement_counts' => $counts,
+                    'news_copy' => $copy,
+                    'sections' => $channels,
+                ]);
+            };
+            $app->map(['GET', 'HEAD'], '/', $homepage);
+            $app->map(['GET', 'HEAD'], '/pt/p/inicio', $homepage);
+        }
         $app->get('/favicon.ico', static function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             // The legacy browser path tracks the current selection without caching a previous redirect.
             // O endereço tradicional do navegador acompanha a seleção atual sem guardar um redirecionamento anterior.
