@@ -4,13 +4,14 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 
 ## Proximo ciclo de desenvolvimento
 
-1. historico visual de revisoes de paginas, modelos e artefatos, com comparacao e restauracao;
-2. deteccao de alteracoes na fonte e traducoes desatualizadas para paginas e artefatos;
-3. formato inicial de importacao e exportacao, validado com um conjunto representativo do AdvPL Guia;
-4. campos e modelos editoriais necessarios para referencias de funcoes, classes, pontos de entrada e artigos;
-5. inventario de URLs, redirecionamentos, metadados SEO e midia do site `advpl.usinabr.com.br`;
-6. instalacao de homologacao isolada para o primeiro ensaio de migracao;
-7. testes de atualizacao de banco, backup e restauracao antes da primeira Alpha.
+Entregue no ciclo anterior: historico visual de revisoes com comparacao e restauracao para paginas, modelos e artefatos; deteccao de traducoes desatualizadas para paginas e artefatos; e a exportacao e importacao inicial de pacotes de conteudo.
+
+1. estados de traducao por bloco, a partir da deteccao de traducoes desatualizadas ja existente por pagina e por artefato;
+2. validacao do formato de pacote de conteudo com um conjunto representativo do AdvPL Guia;
+3. campos e modelos editoriais necessarios para referencias de funcoes, classes, pontos de entrada e artigos;
+4. inventario de URLs, redirecionamentos, metadados SEO e midia do site `advpl.usinabr.com.br`;
+5. instalacao de homologacao isolada para o primeiro ensaio de migracao;
+6. testes de atualizacao de banco, backup e restauracao antes da primeira Alpha.
 
 ## Fase 0 - Fundacao do projeto
 
@@ -33,10 +34,16 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 - [x] traducoes versionadas de paginas e artefatos em portugues, ingles e espanhol;
 - [x] historico visual, comparacao e restauracao de revisoes;
 - [x] formato inicial de importacao/exportacao;
-- [ ] concluir papeis e permissoes editoriais alem do administrador;
+- [x] biblioteca de midia e artefatos de imagem, tabela, citacao, diagrama e questionario;
+- [x] login por Google e Microsoft com os grupos Leitor, Editor e Administrador;
+- [x] protecao CSRF em toda requisicao que altera dados;
+- [x] testes automatizados do nucleo na CI com PHP 8.2 e 8.3;
+- [ ] concluir papeis e permissoes editoriais alem dos grupos iniciais Leitor, Editor e Administrador;
 - [ ] concluir modelos representativos de funcao/comando, procedimento controlado e aula.
 
 ## Fase 2 - Traducao por bloco
+
+Ja disponivel no nucleo: deteccao de traducoes desatualizadas por pagina e por artefato, tela de revisao de traducoes, rotas localizadas e preferencia de idioma do leitor.
 
 - estados de traducao por bloco e idioma;
 - acompanhamento de mudancas na fonte;
@@ -45,6 +52,8 @@ Este roadmap comunica direcao, nao datas fixas de entrega. As prioridades podem 
 - rotas localizadas e preferencias de idioma.
 
 ## Fase 3 - Midia e referencias
+
+Ja disponivel no nucleo: envio de imagens com origem e licenca, carregamento de imagens sob demanda e artefatos de citacao estruturada.
 
 - uploads seguros e revisoes de arquivo;
 - metadados de autoria, origem, licenca e acessibilidade;

@@ -21,21 +21,32 @@ Consulte a [visao do projeto](docs/pt-BR/vision.md), os [casos de uso e modelos 
 
 O nucleo leve instalavel fica em [`core/`](core/) e e a unica base de codigo ativa. A instalacao local esta descrita em [docs/INSTALL.md](docs/INSTALL.md).
 
-Atualmente ele renderiza uma pagina de exemplo publicada, em portugues, a partir do SQLite. Consulte [`core/README.md`](core/README.md) para os passos de instalacao local e validacao.
+O nucleo ja oferece:
+
+- paginas estruturadas com blocos ordenados, rascunhos, publicacao, revisoes imutaveis e rotas localizadas em portugues, ingles e espanhol;
+- modelos editoriais e artefatos reutilizaveis versionados (imagens, tabelas, citacoes, diagramas e questionarios), referenciados por revisao fixada, com relatorios de uso e de impacto de atualizacoes;
+- traducoes versionadas de paginas e artefatos, com telas de revisao que marcam a traducao como desatualizada quando a fonte em portugues muda;
+- historico de revisoes de paginas, modelos e artefatos, com comparacao e restauracao como novo rascunho;
+- exportacao de pacotes de conteudo, previa de importacao, importacao transacional e atualizacoes importadas como novas revisoes, conforme a [especificacao do pacote de conteudo](docs/CONTENT-PACKAGE.md);
+- biblioteca de midia com origem e licenca, carregamento de imagens sob demanda, videos do YouTube incorporados com seguranca e capas de artigos;
+- artigos com perfis de autores, assinaturas, comentarios moderados, contagem de visualizacoes e publicacao coordenada nas tres edicoes;
+- documentos legais, configuracoes de aparencia do site e preferencias de idioma e tema do leitor;
+- login local de administrador ou login por Google e Microsoft com os grupos Leitor, Editor e Administrador, e protecao CSRF em toda requisicao que altera dados;
+- pagina inicial de noticias opcional (`USINADOCS_NEWS_HOME=1`) com as ultimas materias e as editorias.
+
+Consulte [`core/README.md`](core/README.md) para os passos de instalacao local e validacao.
 
 ## Capacidades planejadas
 
-- modelos de pagina estruturados e blocos de conteudo reutilizaveis;
-- metadados de controle documental, como codigo, responsavel, aprovador, versao, vigencia e data de revisao;
-- historico completo de revisoes, comparacao e restauracao;
 - status de traducao e revisao por bloco;
-- biblioteca de midia com autoria, origem e licenciamento;
-- fluxos editoriais e permissoes;
+- metadados de controle documental, como codigo, responsavel, aprovador, versao, vigencia e data de revisao;
+- revisoes de arquivos de midia e metadados mais completos de autoria e acessibilidade;
+- fluxos de aprovacao editorial e permissoes mais granulares;
 - ciencia, consentimento e evidencia de treinamento para documentos que exigem conhecimento formal;
 - catalogos pesquisaveis, taxonomias e relacionamentos;
 - cursos, trilhas, aulas e avaliacoes nativas;
 - progresso, conquistas e revisao orientada por erro;
-- formatos abertos de importacao, exportacao e backup;
+- backup e restauracao completos, e versoes estaveis dos formatos de importacao e exportacao;
 - temas e pontos de extensao.
 
 ## Open source

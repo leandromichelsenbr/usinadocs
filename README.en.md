@@ -21,21 +21,32 @@ See the [project vision](docs/en/vision.md), [use cases and content models](docs
 
 The installable lightweight core lives in [`core/`](core/) and is the only active code base. Local installation is described in [docs/INSTALL.md](docs/INSTALL.md).
 
-It currently renders one published, Portuguese example page from SQLite. See [`core/README.md`](core/README.md) for local installation and validation steps.
+The core already provides:
+
+- structured pages with ordered blocks, drafts, publication, immutable revisions and localized routes in Portuguese, English and Spanish;
+- versioned editorial models and reusable artifacts (images, tables, citations, diagrams and quizzes), referenced by pinned revision, with usage and update-impact reports;
+- versioned page and artifact translations, with review screens that flag a translation as outdated when its Portuguese source changes;
+- revision history for pages, models and artifacts, with comparison and restoration as a new draft;
+- content package export, import preview, transactional import and updates imported as new revisions, following the [content package specification](docs/CONTENT-PACKAGE.md);
+- a media library with source and license notes, deferred image loading, safe YouTube embeds and article covers;
+- articles with author profiles, bylines, moderated comments, view counts and coordinated trilingual releases;
+- legal documents, site appearance settings and reader language and theme preferences;
+- local administrator login or Google and Microsoft login with Reader, Editor and Administrator groups, and CSRF protection on every state-changing request;
+- an optional news homepage (`USINADOCS_NEWS_HOME=1`) with the latest articles and editorial sections.
+
+See [`core/README.md`](core/README.md) for local installation and validation steps.
 
 ## Planned capabilities
 
-- structured page models and reusable content blocks;
-- document-control metadata such as code, owner, approver, version, validity and review date;
-- complete revision history, comparison and restoration;
 - translation status and review at block level;
-- media library with authorship, origin and licensing metadata;
-- editorial workflows and permissions;
+- document-control metadata such as code, owner, approver, version, validity and review date;
+- media file revisions and fuller authorship and accessibility metadata;
+- editorial approval workflows and finer-grained permissions;
 - acknowledgement, consent and training evidence for documents that require formal awareness;
 - searchable catalogs, taxonomies and relationships;
 - native courses, learning paths, lessons and assessments;
 - progress, achievements and error-guided review;
-- open import, export and backup formats;
+- full backup and restoration, and stable versions of the import and export formats;
 - themes and extension points.
 
 ## Open source
