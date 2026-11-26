@@ -6,6 +6,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ page.title }} · {{ site_label }}</title>
+    {# Public article metadata lets social sites build link previews in the shared language.
+       Os metadados do artigo público permitem gerar prévias de link no idioma compartilhado. #}
+    {% if social_share %}
+        <link rel="canonical" href="{{ social_share.url }}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{{ social_share.url }}">
+        <meta property="og:title" content="{{ page.title }}">
+        <meta property="og:description" content="{{ page.summary }}">
+        <meta property="og:site_name" content="{{ site_label }}">
+        {% if social_share.image %}<meta property="og:image" content="{{ social_share.image }}">{% endif %}
+    {% endif %}
     {% include 'site-favicon.twig' %}
     <style>
         {% include 'site-logo-style.twig' %}
@@ -22,6 +33,10 @@
         .reader-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
         .reader-actions a, .reader-actions button { border: 1px solid light-dark(#c7d2e5, #32435d); border-radius: .4rem; padding: .3rem .55rem; color: inherit; background: transparent; font: inherit; font-size: .85rem; text-decoration: none; }
         .reader-actions button { cursor: pointer; }
+        /* Let sharing controls wrap on narrow screens without displacing the byline.
+           Permite que os controles de compartilhamento quebrem linha sem deslocar a assinatura. */
+        .article-sharing { align-items: center; margin-block: 1rem; overflow-wrap: anywhere; }
+        .article-sharing [role="status"] { max-width: 100%; }
         .reader-actions :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
         section { margin-top:1.6rem; line-height:1.7; } pre { overflow:auto; padding:1rem; border-radius:.6rem; background:#172033; color:#ecf3ff; } .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{padding:.65rem;border:1px solid #c7d2e5;text-align:left}th{background:#eaf4fc}.citation{margin:1.5rem 0;padding:1rem 1.25rem;border-left:4px solid #1264a3;background:#eaf4fc;border-radius:0 .5rem .5rem 0}.citation p{margin:0 0 .75rem;font-style:italic}.citation footer{font-size:.92rem;color:#3c4a5d}.diagram{padding:1rem;border:1px solid #c7d2e5;border-radius:.6rem;background:#f8fbff}.diagram h2{margin:.1rem 0 1rem}.diagram-nodes{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}.diagram-node{padding:.45rem .7rem;border:1px solid #1264a3;border-radius:.45rem;background:#eaf4fc;font-weight:650}.diagram-arrow{color:#1264a3;font-weight:800}.diagram-links{margin:.8rem 0 0;padding-left:1.2rem;font-size:.9rem;color:#526174}.quiz{padding:1.25rem;border:1px solid #c7d2e5;border-radius:.6rem;background:#f8fbff}.quiz h2{margin:.1rem 0 .8rem}.quiz-options{display:grid;gap:.55rem}.quiz-option{padding:.65rem .75rem;border:1px solid #c7d2e5;border-radius:.45rem;background:white;text-align:left;cursor:pointer}.quiz-option:hover{border-color:#1264a3}.quiz-feedback{margin:.9rem 0 0;font-weight:650}.quiz-feedback.is-correct{color:#096b2e}.quiz-feedback.is-wrong{color:#8b1f2d}.quiz-explanation{margin:.35rem 0 0;color:#526174}.image-trigger{padding:.65rem .9rem;border:1px solid #1264a3;border-radius:.45rem;background:#eaf4fc;color:#1264a3;font-weight:700;cursor:pointer}.image-trigger:hover{background:#d8ebfa}.content-image{display:block;max-width:100%;height:auto;border:1px solid #c7d2e5;border-radius:.6rem;cursor:zoom-in}.image-modal{width:calc(100vw - 2rem);max-width:1200px;height:calc(100vh - 2rem);padding:0;border:0;border-radius:.7rem;background:#0e1624;color:#edf3ff}.image-modal::backdrop{background:rgba(0,0,0,.72)}.image-modal-content{height:100%;overflow:auto;padding:1rem;box-sizing:border-box}.image-modal-close{position:sticky;top:0;float:right;padding:.45rem .65rem;border:1px solid #7fc7ff;border-radius:.35rem;background:#183654;color:#edf3ff;cursor:pointer}.image-modal img{display:block;max-width:none;height:auto;clear:both;margin:1rem auto 0}
         :root { color: light-dark(#172033, #edf3ff); background: light-dark(#f3f6fb, #0e1624); }
@@ -88,6 +103,7 @@
         <h1>{{ page.title }}</h1>
         {% if page.summary %}<p class="summary">{{ page.summary }}</p>{% endif %}
         {% if page.content_type == 'article' %}{% include 'article-byline.twig' %}{% endif %}
+        {% if social_share %}{% include 'article-sharing.twig' %}{% endif %}
         {# Only the public article route supplies interaction data. Editorial previews stay free of counters and forms.
            Apenas a rota pública de artigos fornece dados de interação. As prévias editoriais ficam sem contadores e formulários. #}
         {% if engagement is defined and engagement is not null and engagement.views is not null %}

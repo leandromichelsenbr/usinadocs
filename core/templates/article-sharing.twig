@@ -1,0 +1,33 @@
+{# Direct links are usable without JavaScript. The copy action appears when the browser supports it.
+   Os links diretos funcionam sem JavaScript. A ação de copiar aparece quando o navegador a suporta. #}
+{% set share_copy = {
+    pt: ['Compartilhar', 'Copiar link', 'Link copiado'],
+    en: ['Share', 'Copy link', 'Link copied'],
+    es: ['Compartir', 'Copiar enlace', 'Enlace copiado']
+}[page.language_code] %}
+<nav class="reader-actions article-sharing" aria-label="{{ share_copy[0] }}">
+    <strong>{{ share_copy[0] }}</strong>
+    {% for name, url in social_share.links %}
+        <a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ name }}</a>
+    {% endfor %}
+    <button type="button" hidden data-share-copy="{{ social_share.url }}">{{ share_copy[1] }}</button>
+    <span role="status" class="meta" data-share-status="{{ share_copy[2] }}"></span>
+</nav>
+<script>
+    (() => {
+        // Reveal the copy action only on browsers with clipboard access. Links remain available if writing fails.
+        // Mostra a opção de copiar só em navegadores com acesso à área de transferência. Os links seguem disponíveis se a cópia falhar.
+        const button = document.querySelector('[data-share-copy]');
+        const status = document.querySelector('[data-share-status]');
+        if (!navigator.clipboard?.writeText) return;
+        button.hidden = false;
+        button.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(button.dataset.shareCopy);
+                status.textContent = status.dataset.shareStatus;
+            } catch {
+                status.textContent = button.dataset.shareCopy;
+            }
+        });
+    })();
+</script>
