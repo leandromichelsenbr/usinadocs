@@ -18,6 +18,9 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Added
 
+- Optional news homepage (`USINADOCS_NEWS_HOME=1`) with latest articles and editorial sections, configurable site name and time zone, brought from the Usina News installation.
+- Theme-aware colors for quiz feedback.
+
 - Versioned editorial model editor with required artifact definitions.
 - Versioned reusable artifact editor with revision-pinned page references.
 - Artifact usage and update-impact reports across pages and languages.

@@ -38,6 +38,10 @@
         .citation, .diagram, .quiz { background: light-dark(#eaf4fc, #10243a); border-color: light-dark(#1264a3, #7fc7ff); }
         .diagram-node, .quiz-option { background: light-dark(#fff, #183654); color: light-dark(#172033, #edf3ff); }
         .quiz-option:hover { border-color: light-dark(#1264a3, #7fc7ff); }
+        /* Keep quiz feedback legible against each theme's panel background.
+           Mantém a resposta do quiz legível no fundo do painel de cada tema. */
+        .quiz-feedback.is-correct { color: light-dark(#096b2e, #96e6ad); }
+        .quiz-feedback.is-wrong { color: light-dark(#8b1f2d, #ffa9b4); }
         .notice { border-left: 4px solid light-dark(#1264a3, #7fc7ff); padding: .75rem 1rem; }
         .reader-tools { display: grid; gap: .7rem; justify-items: end; }
         @media (max-width: 38rem) { header { flex-wrap: wrap; } .reader-tools { justify-items: start; } }

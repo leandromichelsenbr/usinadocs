@@ -23,6 +23,18 @@ Abra `http://127.0.0.1:8080/pt/p/bem-vindo`.
 
 O rodapé lê a versão de `core/VERSION`. Em uma implantação baseada no Git, execute `git rev-parse HEAD > core/BUILD_REVISION` na raiz do checkout usado para a entrega. Distribua esse arquivo junto ao Core e atualize-o quando implantar uma nova revisão.
 
+## Página inicial de notícias
+
+Instalações que publicam um jornal, como a Usina News, podem trocar a página inicial de documentação por uma capa com as últimas matérias e as editorias. Defina no `.env`:
+
+```dotenv
+USINADOCS_NEWS_HOME=1
+USINADOCS_SITE_NAME="Usina News"        # opcional; padrão "Usina News"
+USINADOCS_TIMEZONE=America/Sao_Paulo    # opcional; fuso usado nas datas
+```
+
+A capa responde em `/` e em `/pt/p/inicio`. Os textos fixos ficam em `config/news-reader-copy.php`, e as editorias são cadastradas em `/admin/sections`.
+
 ## Alterar acesso administrativo
 
 Defina `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD` no arquivo `.env`. Se o administrador já tiver sido criado, sincronize as novas credenciais sem apagar seu banco:

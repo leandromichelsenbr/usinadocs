@@ -1,0 +1,240 @@
+{# Cover images complement the linked headline, so they use empty alternative text.
+   As capas complementam o título com link e por isso têm texto alternativo vazio. #}
+{% macro cover(item, featured = false) %}
+    {% if item.cover_media_id %}
+        <img class="article-card-image" src="/media/{{ item.cover_media_id|url_encode }}" alt="" decoding="async"{% if not featured %} loading="lazy"{% endif %}>
+    {% endif %}
+{% endmacro %}
+{% macro counts(item, engagement_counts, locale) %}
+    {# Match the edition the card links to, including a Portuguese fallback, and use the interface language for labels.
+       Seleciona a edição vinculada pela chamada, inclusive ao recorrer ao português, e usa o idioma da interface nos rótulos. #}
+    {% set counts = engagement_counts[item.page_id][item.language] ?? null %}
+    {% if counts %}{% include 'article-card-counts.twig' with {counts: counts, locale: locale} only %}{% endif %}
+{% endmacro %}
+{% macro article(item, sections, date_format, engagement_counts, locale, featured = false) %}
+    {# Keep the body in its own grid cell so a card with no image uses its natural height.
+       Mantém o conteúdo em uma célula própria para que uma chamada sem imagem use sua altura natural. #}
+    <article class="article-card {{ featured ? 'feature lead' : 'story' }}{{ item.cover_media_id ? ' has-cover' : '' }}">
+        {{ _self.cover(item, featured) }}
+        <div class="article-card-body">
+            <div class="story-meta">
+                {% if item.section %}<a href="#editoria-{{ item.section }}">{{ sections[item.section].name }}</a>{% endif %}
+                {% if item.published_at %}<time datetime="{{ item.published_at }}">{{ item.published_at|date(date_format, site_timezone|default('UTC')) }}</time>{% endif %}
+            </div>
+            <h3 lang="{{ item.language }}"><a href="/{{ item.language }}/p/{{ item.slug|url_encode }}">{{ item.title }}</a></h3>
+            {% if item.is_critical %}<p>{% include 'article-critical-label.twig' with {locale: locale} only %}</p>{% endif %}
+            {% if item.summary %}<p class="article-card-summary" lang="{{ item.language }}">{{ item.summary }}</p>{% endif %}
+            {{ _self.counts(item, engagement_counts, locale) }}
+        </div>
+    </article>
+{% endmacro %}
+{% import _self as news %}
+{% set copy = reader_preferences.text %}
+{# EN: The name comes from Appearance, then from USINADOCS_SITE_NAME; the two-tone logo is kept for the default name.
+   PT: O nome vem da Aparência e depois de USINADOCS_SITE_NAME; o logotipo em dois tons é mantido para o nome padrão. #}
+{% set site_label = site_appearance.display_name ?: site_default_name|default('Usina News') %}
+{% set date_format = reader_preferences.language == 'en' ? 'M j, Y' : 'd/m/Y' %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ news_copy.description }}">
+    <meta name="theme-color" content="#12382b">
+    <title>{{ site_label }} · {{ news_copy.title }}</title>
+    {% include 'site-favicon.twig' %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        {% include 'site-logo-style.twig' %}
+        {% include 'article-critical-style.twig' %}
+        {% include 'article-card-layout.twig' %}
+        :root {
+            color-scheme: light;
+            --paper: #f5f4ec;
+            --surface: #fffef8;
+            --on-dark: #fffef8;
+            --ink: #183b2d;
+            --muted: #465c52;
+            --line: #becabe;
+            --dark: #12382b;
+            --accent: #d6ed91;
+            /* Use the chosen color for decorative accents and retain text contrast.
+               Usa a cor escolhida em detalhes decorativos e preserva o contraste do texto. */
+            {% if site_appearance.accent_color %}--brand-accent: {{ site_appearance.accent_color }};{% endif %}
+            --head: "Barlow Condensed", "Arial Narrow", sans-serif;
+        }
+        {% set dark_tokens %}
+            color-scheme: dark;
+            --paper: #17251e;
+            --surface: #203128;
+            --ink: #e9eddd;
+            --muted: #bfcdbf;
+            --line: #53685b;
+            --dark: #123125;
+        {% endset %}
+        :root[data-theme="dark"] { {{ dark_tokens }} }
+        @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { {{ dark_tokens }} } }
+        {% include 'reader-controls-style.twig' %}
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; font: 1rem/1.6 "IBM Plex Sans", system-ui, sans-serif; color: var(--ink); background: var(--paper); }
+        h1, h2, h3, p { margin: 0; }
+        h1, h2, h3 { font-family: var(--head); line-height: 1; overflow-wrap: anywhere; }
+        a { color: inherit; text-decoration-thickness: .08em; text-underline-offset: .2em; }
+        a:focus-visible { outline: 3px solid #16713f; outline-offset: 5px; }
+        .masthead a:focus-visible, .feature a:focus-visible { outline-color: var(--accent); }
+        .shell { width: min(74rem, calc(100% - clamp(2rem, 8vw, 7rem))); margin-inline: auto; }
+        .skip { position: absolute; left: 1rem; top: -5rem; padding: .6rem 1rem; background: var(--accent); z-index: 2; }
+        .skip:focus { top: 1rem; }
+        .masthead { background: var(--dark); color: var(--on-dark); }
+        .top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .85rem; border-bottom: 1px solid #6b876f; }
+        .top a { color: var(--accent); font-weight: 600; }
+        /* Keep the shared language controls legible against the dark masthead.
+           Mantém os controles de idioma compartilhados legíveis sobre o cabeçalho escuro. */
+        .top .languages a { color: var(--on-dark); border-color: #90a696; }
+        .top .languages a[aria-current="page"] { color: var(--accent); border-color: currentColor; }
+        .top-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: .75rem 1.25rem; }
+        .top > a:first-child { color: var(--on-dark); text-decoration: none; }
+        .identity { display: flex; justify-content: space-between; align-items: end; gap: 1rem 2rem; padding-block: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem); }
+        .identity h1 { font-size: clamp(3.75rem, 12vw, 9.5rem); letter-spacing: -.035em; }
+        .identity h1 .site-logo-link > span { color: var(--accent); }
+        .identity .site-logo { padding: clamp(.55rem, 2vw, 1rem); background: var(--surface); max-width: min(100%, 30rem); border-radius: .35rem; }
+        .identity .site-logo img { max-height: clamp(3.5rem, 12vw, 9rem); }
+        .identity p { max-width: 26ch; font-size: clamp(1rem, 2vw, 1.25rem); padding-bottom: .25rem; }
+        .section-nav { display: flex; flex-wrap: wrap; gap: .35rem clamp(1rem, 3vw, 2.5rem); padding-block: .75rem; border-top: 1px solid #6b876f; }
+        .section-nav a { padding-block: .25rem; font-size: .9rem; font-weight: 600; text-decoration: none; }
+        .section-nav a:hover, .section-nav a:focus-visible { color: var(--accent); text-decoration: underline; }
+        /* Keep the lead above the cards so the rest of the list cannot stretch it.
+           Mantém o destaque acima das chamadas para que o restante da lista não o estique. */
+        main { padding-block: clamp(1.5rem, 3.5vw, 2.75rem); }
+        .section-heading { font-size: clamp(1.9rem, 3.5vw, 3rem); padding-bottom: .6rem; border-bottom: 2px solid var(--ink); }
+        .latest-grid { display: grid; gap: .9rem; margin-top: .85rem; }
+        .feature { padding: clamp(1rem, 2.6vw, 1.85rem); background: var(--dark); color: var(--on-dark); border-left: .35rem solid var(--brand-accent, var(--accent)); }
+        .feature h3 { font-size: clamp(1.8rem, 3.8vw, 3rem); line-height: 1.08; }
+        .feature p { max-width: 76ch; }
+        .story-meta { display: flex; gap: .25rem .7rem; flex-wrap: wrap; font-size: .8rem; color: var(--muted); }
+        .feature .story-meta { color: var(--accent); }
+        .article-card-counts { display: flex; flex-wrap: wrap; gap: .15rem .75rem; margin-top: .2rem; font-size: .8rem; }
+        .article-card h3 a, .article-card h4 a { text-decoration: none; }
+        .article-card h3 a:hover, .article-card h4 a:hover { text-decoration: underline; }
+        /* Use two readable columns and give a final unpaired story the full row.
+           Usa duas colunas legíveis e dá a linha inteira à última chamada quando ela fica sem par. */
+        .story-list { --article-grid-min: 28rem; }
+        .story-list > .story:last-child:nth-child(odd) { grid-column: 1 / -1; }
+        .story-list > .story { padding: .85rem; background: var(--surface); border: 1px solid var(--line); border-radius: .3rem; }
+        .story h3 { font-size: clamp(1.2rem, 2vw, 1.55rem); line-height: 1.15; }
+        .story p, .empty { color: var(--muted); }
+        .editors { margin-top: clamp(1.6rem, 4vw, 3rem); }
+        .sections { --article-grid-min: 23rem; margin-top: .85rem; }
+        .channel { min-width: 0; background: var(--surface); border-top: .25rem solid var(--brand-accent, #387252); padding: clamp(.85rem, 1.8vw, 1.25rem); scroll-margin-top: 1rem; }
+        .channel > h3 { font-size: clamp(1.45rem, 2.6vw, 2rem); margin-bottom: .65rem; }
+        .channel-stories { --article-grid-min: 18rem; --article-grid-gap: .75rem; }
+        .channel-stories > .story { border-top: 1px solid var(--line); padding-top: .7rem; }
+        .channel .story h4 { font: 600 1rem/1.3 "IBM Plex Sans", system-ui, sans-serif; margin: 0; }
+        .empty { margin-block: .6rem .25rem; }
+        footer { border-top: 1px solid var(--line); padding-block: 1rem 1.5rem; }
+        footer .shell { display: flex; gap: .5rem 1.5rem; flex-wrap: wrap; justify-content: space-between; }
+        /* The legal links should wrap as footer text, outside the masthead navigation layout.
+           Os links legais devem quebrar linha como texto do rodapé, fora da navegação do cabeçalho. */
+        footer .legal-links { display: block; border: 0; padding: 0; }
+        footer .legal-links a { padding: 0; font-size: .9rem; font-weight: 600; text-decoration: underline; }
+        footer .legal-links a:hover, footer .legal-links a:focus-visible { color: inherit; }
+        @media (max-width: 48rem) {
+            .top { align-items: start; flex-direction: column; }
+            .top-links { justify-content: start; }
+            .identity { display: block; }
+            .identity p { margin-top: .85rem; }
+            /* Leave room for the fixed theme control below the last footer link.
+               Reserva espaço para o tema fixo abaixo do último link do rodapé. */
+            footer { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)); }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip" href="#conteudo">{{ news_copy.skip }}</a>
+    <header class="masthead">
+        <div class="shell">
+            <div class="top">
+                <a href="https://www.usinabr.com.br/">Usina.BR</a>
+                <div class="top-links">
+                    <a href="https://advpl.usinabr.com.br/{{ reader_preferences.language }}">{{ news_copy.guide }}</a>
+                    <a href="/{{ reader_preferences.language }}/p/autores">{{ copy.authors }}</a>
+                    {% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}
+                    {% include 'reader-language.twig' only %}
+                </div>
+            </div>
+            <div class="identity">
+                <h1>{% if site_appearance.logo_light_id or site_appearance.logo_dark_id %}
+                    {% include 'site-logo.twig' with {label: site_label} %}
+                {% else %}
+                    {# Keep the typographic masthead linked when the site has no uploaded logo.
+                       Mantém o cabeçalho tipográfico com link quando o site está sem logotipo carregado. #}
+                    <a class="site-logo-link" href="/" aria-label="{{ site_label }} · {{ copy.home }}">{% if site_label == 'Usina News' %}Usina <span>News</span>{% else %}{{ site_label }}{% endif %}</a>
+                {% endif %}</h1>
+                <p>{{ news_copy.tagline }}</p>
+            </div>
+            <nav class="section-nav" aria-label="{{ news_copy.navigation }}">
+                <a href="#ultimas">{{ news_copy.latest }}</a>
+                {% for slug, section in sections %}<a href="#editoria-{{ slug }}">{{ section.name }}</a>{% endfor %}
+            </nav>
+        </div>
+    </header>
+    <main class="shell" id="conteudo">
+        <section id="ultimas" aria-labelledby="titulo-ultimas">
+            <h2 class="section-heading" id="titulo-ultimas">{{ news_copy.latest }}</h2>
+            {% if latest %}
+                <div class="latest-grid">
+                    {{ news.article(latest|first, sections, date_format, engagement_counts, reader_preferences.language, true) }}
+                    {% if latest|length > 1 %}
+                        <div class="story-list article-card-grid">
+                            {% for item in latest|slice(1) %}{{ news.article(item, sections, date_format, engagement_counts, reader_preferences.language) }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="empty">{{ news_copy.empty }}</p>
+            {% endif %}
+        </section>
+        {% if sections %}
+        <section class="editors" aria-labelledby="titulo-editorias">
+            <h2 class="section-heading" id="titulo-editorias">{{ news_copy.sections }}</h2>
+            <div class="sections article-card-grid">
+                {% for slug, section in sections %}
+                    <section class="channel" id="editoria-{{ slug }}" aria-labelledby="titulo-editoria-{{ slug }}">
+                        <h3 id="titulo-editoria-{{ slug }}">{{ section.name }}</h3>
+                        {% if section.articles %}
+                            <div class="channel-stories article-card-grid">
+                                {% for item in section.articles %}
+                                    <article class="article-card story{{ item.cover_media_id ? ' has-cover' : '' }}">
+                                        {{ news.cover(item) }}
+                                        <div class="article-card-body">
+                                            <div class="story-meta">{% if item.published_at %}<time datetime="{{ item.published_at }}">{{ item.published_at|date(date_format, site_timezone|default('UTC')) }}</time>{% endif %}</div>
+                                            <h4 lang="{{ item.language }}"><a href="/{{ item.language }}/p/{{ item.slug|url_encode }}">{{ item.title }}</a></h4>
+                                            {% if item.is_critical %}<p>{% include 'article-critical-label.twig' with {locale: reader_preferences.language} only %}</p>{% endif %}
+                                            {{ news.counts(item, engagement_counts, reader_preferences.language) }}
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="empty">{{ news_copy.empty }}</p>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </main>
+    <footer>
+        <div class="shell">
+            <span>{{ site_label }}</span>
+            {# Use the shared footer for published legal links and the installed Core version.
+               Usa o rodapé compartilhado para os links legais publicados e a versão instalada do Core. #}
+            {% include 'public-footer.twig' with {locale: reader_preferences.language} only %}
+            <a href="https://www.usinabr.com.br/">Usina.BR Tecnologia e Informação</a>
+        </div>
+    </footer>
+    {% include 'reader-theme.twig' only %}
+</body>
+</html>
