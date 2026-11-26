@@ -4,13 +4,14 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 
 ## Next development cycle
 
-1. visual revision history for pages, models and artifacts, including comparison and restoration;
-2. source-change tracking and outdated-translation detection for pages and artifacts;
-3. an initial import/export format validated with a representative AdvPL Guide content set;
-4. editorial fields and models required for function references, classes, entry points and articles;
-5. an inventory of URLs, redirects, SEO metadata and media from `advpl.usinabr.com.br`;
-6. an isolated staging installation for the first migration rehearsal;
-7. database upgrade, backup and restoration tests before the first Alpha.
+Delivered in the previous cycle: visual revision history with comparison and restoration for pages, models and artifacts; outdated-translation detection for pages and artifacts; and the initial content package export and import.
+
+1. block-level translation states, building on the page- and artifact-level outdated-translation detection;
+2. validation of the content package format with a representative AdvPL Guide content set;
+3. editorial fields and models required for function references, classes, entry points and articles;
+4. an inventory of URLs, redirects, SEO metadata and media from `advpl.usinabr.com.br`;
+5. an isolated staging installation for the first migration rehearsal;
+6. database upgrade, backup and restoration tests before the first Alpha.
 
 ## Phase 0 - Project foundation
 
@@ -33,10 +34,16 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - [x] versioned page and artifact translations in Portuguese, English and Spanish;
 - [x] visual revision history, comparison and restoration;
 - [x] initial import/export format;
-- [ ] complete editorial roles and permissions beyond the administrator;
+- [x] media library and image, table, citation, diagram and quiz artifacts;
+- [x] Google and Microsoft login with Reader, Editor and Administrator groups;
+- [x] CSRF protection for every state-changing request;
+- [x] automated core tests in CI on PHP 8.2 and 8.3;
+- [ ] complete editorial roles and permissions beyond the initial Reader, Editor and Administrator groups;
 - [ ] complete representative models for function/command, controlled procedure and lesson content.
 
 ## Phase 2 - Block-level translation
+
+Already in the core: outdated-translation detection at page and artifact level, a translation review screen, localized routes and reader language preferences.
 
 - translation states per block and language;
 - source-change tracking;
@@ -45,6 +52,8 @@ This roadmap communicates direction rather than fixed delivery dates. Priorities
 - localized routes and language preferences.
 
 ## Phase 3 - Media and references
+
+Already in the core: image uploads with source and license notes, on-demand image loading and structured citation artifacts.
 
 - secure uploads and file revisions;
 - authorship, origin, license and accessibility metadata;

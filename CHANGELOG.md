@@ -42,6 +42,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ### Changed
 
+- README and roadmaps now describe the features already in the core and drop delivered items from the next development cycle.
 - Repositioned Usina Docs as a knowledge and learning platform.
 - Expanded the long-term product scope to include controlled documents, procedures, work instructions and non-programming knowledge areas.
 - Added initial planning for general use cases and content models.
