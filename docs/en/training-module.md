@@ -83,9 +83,9 @@ Programs, courses, modules and lessons should use Usina Docs native multilingual
 The module should have an explicit code boundary, for example:
 
 ```text
-app/Training/
-resources/views/training/
-routes/training.php
+core/src/Training/
+core/templates/training/
+core/src/Presentation/TrainingRoutes.php
 ```
 
 Expected dependency direction:

@@ -1,29 +1,70 @@
-name: Application tests
+name: Core tests
+
+# EN: Runs the PHPUnit suite of the lightweight core (core/) on every pull
+# request and on every push to main. The core is the only active code base
+# since ADR-001; the archived Laravel prototype lives at the
+# v0.1.0-laravel-prototype tag and is no longer tested here.
+# PT: Executa a suíte PHPUnit do núcleo leve (core/) em toda pull request e em
+# todo push para a main. Desde a ADR-001, o núcleo é a única base de código
+# ativa; o protótipo Laravel arquivado está na tag v0.1.0-laravel-prototype e
+# não é mais testado aqui.
 
 on:
   pull_request:
   push:
     branches: [main]
 
+# EN: Read-only token: the job only checks out code and runs tests.
+# PT: Token somente leitura: o job apenas baixa o código e executa testes.
 permissions:
   contents: read
 
 jobs:
-  test:
+  core:
     runs-on: ubuntu-latest
+
+    # EN: The matrix covers the minimum PHP version declared in
+    # core/composer.json (^8.2) and a newer one, so a feature that only exists
+    # in recent PHP releases is caught before it breaks small installations.
+    # PT: A matriz cobre a versão mínima de PHP declarada em core/composer.json
+    # (^8.2) e uma mais nova, para que um recurso existente apenas em versões
+    # recentes do PHP seja detectado antes de quebrar instalações pequenas.
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3']
+
+    # EN: Every step runs inside core/, where composer.json, phpunit.xml and
+    # the tests live.
+    # PT: Todos os passos rodam dentro de core/, onde ficam composer.json,
+    # phpunit.xml e os testes.
+    defaults:
+      run:
+        working-directory: core
+
     steps:
       - uses: actions/checkout@v4
+
+      # EN: pdo_sqlite is the default database driver (ADR-001), curl is used
+      # by the OAuth client, mbstring by text validation and fileinfo by the
+      # media library.
+      # PT: pdo_sqlite é o driver de banco padrão (ADR-001), curl é usado pelo
+      # cliente OAuth, mbstring pela validação de textos e fileinfo pela
+      # biblioteca de mídia.
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          extensions: mbstring, sqlite3
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite, sqlite3, curl, mbstring, fileinfo
           coverage: none
+
+      # EN: core/composer.lock is versioned, so the install is reproducible.
+      # PT: core/composer.lock é versionado, então a instalação é reproduzível.
       - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist
-      - name: Prepare application
-        run: |
-          cp .env.example .env
-          touch database/database.sqlite
-          php artisan key:generate
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # EN: The tests create their own temporary SQLite databases and do not
+      # need a .env file or network access.
+      # PT: Os testes criam seus próprios bancos SQLite temporários e não
+      # precisam de arquivo .env nem de acesso à rede.
       - name: Run tests
-        run: php artisan test
+        run: vendor/bin/phpunit

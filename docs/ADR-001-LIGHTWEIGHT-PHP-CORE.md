@@ -94,6 +94,8 @@ Os documentos [ARCHITECTURE.md](ARCHITECTURE.md) e [CONTENT-PACKAGE.md](CONTENT-
 
 Cada passo deve ter uma PR independente, testes automatizados e instruções de instalação atualizadas. A aplicação Laravel só deve ser removida do repositório após a nova base reproduzir o núcleo editorial e houver uma tag de referência acessível.
 
+> **Situação (2026-11-25):** as duas condições foram atendidas. O núcleo em `core/` reproduz os contratos listados acima, cobertos pela suíte automatizada, e o protótipo está preservado na tag `v0.1.0-laravel-prototype`. O código Laravel foi removido da árvore principal e o CI passou a testar apenas o `core/`.
+
 ## Critério para rever esta decisão
 
 Revisar esta ADR se a camada leve não suportar com clareza segurança, migrações, temas, conteúdo estruturado, uploads e o primeiro fluxo de aprendizado; ou se a manutenção de integrações explícitas superar o benefício operacional da simplicidade. A revisão exige uma nova ADR, não uma troca silenciosa de stack.

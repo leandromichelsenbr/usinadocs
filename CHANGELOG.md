@@ -6,6 +6,11 @@ The project intends to use semantic versioning as it evolves toward its first st
 
 ## Unreleased
 
+### Removed
+
+- Laravel 12 prototype from the main tree; it remains available at the `v0.1.0-laravel-prototype` tag (ADR-001).
+- Laravel-specific GitHub workflows (issues, pull requests, changelog) and StyleCI configuration.
+
 ### Added
 
 - Versioned editorial model editor with required artifact definitions.
@@ -20,7 +25,7 @@ The project intends to use semantic versioning as it evolves toward its first st
 - Public page rendering from published revisions and seeded demonstration content.
 - Initial Laravel 12 application foundation with local SQLite installation guidance.
 - Public demonstration page rendered from structured content blocks.
-- Automated application test workflow for pull requests and the `main` branch.
+- Automated test workflow for pull requests and the `main` branch, now running the `core/` suite on PHP 8.2 and 8.3.
 - Initial open source project governance and documentation.
 - Pre-alpha product vision and target architecture.
 - Public roadmap, support guidance and community code of conduct.
