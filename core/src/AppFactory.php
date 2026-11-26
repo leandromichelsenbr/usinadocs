@@ -41,6 +41,9 @@ use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
 use UsinaDocs\Core\Presentation\LegalDocumentRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
 use UsinaDocs\Core\Security\CsrfToken;
+use UsinaDocs\Core\Presentation\SocialRoutes;
+use UsinaDocs\Core\Social\ArticleLinks;
+use UsinaDocs\Core\Social\SocialPublication;
 use Twig\TwigFunction;
 
 final class AppFactory
@@ -135,6 +138,10 @@ final class AppFactory
         AuthorRoutes::register($app, $twig, new AuthorDirectory($database));
         $engagement = new ArticleEngagement($database);
         ArticleEngagementRoutes::register($app, $twig, $engagement, $repository);
+        // Channel management and the reader URLs share the publication instance, without loading API tokens in PHP-FPM.
+        // O gerenciamento dos canais e os links públicos usam a mesma instalação, sem carregar tokens de API no PHP-FPM.
+        SocialRoutes::register($app, $twig, new SocialPublication($database));
+        $publicOrigin = ArticleLinks::origin($_ENV['USINADOCS_PUBLIC_ORIGIN'] ?? '');
         PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media, new PageAlerts($database));
         EditorialMaintenanceRoutes::register($app, $twig, $editorial, new EditorialMaintenance($database));
         // Use the same directory for section management and article classification.
@@ -205,7 +212,7 @@ final class AppFactory
         });
         $app->get('/media/{id}', static function ($request,$response,array $a) use ($media) { $item=$media->find($a['id']);if($item===null||!is_file($media->path($item)))return$response->withStatus(404);$stream=fopen($media->path($item),'rb');$response->getBody()->write((string)stream_get_contents($stream));fclose($stream);return$response->withHeader('Content-Type',$item['mime_type'])->withHeader('Content-Length',(string)$item['byte_size']);});
 
-        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig, $engagement, $legalDocuments): ResponseInterface {
+        $app->get('/{locale}/p/{slug}', static function (ServerRequestInterface $request, ResponseInterface $response, array $arguments) use ($repository, $twig, $engagement, $legalDocuments, $covers, $publicOrigin): ResponseInterface {
             $page = $repository->findByLocalizedSlug((string) $arguments['locale'], (string) $arguments['slug']);
 
             if ($page === null) {
@@ -242,8 +249,22 @@ final class AppFactory
             if ($readerContext !== null) {
                 $response = $response->withHeader('Cache-Control', 'private, no-store');
             }
+            // Share the published edition's stable address, omitting theme, session and tracking parameters.
+            // Compartilha o endereço estável da edição publicada, sem parâmetros de tema, sessão ou rastreamento.
+            $socialShare = null;
+            $uri = $request->getUri();
+            $origin = $publicOrigin ?? ArticleLinks::origin($uri->getScheme().'://'.$uri->getAuthority());
+            if ($page['content_type'] === 'article' && $origin !== null) {
+                $url = ArticleLinks::url($origin, $page);
+                $cover = $covers->get($page['page_id']);
+                $socialShare = [
+                    'url' => $url,
+                    'links' => ArticleLinks::share($url, $page['title']),
+                    'image' => $cover === null ? null : $origin.'/media/'.rawurlencode($cover),
+                ];
+            }
             return $twig->render($response, 'page.twig', [
-                'page' => $page, 'can_edit' => $canEdit, 'engagement' => $readerContext,
+                'page' => $page, 'can_edit' => $canEdit, 'engagement' => $readerContext, 'social_share' => $socialShare,
             ]);
         });
         if (!$useOAuth) {

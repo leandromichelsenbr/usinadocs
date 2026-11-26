@@ -1,0 +1,77 @@
+{# The control panel uses the usual language and theme controls. Credentials never enter the web form.
+   O painel usa os controles habituais de idioma e tema. As credenciais ficam fora do formulário web. #}
+{% set copy = reader_preferences.text %}
+{% set labels = {
+    pt: {title: 'Redes sociais', enable: 'Publicar automaticamente', language: 'Idioma do artigo', save: 'Salvar', saved: 'Configuração salva.', recent: 'Envios recentes', setup: 'Configure as credenciais no servidor antes de ativar um canal. A primeira publicação da edição escolhida entra na fila.', empty: 'Nenhum envio registrado.', retry: 'Reenfileirar', pending: 'Na fila', sent: 'Publicado', rejected: 'Recusado', unconfirmed: 'Envio a confirmar na rede'},
+    en: {title: 'Social networks', enable: 'Publish automatically', language: 'Article language', save: 'Save', saved: 'Settings saved.', recent: 'Recent deliveries', setup: 'Configure credentials on the server before enabling a channel. The first publication of the selected edition is queued.', empty: 'No deliveries recorded.', retry: 'Queue again', pending: 'Queued', sent: 'Published', rejected: 'Rejected', unconfirmed: 'Check delivery on the network'},
+    es: {title: 'Redes sociales', enable: 'Publicar automáticamente', language: 'Idioma del artículo', save: 'Guardar', saved: 'Configuración guardada.', recent: 'Envíos recientes', setup: 'Configure las credenciales en el servidor antes de activar un canal. La primera publicación de la edición elegida se añade a la cola.', empty: 'No hay envíos registrados.', retry: 'Volver a poner en cola', pending: 'En cola', sent: 'Publicado', rejected: 'Rechazado', unconfirmed: 'Compruebe el envío en la red'}
+}[reader_preferences.language] %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ labels.title }}</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-controls-style.twig' %}
+        :root { color-scheme: light; }
+        :root[data-theme="dark"] { color-scheme: dark; }
+        @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
+        body { font: 1rem/1.5 system-ui, sans-serif; max-width: 55rem; margin: 2rem auto; padding-inline: 1rem; background: light-dark(#fff, #0e1624); color: light-dark(#172033, #edf3ff); }
+        header, fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+        fieldset { margin-block: 1rem; padding: .7rem; border: 1px solid light-dark(#c7d2e5, #32435d); }
+        a { color: inherit; }
+        button, select { font: inherit; }
+        li { margin-block: .6rem; }
+        li form { display: inline-block; margin-inline-start: .4rem; }
+    </style>
+</head>
+<body><main class="reader-screen">
+    <header>
+        <a href="/admin">{{ copy.panel }}</a>
+        {% include 'reader-language.twig' with {} only %}
+    </header>
+    <h1>{{ labels.title }}</h1>
+    <p>{{ labels.setup }}</p>
+    {% if saved %}<p role="status">{{ labels.saved }}</p>{% endif %}
+    {% for network, name in networks %}
+        <form method="post" action="/admin/social/{{ network }}">
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <fieldset>
+                <legend>{{ name }}</legend>
+                <label><input type="checkbox" name="enabled" value="1" {% if channels[network].enabled|default(false) %}checked{% endif %}> {{ labels.enable }}</label>
+                <label>{{ labels.language }}
+                    <select name="language">
+                        {% for language, label in languages %}
+                            <option value="{{ language }}" {% if channels[network].language_code|default('pt') == language %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit">{{ labels.save }}</button>
+            </fieldset>
+        </form>
+    {% endfor %}
+    <h2>{{ labels.recent }}</h2>
+    {% if deliveries %}
+        <ul>
+            {% for delivery in deliveries %}
+                <li>
+                    <strong>{{ delivery.title }}</strong> · {{ networks[delivery.network] }} · {{ delivery.language_code|upper }} · {{ labels[delivery.state] }}
+                    {% if delivery.http_status %}(HTTP {{ delivery.http_status }}){% endif %}
+                    {% if delivery.state == 'rejected' %}
+                        <form method="post" action="/admin/social/{{ delivery.network }}/retry/{{ delivery.page_id|url_encode }}">
+                            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+                            <button type="submit">{{ labels.retry }}</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>{{ labels.empty }}</p>
+    {% endif %}
+</main>
+{% include 'reader-theme.twig' %}
+</body>
+</html>

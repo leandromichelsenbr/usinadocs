@@ -50,6 +50,9 @@
         {% if can_manage_appearance %}
             <a href="/admin/appearance">{{ labels.appearance }}</a>
             <a href="/admin/legal">{{ labels.legal }}</a>
+            {# The external publishing settings are available only to administrators.
+               As configurações de publicação externa estão disponíveis apenas para administradores. #}
+            <a href="/admin/social">{{ {pt: 'Redes sociais', en: 'Social networks', es: 'Redes sociales'}[reader_preferences.language] }}</a>
         {% endif %}
         {% if can_manage_users %}<a href="/admin/users">{{ labels.users }}</a>{% endif %}
         {% for path, label in {
