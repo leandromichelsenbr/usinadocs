@@ -1,0 +1,25 @@
+/* Let grids follow their card content. Empty columns collapse when only one list or section is present.
+   Faz as grades acompanharem o conteúdo das chamadas. Colunas vazias recolhem quando há só uma lista ou editoria. */
+.article-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--article-grid-min, 23rem)), 1fr));
+    align-items: start;
+    gap: var(--article-grid-gap, 1rem);
+}
+.article-card { display: grid; align-items: start; gap: .7rem; min-width: 0; }
+.article-card.has-cover { grid-template-columns: clamp(4rem, 10vw, 7.25rem) minmax(0, 1fr); }
+.article-card.lead.has-cover { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(.8rem, 2vw, 1.5rem); }
+.article-card-body { display: grid; gap: .35rem; min-width: 0; overflow-wrap: anywhere; }
+
+/* Constrain images to the card rather than sizing the card from the original file.
+   Limita as imagens à chamada para que o arquivo original não determine o tamanho da caixa. */
+.article-card-image { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: .3rem; }
+.lead .article-card-image { aspect-ratio: 16 / 9; max-height: 17rem; }
+
+/* Long summaries can be read in the article. Keep the full headline and status visible on the card.
+   Resumos longos podem ser lidos na matéria. Mantém o título inteiro e o estado visíveis na chamada. */
+.article-card-summary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.lead .article-card-summary { -webkit-line-clamp: 4; }
+@media (max-width: 42rem) {
+    .article-card.lead.has-cover { grid-template-columns: minmax(0, 1fr); }
+}
