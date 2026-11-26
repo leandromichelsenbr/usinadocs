@@ -2,9 +2,9 @@
    O painel usa os controles habituais de idioma e tema. As credenciais ficam fora do formulário web. #}
 {% set copy = reader_preferences.text %}
 {% set labels = {
-    pt: {title: 'Redes sociais', enable: 'Publicar automaticamente', language: 'Idioma do artigo', save: 'Salvar', saved: 'Configuração salva.', recent: 'Envios recentes', setup: 'Configure as credenciais no servidor antes de ativar um canal. A primeira publicação da edição escolhida entra na fila.', empty: 'Nenhum envio registrado.', retry: 'Reenfileirar', pending: 'Na fila', sent: 'Publicado', rejected: 'Recusado', unconfirmed: 'Envio a confirmar na rede'},
-    en: {title: 'Social networks', enable: 'Publish automatically', language: 'Article language', save: 'Save', saved: 'Settings saved.', recent: 'Recent deliveries', setup: 'Configure credentials on the server before enabling a channel. The first publication of the selected edition is queued.', empty: 'No deliveries recorded.', retry: 'Queue again', pending: 'Queued', sent: 'Published', rejected: 'Rejected', unconfirmed: 'Check delivery on the network'},
-    es: {title: 'Redes sociales', enable: 'Publicar automáticamente', language: 'Idioma del artículo', save: 'Guardar', saved: 'Configuración guardada.', recent: 'Envíos recientes', setup: 'Configure las credenciales en el servidor antes de activar un canal. La primera publicación de la edición elegida se añade a la cola.', empty: 'No hay envíos registrados.', retry: 'Volver a poner en cola', pending: 'En cola', sent: 'Publicado', rejected: 'Rechazado', unconfirmed: 'Compruebe el envío en la red'}
+    pt: {title: 'Redes sociais', enable: 'Publicar automaticamente', language: 'Idioma do artigo', save: 'Salvar', saved: 'Configuração salva.', recent: 'Envios recentes', setup: 'Informe os IDs das páginas abaixo. Os tokens de acesso são configurados no servidor.', empty: 'Nenhum envio registrado.', destination: 'ID numérico', page: 'Abrir página de destino', missing: 'Destino não cadastrado no painel', invalid: 'Informe um ID numérico válido para ativar o canal.', retry: 'Reenfileirar', pending: 'Na fila', sent: 'Publicado', rejected: 'Recusado', unconfirmed: 'Envio a confirmar na rede'},
+    en: {title: 'Social networks', enable: 'Publish automatically', language: 'Article language', save: 'Save', saved: 'Settings saved.', recent: 'Recent deliveries', setup: 'Enter the page IDs below. Access tokens are configured on the server.', empty: 'No deliveries recorded.', destination: 'Numeric ID', page: 'Open destination page', missing: 'No destination saved in the panel', invalid: 'Enter a valid numeric ID to enable the channel.', retry: 'Queue again', pending: 'Queued', sent: 'Published', rejected: 'Rejected', unconfirmed: 'Check delivery on the network'},
+    es: {title: 'Redes sociales', enable: 'Publicar automáticamente', language: 'Idioma del artículo', save: 'Guardar', saved: 'Configuración guardada.', recent: 'Envíos recientes', setup: 'Indique los ID de las páginas. Los tokens de acceso se configuran en el servidor.', empty: 'No hay envíos registrados.', destination: 'ID numérico', page: 'Abrir página de destino', missing: 'Destino sin registrar en el panel', invalid: 'Introduzca un ID numérico válido para activar el canal.', retry: 'Volver a poner en cola', pending: 'En cola', sent: 'Publicado', rejected: 'Rechazado', unconfirmed: 'Compruebe el envío en la red'}
 }[reader_preferences.language] %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
@@ -35,11 +35,24 @@
     <h1>{{ labels.title }}</h1>
     <p>{{ labels.setup }}</p>
     {% if saved %}<p role="status">{{ labels.saved }}</p>{% endif %}
+    {% if invalid_destination %}<p role="alert">{{ labels.invalid }}</p>{% endif %}
+    {# Page IDs are safe to display. Link to the selected page so the administrator can verify the destination.
+       Os IDs das páginas são públicos. Exibe o link para o administrador conferir o destino selecionado. #}
+    {% set destination_urls = {linkedin: 'https://www.linkedin.com/company/', facebook: 'https://www.facebook.com/'} %}
     {% for network, name in networks %}
+        {% set destination = channels[network].destination_id|default('') %}
         <form method="post" action="/admin/social/{{ network }}">
             <input type="hidden" name="csrf" value="{{ csrf_token() }}">
             <fieldset>
                 <legend>{{ name }}</legend>
+                <label>{{ labels.destination }}
+                    <input type="text" name="destination" value="{{ destination }}" inputmode="numeric" maxlength="25" pattern="[1-9][0-9]{0,24}">
+                </label>
+                {% if destination %}
+                    <a href="{{ destination_urls[network] ~ destination ~ '/' }}">{{ labels.page }}</a>
+                {% else %}
+                    <span>{{ labels.missing }}</span>
+                {% endif %}
                 <label><input type="checkbox" name="enabled" value="1" {% if channels[network].enabled|default(false) %}checked{% endif %}> {{ labels.enable }}</label>
                 <label>{{ labels.language }}
                     <select name="language">

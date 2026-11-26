@@ -27,6 +27,7 @@ final class SocialRoutes
                 'channels' => $social->channels(),
                 'deliveries' => $social->recent(),
                 'saved' => ($request->getQueryParams()['saved'] ?? null) === '1',
+                'invalid_destination' => ($request->getQueryParams()['error'] ?? null) === 'destination',
             ])->withHeader('Cache-Control', 'no-store');
         });
 
@@ -42,7 +43,15 @@ final class SocialRoutes
                 return $response->withStatus(400);
             }
 
-            $social->saveChannel($network, $language, ($input['enabled'] ?? null) === '1');
+            // Provider endpoints accept numeric organization or Page IDs. Never accept an arbitrary destination URL.
+            // As APIs recebem IDs numéricos de organizações ou Páginas. Não aceita uma URL de destino arbitrária.
+            $enabled = ($input['enabled'] ?? null) === '1';
+            $destination = $input['destination'] ?? '';
+            if (!is_string($destination) || ($destination === '' ? $enabled : !preg_match('/\A[1-9][0-9]{0,24}\z/', $destination))) {
+                return $response->withStatus(303)->withHeader('Location', '/admin/social?error=destination');
+            }
+
+            $social->saveChannel($network, $language, $enabled, $destination);
             return $response->withStatus(303)->withHeader('Location', '/admin/social?saved=1');
         });
 

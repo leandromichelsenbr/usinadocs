@@ -16,15 +16,31 @@ final class SocialPublication
 
     public function channels(): array
     {
-        return $this->db->query('SELECT * FROM social_channels')->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
+        return $this->db->query('SELECT c.network, c.language_code, c.enabled, d.destination_id
+            FROM social_channels c LEFT JOIN social_destinations d ON d.network = c.network')
+            ->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
     }
 
-    public function saveChannel(string $network, string $language, bool $enabled): void
+    public function saveChannel(string $network, string $language, bool $enabled, ?string $destination = null): void
     {
-        $save = $this->db->prepare('INSERT INTO social_channels (network, language_code, enabled)
-            VALUES (:network, :language, :enabled) ON CONFLICT(network) DO UPDATE
-            SET language_code = excluded.language_code, enabled = excluded.enabled');
-        $save->execute(['network' => $network, 'language' => $language, 'enabled' => (int) $enabled]);
+        // Change the enable flag and its destination together so the worker sees one consistent setting.
+        // Altera a ativação e o destino juntos para que o processo de envio veja uma configuração consistente.
+        $this->db->beginTransaction();
+        try {
+            $save = $this->db->prepare('INSERT INTO social_channels (network, language_code, enabled)
+                VALUES (:network, :language, :enabled) ON CONFLICT(network) DO UPDATE
+                SET language_code = excluded.language_code, enabled = excluded.enabled');
+            $save->execute(['network' => $network, 'language' => $language, 'enabled' => (int) $enabled]);
+            if ($destination !== null) {
+                $saveDestination = $this->db->prepare('INSERT INTO social_destinations (network, destination_id)
+                    VALUES (?, ?) ON CONFLICT(network) DO UPDATE SET destination_id = excluded.destination_id');
+                $saveDestination->execute([$network, $destination]);
+            }
+            $this->db->commit();
+        } catch (\Throwable $error) {
+            $this->db->rollBack();
+            throw $error;
+        }
     }
 
     public function recent(): array
@@ -53,16 +69,17 @@ final class SocialPublication
         return $query->fetchAll();
     }
 
-    public function claim(string $page, string $network): bool
+    public function claim(string $page, string $network, ?string $configuredDestination = null): bool
     {
         // Persist uncertainty before network I/O. A crash or timeout must never trigger a second post automatically.
         // Persiste a incerteza antes de acessar a rede. Uma interrupção ou timeout nunca deve gerar outro anúncio automático.
         $claim = $this->db->prepare("UPDATE social_deliveries AS d SET state = 'unconfirmed', http_status = NULL
             WHERE page_id = :page AND network = :network AND state = 'pending'
                 AND EXISTS (SELECT 1 FROM social_channels c WHERE c.network = d.network AND c.enabled = 1)
+                AND (SELECT destination_id FROM social_destinations WHERE network = d.network) IS :destination
                 AND NOT EXISTS (SELECT 1 FROM hidden_articles h WHERE h.page_id = d.page_id)
                 AND EXISTS (SELECT 1 FROM page_metadata m WHERE m.page_id = d.page_id AND m.content_type = 'article')");
-        $claim->execute(['page' => $page, 'network' => $network]);
+        $claim->execute(['page' => $page, 'network' => $network, 'destination' => $configuredDestination]);
         return $claim->rowCount() === 1;
     }
 

@@ -91,12 +91,12 @@ Os leitores podem compartilhar artigos públicos no WhatsApp, LinkedIn e Faceboo
 
    ```json
    {
-     "linkedin": {"id": "ID_NUMERICO_DA_ORGANIZACAO", "version": "202609", "token": "TOKEN"},
-     "facebook": {"id": "ID_NUMERICO_DA_PAGINA", "version": "v27.0", "token": "TOKEN"}
+     "linkedin": {"version": "202609", "token": "TOKEN"},
+     "facebook": {"version": "v27.0", "token": "TOKEN"}
    }
    ```
 
    Use versões vigentes para o aplicativo. No LinkedIn, a credencial deve ter permissão `w_organization_social` e o usuário deve ter papel de publicação na página. No Facebook, use um token **da Página** com as permissões de publicação exigidas pela API. [API Posts do LinkedIn](https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api?view=li-lms-2026-09) · [API Page Feed do Facebook](https://developers.facebook.com/docs/graph-api/reference/page/feed/)
 
-3. Agende `php /caminho/core/bin/publish-social.php /caminho/privado/social.json` para rodar a cada minuto, com PDO SQLite e cURL. Em **Painel editorial → Redes sociais**, habilite o canal e escolha o idioma.
+3. Agende `php /caminho/core/bin/publish-social.php /caminho/privado/social.json` para rodar a cada minuto, com PDO SQLite e cURL. Em **Painel editorial → Redes sociais**, informe o ID numérico da organização no LinkedIn ou da Página no Facebook, confira o destino pelo link e habilite o canal no idioma desejado. Instalações que já usavam o campo `id` no arquivo privado podem cadastrar o mesmo valor no painel. O destino salvo no painel tem prioridade.
 4. A primeira publicação da edição escolhida entra na fila. Revisões seguintes e artigos que já tinham essa edição publicada não entram na fila. Ao desativar um canal, a fila existente fica pausada. O envio também espera enquanto o artigo está oculto. Consulte o painel para ver os envios recentes e reenfileirar recusas após corrigir a causa. Para um envio a confirmar, verifique se a notícia apareceu na própria rede, pois o servidor pode ter recebido a publicação antes de a conexão cair.
