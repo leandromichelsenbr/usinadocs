@@ -6,6 +6,38 @@
     en: {title: 'Social networks', enable: 'Publish automatically', language: 'Article language', save: 'Save', saved: 'Settings saved.', recent: 'Recent deliveries', setup: 'Enter the page IDs below. Access tokens are configured on the server.', empty: 'No deliveries recorded.', destination: 'Numeric ID', page: 'Open destination page', missing: 'No destination saved in the panel', invalid: 'Enter a valid numeric ID to enable the channel.', retry: 'Queue again', pending: 'Queued', sent: 'Published', rejected: 'Rejected', unconfirmed: 'Check delivery on the network'},
     es: {title: 'Redes sociales', enable: 'Publicar automáticamente', language: 'Idioma del artículo', save: 'Guardar', saved: 'Configuración guardada.', recent: 'Envíos recientes', setup: 'Indique los ID de las páginas. Los tokens de acceso se configuran en el servidor.', empty: 'No hay envíos registrados.', destination: 'ID numérico', page: 'Abrir página de destino', missing: 'Destino sin registrar en el panel', invalid: 'Introduzca un ID numérico válido para activar el canal.', retry: 'Volver a poner en cola', pending: 'En cola', sent: 'Publicado', rejected: 'Rechazado', unconfirmed: 'Compruebe el envío en la red'}
 }[reader_preferences.language] %}
+{# Keep the lookup steps next to their fields and link to the providers for changes to their menus.
+   Mantém os passos de consulta junto aos campos e aponta para os provedores caso mudem os menus. #}
+{% set help_urls = {
+    linkedin: 'https://www.linkedin.com/help/linkedin/answer/a415420',
+    facebook: 'https://www.facebook.com/help/1503421039731588'
+} %}
+{% set help = {
+    pt: {
+        title: 'Onde encontro o ID?',
+        official: 'Ajuda oficial',
+        linkedin: 'Abra a página da empresa na visão de administrador. Na barra de endereço, copie os números depois de /company/. Por exemplo, em /company/8681905/admin/, o ID é 8681905.',
+        facebook: 'No computador, abra a Página e clique no nome abaixo da capa. Procure o ID em Transparência e política de privacidade. Se a opção estiver na aba Sobre, abra Transparência da Página.',
+        queue: 'Os envios na fila são processados pelo agendador do servidor quando o canal está ativo, o destino e as credenciais estão configurados e o artigo está público.',
+        credentials: 'Como configurar as credenciais'
+    },
+    en: {
+        title: 'Where do I find the ID?',
+        official: 'Official help',
+        linkedin: 'Open the company page in admin view. In the address bar, copy the digits after /company/. For example, in /company/8681905/admin/, the ID is 8681905.',
+        facebook: 'On a computer, open the Page and click its name below the cover photo. Look for the ID under Transparency and privacy policy. If the option is under About, open Page transparency.',
+        queue: 'The server scheduler processes queued deliveries when the channel is enabled, the destination and credentials are configured, and the article is public.',
+        credentials: 'How to configure credentials'
+    },
+    es: {
+        title: '¿Dónde encuentro el ID?',
+        official: 'Ayuda oficial',
+        linkedin: 'Abre la página de la empresa en la vista de administrador. En la barra de direcciones, copia los números después de /company/. Por ejemplo, en /company/8681905/admin/, el ID es 8681905.',
+        facebook: 'En una computadora, abre la página y haz clic en el nombre debajo de la portada. Busca el ID en Transparencia y política de privacidad. Si la opción está en Información, abre Transparencia de la página.',
+        queue: 'El programador del servidor procesa los envíos en cola cuando el canal está activo, el destino y las credenciales están configurados y el artículo es público.',
+        credentials: 'Cómo configurar las credenciales'
+    }
+}[reader_preferences.language] %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
@@ -21,6 +53,11 @@
         body { font: 1rem/1.5 system-ui, sans-serif; max-width: 55rem; margin: 2rem auto; padding-inline: 1rem; background: light-dark(#fff, #0e1624); color: light-dark(#172033, #edf3ff); }
         header, fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
         fieldset { margin-block: 1rem; padding: .7rem; border: 1px solid light-dark(#c7d2e5, #32435d); }
+        /* Give expanded lookup instructions a full line on desktop and mobile.
+           Dá uma linha inteira às instruções de consulta abertas no computador e no celular. */
+        .destination-help { flex-basis: 100%; }
+        .destination-help summary { cursor: pointer; }
+        .destination-help p { margin-block: .4rem; }
         a { color: inherit; }
         button, select { font: inherit; }
         li { margin-block: .6rem; }
@@ -62,10 +99,17 @@
                     </select>
                 </label>
                 <button type="submit">{{ labels.save }}</button>
+                <details class="destination-help">
+                    <summary>{{ help.title }}</summary>
+                    <p>{{ help[network] }} <a href="{{ help_urls[network] }}">{{ help.official }}</a></p>
+                </details>
             </fieldset>
         </form>
     {% endfor %}
     <h2>{{ labels.recent }}</h2>
+    <p>{{ help.queue }}
+        <a href="https://github.com/leandromichelsenbr/usinadocs/blob/main/core/README.md#publica%C3%A7%C3%A3o-e-compartilhamento-em-redes-sociais">{{ help.credentials }}</a>
+    </p>
     {% if deliveries %}
         <ul>
             {% for delivery in deliveries %}
