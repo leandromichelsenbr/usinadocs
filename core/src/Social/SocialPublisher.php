@@ -18,8 +18,15 @@ final class SocialPublisher
      */
     public function run(string $origin, array $credentials, Closure $post): void
     {
+        $channels = $this->publication->channels();
         foreach (array_keys(SocialPublication::NETWORKS) as $network) {
             $credential = $credentials[$network] ?? null;
+            $configuredDestination = $channels[$network]['destination_id'] ?? null;
+            // A saved destination takes precedence. Legacy installations can still use an ID in the private file.
+            // O destino salvo tem prioridade. Instalações antigas ainda podem usar o ID no arquivo privado.
+            if (is_array($credential) && $configuredDestination !== null) {
+                $credential['id'] = $configuredDestination;
+            }
             if (!self::validCredential($network, $credential)) {
                 continue;
             }
@@ -27,7 +34,7 @@ final class SocialPublisher
             foreach ($this->publication->pending($network) as $article) {
                 $url = ArticleLinks::url($origin, $article);
                 [$endpoint, $headers, $body] = self::request($network, $credential, $article, $url);
-                if ($this->publication->claim($article['page_id'], $network)) {
+                if ($this->publication->claim($article['page_id'], $network, $configuredDestination)) {
                     $status = $post($endpoint, $headers, $body);
                     $this->publication->finish($article['page_id'], $network, $status);
                 }

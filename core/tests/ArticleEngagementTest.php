@@ -46,7 +46,7 @@ final class ArticleEngagementTest extends TestCase
         unlink($this->databasePath);
     }
 
-    public function test_translations_share_a_view_total_and_only_count_reader_gets_once_per_session(): void
+    public function test_views_count_once_per_edition_and_preserve_historical_totals(): void
     {
         // Exclude non-reading requests first, then open the two published editions in one session.
         // Exclui primeiro as requisições sem leitura e depois abre as duas edições publicadas em uma sessão.
@@ -55,20 +55,27 @@ final class ArticleEngagementTest extends TestCase
         $this->app->handle($this->request('GET', self::PT)->withHeader('Sec-Purpose', 'prefetch'));
         $this->app->handle($this->request('GET', self::PT)->withQueryParams(['lang' => 'en']));
         self::assertSame(0, $this->engagement->viewCount('page-welcome'));
+        // Pre-migration views stay in the report without attribution. A reload must not increment the same edition.
+        // Visualizações antigas ficam no relatório sem atribuição. Recarregar não pode incrementar a mesma edição.
+        Database::connect($this->databasePath)->exec("INSERT INTO article_views (page_id, views) VALUES ('page-welcome', 7)");
 
         $first = $this->app->handle($this->request('GET', self::PT));
         self::assertStringContainsString('1 visualização</p>', (string) $first->getBody());
         self::assertSame('private, no-store', $first->getHeaderLine('Cache-Control'));
+        $this->app->handle($this->request('GET', self::PT));
         $translation = $this->app->handle($this->request('GET', self::EN));
         self::assertStringContainsString('1 view</p>', (string) $translation->getBody());
-        self::assertSame(1, $this->engagement->viewCount('page-welcome'));
+        self::assertSame(1, $this->engagement->viewCount('page-welcome', 'pt'));
+        self::assertSame(1, $this->engagement->viewCount('page-welcome', 'en'));
+        self::assertSame(9, $this->engagement->viewCount('page-welcome'));
 
         $_SESSION = [];
         $this->app->handle($this->request('GET', self::EN));
-        self::assertSame(2, $this->engagement->viewCount('page-welcome'));
+        self::assertSame(2, $this->engagement->viewCount('page-welcome', 'en'));
         $_SESSION['user'] = ['id' => 'editor', 'role' => 'editor'];
         $ranking = (string) $this->app->handle($this->request('GET', '/admin/article-views'))->getBody();
-        self::assertStringContainsString('<td>2</td>', $ranking);
+        self::assertStringContainsString('Sem idioma', $ranking);
+        self::assertStringContainsString('<td>1</td><td>2</td><td>0</td><td>7</td><td>10</td>', $ranking);
     }
 
     public function test_reader_submission_requires_csrf_and_editor_approval_and_stays_in_its_edition(): void
@@ -120,13 +127,13 @@ final class ArticleEngagementTest extends TestCase
         self::assertFalse($this->engagement->submitComment('page-welcome', 'en', $user, 'A sixth comment.'));
     }
 
-    public function test_card_counts_share_views_and_count_only_approved_comments_in_each_edition(): void
+    public function test_card_counts_views_and_approved_comments_in_each_edition(): void
     {
         // Seed a repeated article and a second publication to verify the bulk results stay separate.
         // Prepara um artigo repetido e outra publicação para verificar que a consulta em lote mantém os resultados separados.
         $empty = $this->editorial->create('Outro artigo', 'outro-artigo', '', '', '', '', 'article');
         $this->editorial->publish($empty);
-        $this->engagement->incrementViews('page-welcome');
+        $this->engagement->incrementViews('page-welcome', 'pt');
         $reader = ['id' => 'reader', 'name' => 'Leitor'];
         foreach (['pt', 'pt', 'pt', 'en', 'en'] as $locale) {
             $this->engagement->submitComment('page-welcome', $locale, $reader, 'Comentário de teste.');
@@ -140,7 +147,7 @@ final class ArticleEngagementTest extends TestCase
         $counts = $this->engagement->countsForArticles(['page-welcome', $empty, 'page-welcome']);
         self::assertCount(2, $counts);
         self::assertSame(['views' => 1, 'approved_comments' => 1], $counts['page-welcome']['pt']);
-        self::assertSame(['views' => 1, 'approved_comments' => 2], $counts['page-welcome']['en']);
+        self::assertSame(['views' => 0, 'approved_comments' => 2], $counts['page-welcome']['en']);
         self::assertSame(['views' => 0, 'approved_comments' => 0], $counts[$empty]['pt']);
 
         $this->engagement->moderate(1, 'approved', 'rejected', 'editor');

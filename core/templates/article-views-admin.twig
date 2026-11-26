@@ -1,32 +1,55 @@
+{# Assign old views to a separate column because the earlier counter did not capture the edition.
+   Mostra as leituras antigas em uma coluna separada, pois o contador anterior não registrava a edição. #}
+{% set copy = reader_preferences.text %}
+{% set labels = {
+    pt: {title: 'Visualizações dos artigos', article: 'Artigo', historical: 'Sem idioma', views: 'Total', empty: 'Nenhum artigo publicado.', note: 'As visualizações anteriores à contagem por idioma aparecem em Sem idioma.', decimals: ',', thousands: '.'},
+    en: {title: 'Article views', article: 'Article', historical: 'Language unknown', views: 'Total', empty: 'No articles published.', note: 'Views recorded before language tracking are listed under Language unknown.', decimals: '.', thousands: ','},
+    es: {title: 'Visualizaciones de artículos', article: 'Artículo', historical: 'Sin idioma', views: 'Total', empty: 'No hay artículos publicados.', note: 'Las visualizaciones anteriores al conteo por idioma aparecen en Sin idioma.', decimals: ',', thousands: '.'}
+}[reader_preferences.language] %}
+{% set columns = {pt: 'PT', en: 'EN', es: 'ES', historical: labels.historical, views: labels.views} %}
 <!doctype html>
-<html lang="pt-BR" data-theme="{{ reader_preferences.theme }}">
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Visualizações dos artigos</title>
+    <title>{{ labels.title }}</title>
     {% include 'site-favicon.twig' %}
     <style>
         {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+        /* Keep the full report available on mobile without shrinking the numeric columns.
+           Mantém o relatório inteiro disponível no celular sem estreitar as colunas numéricas. */
+        main { max-width: 72rem; margin-block: 2rem; }
+        .views-table { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: .55rem; text-align: left; border-bottom: 1px solid light-dark(#c7d2e5, #32435d); }
-        td:last-child, th:last-child { text-align: right; }
+        th, td { padding: .55rem; text-align: right; border-bottom: 1px solid light-dark(#c7d2e5, #32435d); }
+        th:first-child { text-align: left; }
+        header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
     </style>
 </head>
-<body><main>
-    <a href="/admin">Voltar ao painel editorial</a>
-    <h1>Visualizações dos artigos</h1>
-    <p><strong>{{ total|number_format(0, ',', '.') }}</strong> visualizações registradas nos artigos publicados.</p>
-    {# Each row combines all language editions of one article.
-       Cada linha reúne as edições de um artigo em todos os idiomas. #}
-    <table>
-        <thead><tr><th scope="col">Artigo</th><th scope="col">Visualizações</th></tr></thead>
-        <tbody>
-            {% for article in articles %}
-                <tr><td><a href="/{{ article.language_code }}/p/{{ article.slug|url_encode }}">{{ article.title }}</a></td><td>{{ article.views|number_format(0, ',', '.') }}</td></tr>
-            {% else %}
-                <tr><td colspan="2">Nenhum artigo publicado.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</main></body>
-</html>
+<body><main class="reader-screen">
+    <header>
+        <a href="/admin">{{ copy.panel }}</a>
+        {% include 'reader-language.twig' with {} only %}
+    </header>
+    <h1>{{ labels.title }}</h1>
+    <p>{{ labels.note }}</p>
+    <div class="views-table" tabindex="0" role="region" aria-label="{{ labels.title }}">
+        <table>
+            <thead><tr><th scope="col">{{ labels.article }}</th>{% for label in columns %}<th scope="col">{{ label }}</th>{% endfor %}</tr></thead>
+            <tbody>
+                {% for article in articles %}
+                    <tr>
+                        <th scope="row"><a href="/{{ article.language_code }}/p/{{ article.slug|url_encode }}">{{ article.title }}</a></th>
+                        {% for column in columns|keys %}<td>{{ article[column]|default(0)|number_format(0, labels.decimals, labels.thousands) }}</td>{% endfor %}
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6">{{ labels.empty }}</td></tr>
+                {% endfor %}
+            </tbody>
+            <tfoot><tr><th scope="row">{{ labels.views }}</th>{% for column in columns|keys %}<td>{{ totals[column]|number_format(0, labels.decimals, labels.thousands) }}</td>{% endfor %}</tr></tfoot>
+        </table>
+    </div>
+</main>
+{% include 'reader-theme.twig' %}
+</body></html>

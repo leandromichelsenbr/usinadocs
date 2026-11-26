@@ -28,14 +28,14 @@ final class ArticleEngagementRoutes
         $reading = $request->getMethod() === 'GET' && !preg_match('/prefetch|prerender/i', $purpose);
         $views = null;
 
-        // Keep the deduplication marker in the existing PHP session and only set it after the database write.
-        // Guarda a marca de deduplicação na sessão PHP existente e só a define após gravar no banco.
+        // Count each language once per session, even if another edition was already read.
+        // Conta cada idioma uma vez por sessão, mesmo quando outra edição já foi lida.
         try {
-            if ($reading && $agent !== '' && !preg_match(self::BOT_PATTERN, $agent) && empty($_SESSION['article_views'][$pageId])) {
-                $engagement->incrementViews($pageId);
-                $_SESSION['article_views'][$pageId] = true;
+            if ($reading && $agent !== '' && !preg_match(self::BOT_PATTERN, $agent) && empty($_SESSION['article_edition_views'][$pageId][$locale])) {
+                $engagement->incrementViews($pageId, $locale);
+                $_SESSION['article_edition_views'][$pageId][$locale] = true;
             }
-            $views = $engagement->viewCount($pageId);
+            $views = $engagement->viewCount($pageId, $locale);
         } catch (PDOException $error) {
             // A failed counter write must not interrupt article reading or present a false zero.
             // Uma falha ao gravar o contador não deve interromper a leitura nem apresentar um zero incorreto.
@@ -124,9 +124,15 @@ final class ArticleEngagementRoutes
             if (!Roles::canEdit($_SESSION['user'] ?? null)) return $response->withStatus(403);
 
             $articles = $engagement->articleViews();
+            // Sum the same columns shown per article so the report footer reconciles with its rows.
+            // Soma as mesmas colunas exibidas por artigo para que o rodapé confira com as linhas.
+            $totals = [];
+            foreach (['pt', 'en', 'es', 'historical', 'views'] as $column) {
+                $totals[$column] = array_sum(array_column($articles, $column));
+            }
             return $twig->render($response, 'article-views-admin.twig', [
                 'articles' => $articles,
-                'total' => array_sum(array_column($articles, 'views')),
+                'totals' => $totals,
             ])->withHeader('Cache-Control', 'no-store');
         });
     }

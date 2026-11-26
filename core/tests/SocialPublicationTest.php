@@ -25,7 +25,9 @@ final class SocialPublicationTest extends TestCase
         Schema::seed($db);
         $editor = new EditorialService($db);
         $social = new SocialPublication($db);
-        $social->saveChannel('linkedin', 'pt', true);
+        // LinkedIn uses the administrator's destination, while Facebook exercises the older private-file fallback.
+        // O LinkedIn usa o destino cadastrado pelo administrador, enquanto o Facebook testa o arquivo privado legado.
+        $social->saveChannel('linkedin', 'pt', true, '100');
         $social->saveChannel('facebook', 'es', true);
         $page = $editor->create('Teste #1', 'artigo', 'Resumo', 'Texto', '', '', 'article');
         $editor->createTranslation($page, 'en', 'article');
@@ -52,7 +54,7 @@ final class SocialPublicationTest extends TestCase
             return str_contains($endpoint, 'linkedin.com') ? 201 : 403;
         };
         $credentials = [
-            'linkedin' => ['id' => '100', 'token' => 'fake-token', 'version' => '202609'],
+            'linkedin' => ['id' => '999', 'token' => 'fake-token', 'version' => '202609'],
             'facebook' => ['id' => '200', 'token' => 'fake-token', 'version' => 'v27.0'],
         ];
 
@@ -126,10 +128,15 @@ final class SocialPublicationTest extends TestCase
             self::assertSame(200, $response->getStatusCode());
             self::assertStringContainsString('Redes sociais', (string) $response->getBody());
             self::assertSame(403, $app->handle($post->withParsedBody(['enabled' => '1', 'language' => 'en']))->getStatusCode());
+            $invalid = $app->handle($post->withParsedBody([
+                'csrf' => CsrfToken::current(), 'enabled' => '1', 'language' => 'en', 'destination' => 'not-an-id',
+            ]));
+            self::assertSame('/admin/social?error=destination', $invalid->getHeaderLine('Location'));
             self::assertSame(303, $app->handle($post->withParsedBody([
-                'csrf' => CsrfToken::current(), 'enabled' => '1', 'language' => 'en',
+                'csrf' => CsrfToken::current(), 'enabled' => '1', 'language' => 'en', 'destination' => '12345',
             ]))->getStatusCode());
-            self::assertSame(['language_code' => 'en', 'enabled' => 1], (new SocialPublication($db))->channels()['linkedin']);
+            self::assertSame(['language_code' => 'en', 'enabled' => 1, 'destination_id' => '12345'], (new SocialPublication($db))->channels()['linkedin']);
+            self::assertStringContainsString('https://www.linkedin.com/company/12345/', (string) $app->handle($settings)->getBody());
         } finally {
             $_SESSION = [];
             unlink($path);
