@@ -1,6 +1,6 @@
 # Usina Docs Core
 
-Esta é a fundação leve ativa do Usina Docs. O protótipo Laravel permanece no diretório raiz como referência histórica até que esta base reproduza o núcleo editorial definido na [ADR-001](../docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md).
+Esta é a base de código ativa do Usina Docs, definida na [ADR-001](../docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md). O protótipo Laravel anterior foi removido da árvore principal e permanece apenas na tag `v0.1.0-laravel-prototype`.
 
 ## Executar localmente
 
@@ -31,9 +31,17 @@ Defina `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD` no arquivo `.env`. S
 composer reset-admin
 ```
 
+## Testes
+
+```bash
+composer test
+```
+
+A mesma suíte roda no GitHub Actions em toda pull request.
+
 ## Estado atual
 
-Esta primeira fatia demonstra o fluxo público mínimo: SQLite, migração, conteúdo de demonstração, rota localizada, página publicada e blocos de texto/código. Autenticação, administração, revisões editáveis, mídia e importação serão adicionados em fatias posteriores.
+O núcleo reproduz o fluxo editorial validado no protótipo — páginas, blocos, rascunhos, publicação, revisões imutáveis e rotas localizadas — e acrescenta modelos e artefatos versionados, traduções, mídia, pacotes de conteúdo, autores, comentários moderados e login por provedores. O guia completo de instalação está em [docs/INSTALL.md](../docs/INSTALL.md).
 
 ## Login por Google e Microsoft
 

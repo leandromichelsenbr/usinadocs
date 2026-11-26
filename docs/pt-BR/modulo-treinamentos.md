@@ -112,9 +112,9 @@ Programas, cursos, módulos e aulas devem usar a infraestrutura multilíngue nat
 O módulo deve possuir fronteira explícita no código, preferencialmente com estruturas próprias, por exemplo:
 
 ```text
-app/Training/
-resources/views/training/
-routes/training.php
+core/src/Training/
+core/templates/training/
+core/src/Presentation/TrainingRoutes.php
 ```
 
 A direção de dependência esperada é:

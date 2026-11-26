@@ -19,7 +19,7 @@ Migration adapter ---> Usina Core ---> theme
 
 ## Selected alpha core
 
-The active alpha direction is defined by [ADR-001: Lightweight PHP Core](ADR-001-LIGHTWEIGHT-PHP-CORE.md): PHP 8.2+, Slim, Twig, PDO and SQLite as the default database. The existing Laravel implementation is a proof of concept used to validate editorial rules; it is not the technical base for new modules.
+The active alpha direction is defined by [ADR-001: Lightweight PHP Core](ADR-001-LIGHTWEIGHT-PHP-CORE.md): PHP 8.2+, Slim, Twig, PDO and SQLite as the default database. The Laravel proof of concept that validated the first editorial rules was removed from the main tree and is preserved at the `v0.1.0-laravel-prototype` tag; the active code base is `core/`.
 
 ## Layers
 

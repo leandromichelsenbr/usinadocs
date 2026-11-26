@@ -9,7 +9,7 @@ Its central principle is simple: documentation and training share the same struc
 
 ## Project status
 
-The repository contains the project's license, governance documents, vision, architecture planning and an archived Laravel proof of concept. The active direction is a lightweight PHP core; see [ADR-001](docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md), the [content package specification](docs/CONTENT-PACKAGE.md) and the [roadmap](docs/en/roadmap.md).
+The repository contains the project's license, governance documents, vision, architecture planning and the lightweight PHP core. The archived Laravel proof of concept is kept only at the `v0.1.0-laravel-prototype` tag; see [ADR-001](docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md), the [content package specification](docs/CONTENT-PACKAGE.md) and the [roadmap](docs/en/roadmap.md).
 
 The AdvPL Guide is the first real-world use case and the laboratory where the product requirements are being validated. Usina Docs itself will remain independent from AdvPL, Protheus and TOTVS-specific concepts.
 
@@ -19,7 +19,7 @@ See the [project vision](docs/en/vision.md), [use cases and content models](docs
 
 ## Lightweight core preview
 
-The installable lightweight core is being built in [`core/`](core/). It is intentionally isolated from the archived Laravel prototype while the project validates the new architecture.
+The installable lightweight core lives in [`core/`](core/) and is the only active code base. Local installation is described in [docs/INSTALL.md](docs/INSTALL.md).
 
 It currently renders one published, Portuguese example page from SQLite. See [`core/README.md`](core/README.md) for local installation and validation steps.
 

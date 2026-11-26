@@ -1,14 +1,17 @@
-# Instalação local — alfa
+# Instalação local — pré-alfa
 
-Esta instalação serve para avaliação e desenvolvimento local do **Usina Docs alfa**. Ela não é um guia de produção.
+Esta instalação serve para avaliação e desenvolvimento local do **Usina Docs** com o núcleo leve em [`core/`](../core/) (Slim, Twig, PDO e SQLite, conforme a [ADR-001](ADR-001-LIGHTWEIGHT-PHP-CORE.md)). Ela não é um guia de produção.
+
+> O protótipo Laravel usado antes da ADR-001 foi removido da árvore principal. Ele continua disponível, apenas como referência histórica, na tag [`v0.1.0-laravel-prototype`](https://github.com/leandromichelsenbr/usinadocs/tree/v0.1.0-laravel-prototype).
 
 ## Requisitos
 
 - Git;
 - PHP 8.2 ou superior;
 - Composer 2;
-- extensão PHP `fileinfo`, além de `pdo_sqlite`/`sqlite3`, OpenSSL, Mbstring, XML, Ctype, JSON e Tokenizer;
-- Node.js 20+ e npm, somente para compilar recursos visuais.
+- extensões PHP `pdo_sqlite`, `sqlite3`, `fileinfo`, `mbstring` e `curl` (esta última apenas para login por Google ou Microsoft).
+
+Node.js, npm e etapa de compilação de front-end não são necessários.
 
 Confirme o PHP e suas configurações ativas:
 
@@ -24,63 +27,64 @@ No Windows, habilite as extensões necessárias no `php.ini` usado pela linha de
 
 ```bash
 git clone https://github.com/leandromichelsenbr/usinadocs.git
-cd usinadocs
+cd usinadocs/core
 composer install
 ```
 
-Crie o arquivo de ambiente e o banco SQLite.
+Crie o arquivo de ambiente.
 
 No PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
-New-Item database/database.sqlite -ItemType File -Force
 ```
 
 No macOS ou Linux:
 
 ```bash
 cp .env.example .env
-touch database/database.sqlite
 ```
 
-Em seguida:
+Antes de migrar, edite `.env` e troque `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD`. A migração cria o primeiro administrador com esses valores; se eles não forem definidos, é usado o par de exemplo, que nunca deve permanecer em uma instalação acessível por outras pessoas.
 
 ```bash
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
+php bin/migrate.php
+php -S 127.0.0.1:8080 -t public
 ```
 
-Abra `http://127.0.0.1:8000`. A demonstração inicial deve responder em `http://127.0.0.1:8000/pt/p/bem-vindo`.
+Abra `http://127.0.0.1:8080`. A demonstração inicial deve responder em `http://127.0.0.1:8080/pt/p/bem-vindo`.
 
-> O repositório ainda não possui `composer.lock`; por isso, `composer install` resolve as versões compatíveis disponíveis no momento. A criação de um lockfile será tratada antes de uma distribuição beta reproduzível.
+O arquivo `core/composer.lock` é versionado; `composer install` reproduz as mesmas versões de dependências usadas nos testes.
 
-## Primeiro administrador
+## Acesso administrativo
 
-Não há conta nem senha padrão. Crie a conta administrativa local:
+Entre em `http://127.0.0.1:8080/login` com as credenciais do `.env` e acesse o painel em `/admin`.
+
+Para trocar as credenciais depois que o banco já existe, altere o `.env` e execute:
 
 ```bash
-php artisan user:make-admin seu-email@exemplo.com --name="Seu nome"
+composer reset-admin
 ```
 
-A senha é solicitada de forma oculta e precisa ter ao menos 12 caracteres. Depois, entre em `http://127.0.0.1:8000/login` e acesse o painel em `/admin`.
+Login por Google e Microsoft, convite do primeiro administrador nesse modo e grupos de acesso estão descritos no [README do core](../core/README.md#login-por-google-e-microsoft).
 
-## O que testar no alfa
+## O que testar
 
-1. Abra `/admin/pages` e crie uma página em rascunho.
+1. Abra `/admin` e crie uma página em rascunho.
 2. Adicione blocos de texto, código ou referência e salve.
 3. Publique a revisão e acesse a rota pública no idioma escolhido.
-4. Crie uma nova revisão da página já publicada; a versão anterior deve permanecer pública e imutável.
-5. Crie uma tradução em `/admin/pages/{pagina}/translations/create` e confirme a rota localizada.
+4. Crie uma nova revisão da página já publicada; a versão anterior deve permanecer pública e imutável até a nova publicação.
+5. Crie uma tradução e confirme a rota localizada.
+6. Exporte uma página publicada como pacote e importe-o em outra instalação.
 
 ## Testes automatizados
 
 ```bash
-php artisan test
+cd core
+composer test
 ```
 
-O conjunto cobre acesso administrativo, publicação, revisão imutável, rascunhos não públicos e rotas localizadas.
+O mesmo conjunto roda no GitHub Actions em toda pull request, com PHP 8.2 e 8.3.
 
 ## Problemas frequentes
 
@@ -88,10 +92,10 @@ O conjunto cobre acesso administrativo, publicação, revisão imutável, rascun
 | --- | --- |
 | `composer` não é reconhecido | Instale o Composer e reabra o terminal. |
 | `ext-fileinfo` ausente | Habilite `extension=fileinfo` no `php.ini` indicado por `php --ini`. |
-| `could not find driver` | Habilite `pdo_sqlite` e `sqlite3`, crie `database/database.sqlite` e rode as migrações. |
-| Página retorna erro após mudar `.env` | Execute `php artisan optimize:clear`. |
-| Porta 8000 ocupada | Execute `php artisan serve --port=8001`. |
+| `could not find driver` | Habilite `pdo_sqlite` e `sqlite3` e rode `php bin/migrate.php` novamente. |
+| Login recusado após mudar `.env` | Execute `composer reset-admin` para sincronizar as credenciais com o banco. |
+| Porta 8080 ocupada | Use outra porta, por exemplo `php -S 127.0.0.1:8081 -t public`. |
 
 ## Limites desta etapa
 
-O alfa contém a fundação editorial: autenticação local, administração, páginas, revisões, blocos, publicações e localização. Cursos, biblioteca de mídia, editor visual avançado, importação/exportação e autenticação externa fazem parte das próximas etapas. Consulte também [a arquitetura do alfa](ARCHITECTURE.md).
+O pré-alfa contém a fundação editorial: autenticação local ou OAuth, administração, páginas, modelos e artefatos versionados, revisões, traduções, mídia, pacotes de conteúdo e publicação. Cursos e o módulo de treinamento fazem parte das próximas etapas. Consulte também [a arquitetura atual](ARCHITECTURE.md).

@@ -9,7 +9,7 @@ O principio central e simples: documentacao e treinamento compartilham a mesma b
 
 ## Estado do projeto
 
-O repositorio contem a licenca, documentos de governanca, visao de produto, planejamento de arquitetura e uma prova de conceito Laravel arquivada. A direcao ativa e um nucleo PHP leve; consulte a [ADR-001](docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md), a [especificacao do pacote de conteudo](docs/CONTENT-PACKAGE.md) e o [roadmap](docs/pt-BR/roadmap.md).
+O repositorio contem a licenca, documentos de governanca, visao de produto, planejamento de arquitetura e o nucleo PHP leve. A prova de conceito Laravel arquivada fica apenas na tag `v0.1.0-laravel-prototype`; consulte a [ADR-001](docs/ADR-001-LIGHTWEIGHT-PHP-CORE.md), a [especificacao do pacote de conteudo](docs/CONTENT-PACKAGE.md) e o [roadmap](docs/pt-BR/roadmap.md).
 
 O AdvPL Guia e o primeiro caso real de uso e o laboratorio onde os requisitos do produto estao sendo validados. O Usina Docs permanecera independente de conceitos especificos de AdvPL, Protheus e TOTVS.
 
@@ -19,7 +19,7 @@ Consulte a [visao do projeto](docs/pt-BR/vision.md), os [casos de uso e modelos 
 
 ## Previa do nucleo leve
 
-O nucleo leve instalavel esta sendo construido em [`core/`](core/). Ele fica propositalmente isolado do prototipo Laravel arquivado enquanto o projeto valida a nova arquitetura.
+O nucleo leve instalavel fica em [`core/`](core/) e e a unica base de codigo ativa. A instalacao local esta descrita em [docs/INSTALL.md](docs/INSTALL.md).
 
 Atualmente ele renderiza uma pagina de exemplo publicada, em portugues, a partir do SQLite. Consulte [`core/README.md`](core/README.md) para os passos de instalacao local e validacao.
 

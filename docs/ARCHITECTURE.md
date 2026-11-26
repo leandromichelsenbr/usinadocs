@@ -6,7 +6,7 @@ Para a visão de produto, consulte [vision.md](vision.md). Para a arquitetura de
 
 ## Escopo atual
 
-O alfa é uma aplicação Laravel 12 com banco SQLite para desenvolvimento local. Ele prova o núcleo editorial do produto:
+O pré-alfa é o núcleo leve em [`core/`](../core/): PHP 8.2+, Slim 4, Twig e PDO, com SQLite como banco padrão, conforme a [ADR-001](ADR-001-LIGHTWEIGHT-PHP-CORE.md). O protótipo Laravel que validou as primeiras regras foi removido da árvore principal e permanece na tag `v0.1.0-laravel-prototype`. O núcleo cobre o fluxo editorial do produto:
 
 - acesso local com papel de administrador; a separação de permissões editoriais será ampliada em etapa posterior;
 - páginas identificadas por site e slug;
@@ -24,32 +24,35 @@ A arquitetura deve permanecer neutra em relação ao assunto publicado. Programa
 ```text
 Navegador
    │
-   ├── Rotas públicas ─────── PublishedPageController ── PageLocalization
+   ├── Rotas públicas ─────── AppFactory / *Routes ─── PublishedPageRepository
    │                                                   └─ revisão publicada + blocos
    │
-   └── Área administrativa ─ PageController ─────────── PageRevisionService
-                                                        ├─ cria rascunho
-                                                        ├─ altera rascunho
-                                                        ├─ publica revisão
-                                                        └─ cria tradução/revisão
+   └── Área administrativa ─ Presentation/*Routes ──── EditorialService
+                                                        ├─ cria e altera rascunhos
+                                                        ├─ publica revisões
+                                                        ├─ versiona modelos e artefatos
+                                                        └─ cria traduções e revisões
 
-Banco SQLite
-   ├── users / sessions / cache / jobs
+Banco SQLite (core/database/database.sqlite)
+   ├── users / access_groups / oauth_users
    ├── sites / languages
-   ├── pages / page_localizations
-   └── page_revisions / blocks
+   ├── pages / page_localizations / page_revisions / blocks
+   ├── editorial_models / reusable_artifacts e suas revisões
+   └── media / authors / legal_documents / article_comments / article_views
 ```
 
 ## Camadas e responsabilidades
 
 | Camada | Local | Responsabilidade |
 | --- | --- | --- |
-| Rotas | `routes/web.php` | Define URLs públicas, login, logout e área administrativa. |
-| Controladores | `app/Http/Controllers` | Recebe requisições, valida entrada e devolve respostas ou telas. |
-| Domínio editorial | `app/Models` e `app/Services/PageRevisionService.php` | Mantém páginas, idiomas, revisões, publicação e blocos. |
-| Persistência | `database/migrations` | Define as tabelas e as relações do alfa. |
-| Interface | `resources/views` | Renderiza a área pública, autenticação e administração. |
-| Configuração | `.env`, `config/` | Mantém ambiente, banco, sessão, cache, fila e e-mail fora do código versionado. |
+| Entrada HTTP | `core/public/index.php` | Único ponto de entrada servido pelo servidor web. |
+| Rotas e composição | `core/src/AppFactory.php`, `core/src/Presentation/` | Monta a aplicação Slim, registra rotas públicas e administrativas e liga serviços a templates. |
+| Autenticação e papéis | `core/src/Authentication/` | Login local ou OAuth (Google/Microsoft) e papéis Leitor, Editor e Administrador. |
+| Domínio editorial | `core/src/Content/` | Páginas, revisões, publicação, modelos, artefatos reutilizáveis, traduções e pacotes de conteúdo. |
+| Mídia | `core/src/Media/` | Upload validado de imagens e entrega pela rota `/media/{id}`. |
+| Persistência | `core/src/Infrastructure/`, `core/database/migrations/` | Conexão PDO e migrações SQL numeradas, aplicadas por `core/bin/migrate.php`. |
+| Interface | `core/templates/` | Templates Twig com escape HTML automático para área pública e administração. |
+| Configuração | `core/.env` | Caminho do banco, credenciais iniciais e modo de autenticação, fora do Git. |
 
 ## Modelo editorial implementado
 
@@ -78,19 +81,17 @@ Site
 | --- | --- |
 | Início | `/` |
 | Página pública localizada | `/{locale}/p/{slug}` |
-| Compatibilidade em português | `/p/{slug}` → `/pt/p/{slug}` |
-| Login local | `/login` |
+| Login local ou por provedor | `/login` |
 | Administração | `/admin` |
 | Páginas administrativas | `/admin/pages` |
 
-As rotas administrativas exigem autenticação e papel de administrador. O comando `user:make-admin` cria ou promove uma conta local para esse papel.
+As rotas administrativas exigem autenticação e papel de Editor ou Administrador, verificados no servidor. O primeiro administrador local vem de `USINADOCS_ADMIN_EMAIL` e `USINADOCS_ADMIN_PASSWORD` durante a migração; no modo OAuth, ele é convidado por `core/bin/invite-administrator.php`.
 
 ## Dados locais e segurança
 
-- `.env` contém segredos e nunca deve ser versionado.
-- `database/database.sqlite` é uma base local de desenvolvimento e também não deve ser enviada ao Git.
-- Sessões, cache e filas usam o banco na configuração alfa; por isso, as migrações são obrigatórias.
-- E-mail usa o driver `log` por padrão: nenhuma mensagem é entregue externamente durante a instalação local.
+- `core/.env` contém segredos e nunca deve ser versionado.
+- `core/database/database.sqlite` e `core/storage/media/` contêm dados da instalação e também não devem ser enviados ao Git.
+- Sessões usam o mecanismo nativo do PHP; não há fila, cache externo nem envio de e-mail nesta etapa.
 - A política de produção, backup, autenticação externa, armazenamento de mídia e observabilidade ainda será definida antes da fase beta.
 
 ## Caminho de evolução
