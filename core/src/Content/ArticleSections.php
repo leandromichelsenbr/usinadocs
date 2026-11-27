@@ -28,7 +28,9 @@ final class ArticleSections
 
     public function save(?string $currentSlug, array $input): string
     {
-        $slug = $currentSlug ?? (is_string($input['slug'] ?? null) ? trim($input['slug']) : '');
+        // Normalize new identifiers so capitalized names can be pasted without creating case-only duplicates.
+        // Normaliza novos identificadores para aceitar nomes com maiúsculas sem criar duplicatas por diferença de caixa.
+        $slug = $currentSlug ?? (is_string($input['slug'] ?? null) ? strtolower(trim($input['slug'])) : '');
         if (strlen($slug) > 64 || !preg_match('/\A[a-z0-9]+(?:-[a-z0-9]+)*\z/', $slug)) {
             throw new InvalidArgumentException('invalid_slug');
         }

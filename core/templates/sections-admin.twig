@@ -43,7 +43,12 @@
         {% if editing %}
             <p>{{ fields.address }} <code>{{ editing }}</code></p>
         {% else %}
-            <label>{{ fields.address_id }} <input name="slug" value="{{ section.slug|default('') }}" required maxlength="64" pattern="[a-z0-9]+(?:-[a-z0-9]+)*"></label>
+            {# Accept both cases in the browser. The server stores the public identifier in lowercase.
+               Aceita maiúsculas e minúsculas no navegador. O servidor grava o identificador público em minúsculas. #}
+            <label>{{ fields.address_id }}
+                <input name="slug" value="{{ section.slug|default('') }}" required maxlength="64" pattern="[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*" aria-describedby="section-address-hint">
+                <small id="section-address-hint">{{ fields.section_address_hint }}</small>
+            </label>
         {% endif %}
         {% for code, language in reader_preferences.languages %}
             <label>{{ labels.title }} · <span lang="{{ code }}">{{ language }}</span>

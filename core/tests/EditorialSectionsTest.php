@@ -78,6 +78,28 @@ final class EditorialSectionsTest extends TestCase
         self::assertSame('infra', $this->sections->availableFor()[0]['slug']);
     }
 
+    public function test_capitalized_section_identifiers_are_accepted_and_saved_in_lowercase(): void
+    {
+        // Verify browser validation and the POST use the same rule, and that titles keep their original case.
+        // Confere a mesma regra na validação do navegador e no POST, e preserva a grafia dos títulos.
+        $path = '/admin/sections';
+        $html = (string) $this->request('GET', $path)->getBody();
+        self::assertSame(1, preg_match('~name="slug"[^>]+pattern="([^"]+)"~', $html, $matches));
+        self::assertMatchesRegularExpression('~\A(?:'.$matches[1].')\z~', 'Windows');
+
+        $data = [
+            'slug' => 'Windows', 'title_pt' => 'Windows', 'title_en' => 'Windows', 'title_es' => 'Windows',
+            'csrf' => CsrfToken::current(),
+        ];
+        $saved = $this->request('POST', $path, $data);
+        self::assertSame(303, $saved->getStatusCode());
+        self::assertStringContainsString('section=windows', $saved->getHeaderLine('Location'));
+        $section = $this->sections->find('windows');
+        self::assertSame(['Windows', 'Windows', 'Windows'], [$section['title_pt'], $section['title_en'], $section['title_es']]);
+        self::assertSame(422, $this->request('POST', $path, array_replace($data, ['slug' => 'WINDOWS']))->getStatusCode());
+        self::assertSame(422, $this->request('POST', $path, array_replace($data, ['slug' => 'Windows/Server']))->getStatusCode());
+    }
+
     public function test_the_shared_preferences_keep_article_edition_separate_from_editor_language(): void
     {
         // Switching the interface on an English draft must leave the save path pointing at that draft.
