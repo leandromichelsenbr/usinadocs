@@ -29,6 +29,7 @@ use UsinaDocs\Core\Content\AuthorDirectory;
 use UsinaDocs\Core\Content\ArticleEngagement;
 use UsinaDocs\Core\Content\LegalDocuments;
 use UsinaDocs\Core\Content\PublicationBatch;
+use UsinaDocs\Core\Content\Sitemap;
 use UsinaDocs\Core\Media\MediaLibrary;
 use UsinaDocs\Core\Presentation\AppearanceRoutes;
 use UsinaDocs\Core\Presentation\ReaderPreferences;
@@ -40,6 +41,7 @@ use UsinaDocs\Core\Presentation\AuthorRoutes;
 use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
 use UsinaDocs\Core\Presentation\LegalDocumentRoutes;
 use UsinaDocs\Core\Presentation\SiteAppearance;
+use UsinaDocs\Core\Presentation\SitemapRoutes;
 use UsinaDocs\Core\Security\CsrfToken;
 use UsinaDocs\Core\Presentation\SocialRoutes;
 use UsinaDocs\Core\Social\ArticleLinks;
@@ -142,6 +144,12 @@ final class AppFactory
         // O gerenciamento dos canais e os links públicos usam a mesma instalação, sem carregar tokens de API no PHP-FPM.
         SocialRoutes::register($app, $twig, new SocialPublication($database));
         $publicOrigin = ArticleLinks::origin($_ENV['USINADOCS_PUBLIC_ORIGIN'] ?? '');
+        // Enable indexing only after the installation declares its public URL.
+        // Habilita a indexação somente depois que a instalação declara sua URL pública.
+        $twig->getEnvironment()->addGlobal('sitemap_available', $publicOrigin !== null);
+        if ($publicOrigin !== null) {
+            SitemapRoutes::register($app, $twig, new Sitemap($database, $news !== null), $publicOrigin);
+        }
         PublicationRoutes::register($app, $twig, new PublicationBatch($database, $editorial, $repository, $covers), $repository, $covers, $media, new PageAlerts($database));
         EditorialMaintenanceRoutes::register($app, $twig, $editorial, new EditorialMaintenance($database));
         // Use the same directory for section management and article classification.

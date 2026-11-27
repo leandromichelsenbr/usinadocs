@@ -50,6 +50,9 @@
         {% if can_manage_appearance %}
             <a href="/admin/appearance">{{ labels.appearance }}</a>
             <a href="/admin/legal">{{ labels.legal }}</a>
+            {# Show the sitemap settings after the installation provides a canonical origin.
+               Exibe as opções do mapa após a instalação informar sua origem canônica. #}
+            {% if sitemap_available %}<a href="/admin/sitemap">{{ {pt: 'Sitemap', en: 'Sitemap', es: 'Mapa del sitio'}[reader_preferences.language] }}</a>{% endif %}
             {# The external publishing settings are available only to administrators.
                As configurações de publicação externa estão disponíveis apenas para administradores. #}
             <a href="/admin/social">{{ {pt: 'Redes sociais', en: 'Social networks', es: 'Redes sociales'}[reader_preferences.language] }}</a>

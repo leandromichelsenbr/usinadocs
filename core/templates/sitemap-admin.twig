@@ -1,0 +1,47 @@
+{# Saving manual mode captures the current public pages. Saving it again refreshes the snapshot.
+   Salvar o modo manual captura as páginas públicas atuais. Salvar novamente atualiza a cópia. #}
+{% set copy = reader_preferences.text %}
+{% set labels = {
+    pt: {title: 'Sitemap', mode: 'Atualização', automatic: 'Automática', manual: 'Manual', save: 'Salvar', snapshot: 'Salvar e atualizar agora', saved: 'Configuração salva.', open: 'Abrir sitemap.xml', help: 'No modo automático, o sitemap reflete as publicações assim que ficam visíveis. No modo manual, use Salvar e atualizar agora para atualizar a cópia.'},
+    en: {title: 'Sitemap', mode: 'Updates', automatic: 'Automatic', manual: 'Manual', save: 'Save', snapshot: 'Save and refresh now', saved: 'Settings saved.', open: 'Open sitemap.xml', help: 'In automatic mode, the sitemap reflects content as soon as it is public. In manual mode, use Save and refresh now to update the snapshot.'},
+    es: {title: 'Mapa del sitio', mode: 'Actualización', automatic: 'Automática', manual: 'Manual', save: 'Guardar', snapshot: 'Guardar y actualizar ahora', saved: 'Configuración guardada.', open: 'Abrir sitemap.xml', help: 'En el modo automático, el mapa refleja el contenido en cuanto es público. En el modo manual, usa Guardar y actualizar ahora para actualizar la copia.'}
+}[reader_preferences.language] %}
+<!doctype html>
+<html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ labels.title }}</title>
+    {% include 'site-favicon.twig' %}
+    <style>
+        {% include 'reader-login-style.twig' %}
+        {% include 'reader-controls-style.twig' %}
+        /* Keep both mode choices readable when they wrap on a small screen.
+           Mantém as duas opções legíveis quando quebram linha em uma tela pequena. */
+        header, .sitemap-modes { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+        .sitemap-modes { margin-block: 1rem; }
+        button { font: inherit; }
+    </style>
+</head>
+<body><main class="reader-screen">
+    <header>
+        <a href="/admin">{{ copy.panel }}</a>
+        {% include 'reader-language.twig' with {} only %}
+    </header>
+    <h1>{{ labels.title }}</h1>
+    <p>{{ labels.help }}</p>
+    <p><a href="/sitemap.xml">{{ labels.open }}</a></p>
+    {% if saved %}<p role="status">{{ labels.saved }}</p>{% endif %}
+    <form method="post" action="/admin/sitemap">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <fieldset class="sitemap-modes">
+            <legend>{{ labels.mode }}</legend>
+            <label><input type="radio" name="mode" value="automatic" {% if automatic %}checked{% endif %}> {{ labels.automatic }}</label>
+            <label><input type="radio" name="mode" value="manual" {% if not automatic %}checked{% endif %}> {{ labels.manual }}</label>
+        </fieldset>
+        <button type="submit">{{ automatic ? labels.save : labels.snapshot }}</button>
+    </form>
+</main>
+{% include 'reader-theme.twig' %}
+</body>
+</html>
