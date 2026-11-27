@@ -60,6 +60,16 @@ final class ArticleHashtagsTest extends TestCase
             $editorial->publish($page);
             $editorial->createTranslation($page, 'en', 'windows-edition');
             $editorial->publishLocalized($page, 'en');
+            // New tags stay in Portuguese until the glossary supplies a translation or confirms a universal name.
+            // Hashtags novas ficam em português até o glossário traduzi-las ou confirmar seu uso universal.
+            $edition = $request('GET', '/en/p/windows-edition', ['lang' => 'en']);
+            self::assertStringNotContainsString('>#Educação</a>', (string) $app->handle($edition)->getBody());
+            $glossary = (string) $app->handle($request('GET', '/admin/hashtags', ['tag' => 'educação']))->getBody();
+            self::assertStringContainsString('name="label_en"', $glossary);
+            $saveLabels = static fn (array $data) => $app->handle($request('POST', '/admin/hashtags', [], $data + ['csrf' => CsrfToken::current()]));
+            self::assertSame(422, $saveLabels(['tag' => 'educação', 'label_en' => 'Education'])->getStatusCode());
+            self::assertSame(303, $saveLabels(['tag' => 'educação', 'label_en' => 'Education', 'label_es' => '#Educación'])->getStatusCode());
+            self::assertSame(303, $saveLabels(['tag' => 'windows', 'universal' => '1'])->getStatusCode());
             $other = $editorial->create('Unrelated article', 'unrelated', '', '', '', '', 'article');
             $editorial->publish($other);
             $results = (string) $app->handle($archive)->getBody();
@@ -68,10 +78,13 @@ final class ArticleHashtagsTest extends TestCase
             self::assertStringNotContainsString('Unrelated article', $results);
             self::assertStringContainsString('tag=windows&amp;page=1&amp;lang=es', $results);
 
-            $edition = $request('GET', '/en/p/windows-edition', ['lang' => 'en']);
             $article = (string) $app->handle($edition)->getBody();
-            self::assertStringContainsString('href="/?tag=educa%C3%A7%C3%A3o&amp;lang=en">#Educação</a>', $article);
+            self::assertStringContainsString('href="/?tag=educa%C3%A7%C3%A3o&amp;lang=en">#Education</a>', $article);
             self::assertSame(1, substr_count($article, '>#Windows</a>'));
+            $englishArchive = (string) $app->handle($request('GET', '/', ['tag' => 'educação', 'lang' => 'en']))->getBody();
+            $spanishArchive = (string) $app->handle($request('GET', '/', ['tag' => 'educação', 'lang' => 'es']))->getBody();
+            self::assertStringContainsString('id="titulo-ultimas">#Education</h2>', $englishArchive);
+            self::assertStringContainsString('id="titulo-ultimas">#Educación</h2>', $spanishArchive);
 
             // Saving a new draft leaves the published references to the old tag until that revision goes live.
             // Salvar outro rascunho mantém as referências públicas à hashtag anterior até publicar a revisão.
@@ -81,6 +94,7 @@ final class ArticleHashtagsTest extends TestCase
             self::assertSame(302, $app->handle($request('POST', '/admin/pages/'.$page, [], array_replace($data, ['article_tags' => '#Microsoft'])))->getStatusCode());
             self::assertStringContainsString('>#Windows</a>', (string) $app->handle($edition)->getBody());
             $editorial->publish($page);
+            self::assertSame(303, $saveLabels(['tag' => 'microsoft', 'universal' => '1'])->getStatusCode());
             self::assertStringContainsString('>#Microsoft</a>', (string) $app->handle($edition)->getBody());
             self::assertStringNotContainsString('/en/p/windows-edition', (string) $app->handle($archive)->getBody());
 

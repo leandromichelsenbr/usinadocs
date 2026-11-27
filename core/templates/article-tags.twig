@@ -1,5 +1,6 @@
 {# Carry the current reading language into the hashtag archive, even when a card uses a fallback edition.
    Leva o idioma de leitura ao arquivo de hashtags, inclusive quando a chamada exibe uma edição alternativa. #}
+{% set tags = reader_tags(tags|default([]), language) %}
 {% if tags %}
     {% set label = {pt: 'Hashtags da matéria', en: 'Article hashtags', es: 'Hashtags del artículo'}[language] %}
     <ul class="article-tags" aria-label="{{ label }}">

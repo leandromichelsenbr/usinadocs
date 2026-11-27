@@ -115,7 +115,7 @@
         {% if page.content_type == 'article' %}{% include 'article-byline.twig' %}{% endif %}
         {# Both the article and its preview show the hashtags attached to the revision.
            Tanto a matéria como sua prévia mostram as hashtags associadas à revisão. #}
-        {% if news_hashtags %}{% include 'article-tags.twig' with {tags: page.tags, language: reader_preferences.language} only %}{% endif %}
+        {% if news_hashtags %}{% include 'article-tags.twig' with {tags: page.tags, language: page.language_code} only %}{% endif %}
         {% if social_share %}{% include 'article-sharing.twig' %}{% endif %}
         {# Only the public article route supplies interaction data. Editorial previews stay free of counters and forms.
            Apenas a rota pública de artigos fornece dados de interação. As prévias editoriais ficam sem contadores e formulários. #}
