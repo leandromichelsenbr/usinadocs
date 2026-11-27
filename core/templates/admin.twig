@@ -47,6 +47,9 @@
     <h1>{{ copy.panel }}</h1>
     <p>{{ labels.hello }} {{ user.name }}.</p>
     <nav class="nav" aria-label="{{ copy.panel }}">
+        {# The hashtag glossary belongs to the news archive and is shared across editions.
+           O glossário de hashtags pertence ao arquivo de notícias e é compartilhado pelas edições. #}
+        {% if news_hashtags %}<a href="/admin/hashtags">Hashtags</a>{% endif %}
         {% if can_manage_appearance %}
             <a href="/admin/appearance">{{ labels.appearance }}</a>
             <a href="/admin/legal">{{ labels.legal }}</a>

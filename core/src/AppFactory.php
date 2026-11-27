@@ -21,6 +21,7 @@ use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ArticleSections;
 use UsinaDocs\Core\Content\ArticleTags;
+use UsinaDocs\Core\Content\ArticleTagLabels;
 use UsinaDocs\Core\Content\EditorialMaintenance;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
@@ -37,6 +38,7 @@ use UsinaDocs\Core\Presentation\ReaderPreferences;
 use UsinaDocs\Core\Presentation\EditorialMaintenanceRoutes;
 use UsinaDocs\Core\Presentation\PageEditorRoutes;
 use UsinaDocs\Core\Presentation\SectionRoutes;
+use UsinaDocs\Core\Presentation\ArticleTagLabelRoutes;
 use UsinaDocs\Core\Presentation\PublicationRoutes;
 use UsinaDocs\Core\Presentation\AuthorRoutes;
 use UsinaDocs\Core\Presentation\ArticleEngagementRoutes;
@@ -160,6 +162,13 @@ final class AppFactory
         // Usa o mesmo cadastro para gerenciar editorias e classificar artigos.
         $sections = new ArticleSections($database);
         SectionRoutes::register($app, $twig, $sections);
+        // Keys still identify the same archive in every language. The glossary controls the labels readers see.
+        // As chaves identificam o mesmo arquivo em todos os idiomas. O glossário define os rótulos exibidos.
+        $tagLabels = new ArticleTagLabels($database);
+        $twig->getEnvironment()->addFunction(new TwigFunction('reader_tags', $tagLabels->forReader(...)));
+        if ($news !== null) {
+            ArticleTagLabelRoutes::register($app, $twig, $tagLabels);
+        }
         PageEditorRoutes::register($app, $twig, $editorial, $artifacts, $media, $sections);
         $app->add(ReaderPreferences::middleware($twig));
         $app->add(static function (ServerRequestInterface $request, $next) use ($twig, $appearance): ResponseInterface {
@@ -184,7 +193,7 @@ final class AppFactory
             $homepage = static function (
                 ServerRequestInterface $request,
                 ResponseInterface $response
-            ) use ($twig, $news, $root, $engagement, $sections): ResponseInterface {
+            ) use ($twig, $news, $root, $engagement, $sections, $tagLabels): ResponseInterface {
                 $language = $request->getAttribute(ReaderPreferences::class)->language;
                 $translations = require $root.'/config/news-reader-copy.php';
                 $copy = $translations[$language];
@@ -212,7 +221,9 @@ final class AppFactory
                 if ($hasNext) {
                     array_pop($latest);
                 }
-                $tagLabel = $tag === null ? null : (array_column($latest[0]['tags'] ?? [], 'label', 'key')[$tag] ?? $tag);
+                $tagLabel = $tag === null ? null : $tagLabels->label(
+                    $tag, array_column($latest[0]['tags'] ?? [], 'label', 'key')[$tag] ?? $tag, $language,
+                );
                 $listedArticles = array_merge($latest, ...array_column($channels, 'articles'));
                 $counts = $engagement->countsForArticles(array_column($listedArticles, 'page_id'));
 

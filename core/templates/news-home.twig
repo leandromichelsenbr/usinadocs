@@ -45,7 +45,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ news_copy.description }}">
     <meta name="theme-color" content="#12382b">
-    <title>{{ site_label }} · {{ tag_label is not null ? '#' ~ tag_label : news_copy.title }}</title>
+    <title>{{ site_label }} · {{ active_tag is not null ? (tag_label is not null ? '#' ~ tag_label : news_copy.hashtag) : news_copy.title }}</title>
     {% include 'site-favicon.twig' %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,7 +190,7 @@
     </header>
     <main class="shell" id="conteudo">
         <section id="ultimas" aria-labelledby="titulo-ultimas">
-            <h2 class="section-heading" id="titulo-ultimas">{{ tag_label is not null ? '#' ~ tag_label : news_copy.latest }}</h2>
+            <h2 class="section-heading" id="titulo-ultimas">{{ active_tag is not null ? (tag_label is not null ? '#' ~ tag_label : news_copy.hashtag) : news_copy.latest }}</h2>
             {% if latest %}
                 {% if active_tag is not null %}
                     {# Archive cards all have equal editorial weight. The first result is not a lead story.
@@ -214,7 +214,7 @@
                 <p class="empty">{{ active_tag is not null ? news_copy.tag_empty : news_copy.empty }}</p>
             {% endif %}
             {% if active_tag is not null and (tag_page > 1 or tag_has_next) %}
-                <nav class="section-nav" aria-label="#{{ tag_label }}">
+                <nav class="section-nav" aria-label="{{ tag_label is not null ? '#' ~ tag_label : news_copy.hashtag }}">
                     {% set archive_query = tag_query|merge({lang: reader_preferences.language}) %}
                     {% if tag_page > 1 %}<a rel="prev" href="/?{{ archive_query|merge({page: tag_page - 1})|url_encode }}">{{ news_copy.previous }}</a>{% endif %}
                     {% if tag_has_next %}<a rel="next" href="/?{{ archive_query|merge({page: tag_page + 1})|url_encode }}">{{ news_copy.next }}</a>{% endif %}
