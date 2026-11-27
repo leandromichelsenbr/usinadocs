@@ -95,6 +95,9 @@ final class PublishedPageRepository
                         // Normaliza também na saída pública, pois pacotes importados podem passar fora do editor.
                         $data['video_id'] = YouTubeVideo::id($data['url'] ?? null);
                     }
+                    if ($block['type'] === 'reference') {
+                        $data = self::referenceData($data);
+                    }
                     if ($block['type'] === 'table') {
                         $data['headers'] = is_array($data['headers'] ?? null) ? $data['headers'] : array_values(array_filter(array_map('trim', explode('|', (string) ($data['headers'] ?? $data['headers_text'] ?? '')))));
                         $data['rows'] = is_array($data['rows'] ?? null) ? $data['rows'] : array_map(static fn (string $row): array => array_map('trim', explode('|', $row)), array_filter(preg_split('/\R/', (string) ($data['rows'] ?? $data['rows_text'] ?? '')) ?: []));
@@ -120,6 +123,36 @@ final class PublishedPageRepository
         $page['translations'] = $translationStatement->fetchAll(PDO::FETCH_ASSOC);
 
         return $page;
+    }
+
+    private static function referenceData(array $data): array
+    {
+        // Old and imported blocks may lack metadata. Prepare display values without rewriting stored revisions.
+        // Blocos antigos e importados podem não ter metadados. Prepara os dados de exibição sem regravar revisões.
+        foreach (['title', 'url', 'author', 'publisher', 'published_on', 'accessed_on'] as $key) {
+            $data[$key] = is_string($data[$key] ?? null) ? trim($data[$key]) : '';
+        }
+
+        // Only web URLs and single-slash local paths can become links in a bibliography.
+        // Somente URLs web e caminhos locais com uma barra podem virar links na bibliografia.
+        $url = $data['url'];
+        $webUrl = preg_match('~\Ahttps?://~i', $url) && filter_var($url, FILTER_VALIDATE_URL);
+        $localUrl = str_starts_with($url, '/') && !str_starts_with($url, '//')
+            && !str_contains($url, chr(92)) && !preg_match('/[[:cntrl:]]/', $url);
+        if (!$webUrl && !$localUrl) {
+            $data['url'] = '';
+        }
+
+        // An absent or impossible date is omitted rather than interpreted as today's date.
+        // Uma data ausente ou impossível é omitida para que não seja interpretada como a data atual.
+        foreach (['published_on', 'accessed_on'] as $key) {
+            if (!preg_match('/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/', $data[$key], $parts)
+                || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
+                $data[$key] = '';
+            }
+        }
+
+        return $data;
     }
 
     private function publishedArtifact(string $id, string $revisionId='',string $language='pt'): ?array

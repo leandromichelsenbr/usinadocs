@@ -65,6 +65,11 @@
         .youtube-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 0; }
         .article-byline { display: grid; gap: .3rem; border-block: 1px solid light-dark(#c7d2e5, #32435d); padding: .75rem 0; margin-block: 1rem; font-size: .92rem; }
         .article-byline a { color: inherit; text-underline-offset: .2em; }
+        /* Wrap long source URLs so the bibliography fits on a phone.
+           Quebra URLs longas para que a bibliografia caiba no celular. */
+        .reference-list { padding-inline-start: 1.4rem; }
+        .reference-list li { margin-block: .55rem; overflow-wrap: anywhere; }
+        .reference-list a { color: light-dark(#1264a3, #7fc7ff); }
         /* Keep comments readable across themes and prevent long strings from widening the article.
            Mantém os comentários legíveis nos temas e impede que textos longos alarguem o artigo. */
         .article-comments { border-top: 1px solid light-dark(#c7d2e5, #32435d); margin-top: 3rem; }
@@ -114,7 +119,9 @@
             }[page.language_code] %}
             <p class="meta article-views">{{ engagement.views|number_format(0, view_copy[2], view_copy[3]) }} {{ engagement.views == 1 ? view_copy[0] : view_copy[1] }}</p>
         {% endif %}
-        {% for block in page.blocks %}
+        {# Keep body blocks in editorial order and gather all resolved references at the end.
+           Mantém a ordem editorial dos blocos do corpo e reúne ao fim todas as referências resolvidas. #}
+        {% for block in page.blocks|filter(block => block.type != 'reference') %}
             <section>
                 {% if block.type == 'text' %}
                     {% if block.data.title %}<h2>{{ block.data.title }}</h2>{% endif %}
@@ -157,8 +164,6 @@
                         {% endif %}
                         {% if block.data.caption %}<figcaption>{{ block.data.caption }}</figcaption>{% endif %}
                     </figure>
-                {% elseif block.type == 'reference' %}
-                    <p><strong>{{ copy.reference_label }}:</strong> <a href="{{ block.data.url }}">{{ block.data.title }}</a></p>
                 {% elseif block.type == 'notice' %}
                     <aside class="notice">{{ block.data.body }}</aside>
                 {% elseif block.type == 'missing_artifact' %}
@@ -166,6 +171,7 @@
                 {% endif %}
             </section>
         {% endfor %}
+        {% include 'page-references.twig' with {blocks: page.blocks, language: page.language_code} only %}
     </article>
     {% if engagement %}{% include 'article-comments.twig' %}{% endif %}
     {# Use the shared public footer on reader and sign-in screens.
