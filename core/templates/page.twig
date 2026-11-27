@@ -24,9 +24,13 @@
         :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #172033; background: #f3f6fb; }
         :root[data-theme="dark"] { color-scheme: dark; }
         @media (prefers-color-scheme: dark) { :root[data-theme="auto"] { color-scheme: dark; } }
-        {% if site_appearance.accent_color %}main > header { border-top: 3px solid {{ site_appearance.accent_color }}; padding-top: .8rem; }{% endif %}
-        body { margin: 0; } main { max-width: 800px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
-        header { border-bottom: 1px solid #c7d2e5; padding-bottom: 1rem; margin-bottom: 2.5rem; display:flex; justify-content:space-between; gap:1rem; align-items:start; }
+        {% if site_appearance.accent_color %}main > header { border-top: 3px solid {{ site_appearance.accent_color }}; padding-top: .55rem; }{% endif %}
+        /* Use explicit spacing around the title so the header and default heading margins do not stack.
+           Define o espaçamento do título para que as margens padrão não se somem à do cabeçalho. */
+        body { margin: 0; } main { max-width: 800px; margin: 0 auto; padding: clamp(1rem, 3vw, 2rem) 1.25rem 5rem; }
+        article > h1 { margin: 0 0 .55rem; line-height: 1.15; overflow-wrap: anywhere; }
+        article > .summary { margin-top: 0; }
+        header { border-bottom: 1px solid #c7d2e5; padding-bottom: .65rem; margin-bottom: 1rem; display:flex; justify-content:space-between; gap:1rem; align-items:start; }
         .brand { color: #1264a3; font-weight: 800; letter-spacing: .03em; } .meta { color: #526174; font-size: .9rem; } .type { display:inline-block; margin-top:.35rem; padding:.15rem .45rem; border-radius:999px; background:#e1edf8; color:#244565; font-size:.8rem; font-weight:700; }
         /* Keep account and editor actions distinct from the shared language choices.
            Mantém as ações de conta e edição separadas das opções de idioma compartilhadas. */
