@@ -100,3 +100,9 @@ Os leitores podem compartilhar artigos públicos no WhatsApp, LinkedIn e Faceboo
 
 3. Agende `php /caminho/core/bin/publish-social.php /caminho/privado/social.json` para rodar a cada minuto, com PDO SQLite e cURL. Em **Painel editorial → Redes sociais**, informe o ID numérico da organização no LinkedIn ou da Página no Facebook, confira o destino pelo link e habilite o canal no idioma desejado. Instalações que já usavam o campo `id` no arquivo privado podem cadastrar o mesmo valor no painel. O destino salvo no painel tem prioridade.
 4. A primeira publicação da edição escolhida entra na fila. Revisões seguintes e artigos que já tinham essa edição publicada não entram na fila. Ao desativar um canal, a fila existente fica pausada. O envio também espera enquanto o artigo está oculto. Consulte o painel para ver os envios recentes e reenfileirar recusas após corrigir a causa. Para um envio a confirmar, verifique se a notícia apareceu na própria rede, pois o servidor pode ter recebido a publicação antes de a conexão cair.
+
+## Sitemap
+
+Com `USINADOCS_PUBLIC_ORIGIN` configurada, o núcleo disponibiliza `/sitemap.xml` e anuncia o endereço em `/robots.txt`. Encaminhe requisições GET e HEAD desses dois caminhos ao front controller no servidor web.
+
+Em **Painel editorial → Sitemap**, o modo **Automática** consulta as versões públicas e inclui novas publicações na próxima leitura do XML. **Manual** mantém a cópia criada ao salvar. Salve novamente para atualizar essa cópia.
