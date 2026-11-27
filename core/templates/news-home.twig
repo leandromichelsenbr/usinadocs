@@ -96,11 +96,14 @@
         .top .languages a[aria-current="page"] { color: var(--accent); border-color: currentColor; }
         .top-links { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: .75rem 1.25rem; }
         .top > a:first-child { color: var(--on-dark); text-decoration: none; }
-        .identity { display: flex; justify-content: space-between; align-items: end; gap: 1rem 2rem; padding-block: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem); }
-        .identity h1 { font-size: clamp(3.75rem, 12vw, 9.5rem); letter-spacing: -.035em; }
+        /* Bring the news list closer to the masthead. Cap both the image and the text fallback.
+           Aproxima a lista de notícias do cabeçalho. Limita a altura do logotipo e do título em texto. */
+        .identity { display: flex; justify-content: space-between; align-items: end; gap: .75rem 2rem; padding-block: clamp(.8rem, 2vw, 1.5rem); }
+        .identity h1 { font-size: clamp(2.75rem, 7vw, 5.5rem); letter-spacing: -.035em; }
+        .identity h1:has(.site-logo) { line-height: 0; }
         .identity h1 .site-logo-link > span { color: var(--accent); }
-        .identity .site-logo { padding: clamp(.55rem, 2vw, 1rem); background: var(--surface); max-width: min(100%, 30rem); border-radius: .35rem; }
-        .identity .site-logo img { max-height: clamp(3.5rem, 12vw, 9rem); }
+        .identity .site-logo { padding: .5rem; box-sizing: border-box; background: var(--surface); max-width: min(100%, 30rem); border-radius: .35rem; }
+        .identity .site-logo img { max-height: clamp(3rem, 6vw, 5.5rem); }
         .identity p { max-width: 26ch; font-size: clamp(1rem, 2vw, 1.25rem); padding-bottom: .25rem; }
         .section-nav { display: flex; flex-wrap: wrap; gap: .35rem clamp(1rem, 3vw, 2.5rem); padding-block: .75rem; border-top: 1px solid #6b876f; }
         .section-nav a { padding-block: .25rem; font-size: .9rem; font-weight: 600; text-decoration: none; }
@@ -144,7 +147,7 @@
             .top { align-items: start; flex-direction: column; }
             .top-links { justify-content: start; }
             .identity { display: block; }
-            .identity p { margin-top: .85rem; }
+            .identity p { margin-top: .5rem; }
             /* Leave room for the fixed theme control below the last footer link.
                Reserva espaço para o tema fixo abaixo do último link do rodapé. */
             footer { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)); }
