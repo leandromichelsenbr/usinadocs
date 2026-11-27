@@ -1,0 +1,31 @@
+{# Keep the title and URL of older entries and omit optional metadata when it was not recorded.
+   Preserva título e URL das entradas antigas e omite dados opcionais quando não foram registrados. #}
+{% set entries = blocks|filter(block => block.type == 'reference' and (block.data.title or block.data.url or block.data.author or block.data.publisher)) %}
+{% if entries %}
+    {# The bibliography is part of the edition, so labels and dates follow its language.
+       A bibliografia integra a edição, por isso os rótulos e as datas seguem o idioma dela. #}
+    {% set copy = {
+        pt: {title: 'Referências', accessed: 'Acesso em', date: 'd/m/Y'},
+        en: {title: 'References', accessed: 'Accessed', date: 'M j, Y'},
+        es: {title: 'Referencias', accessed: 'Consultado el', date: 'd/m/Y'}
+    }[language] %}
+    <section aria-labelledby="references-heading">
+        <h2 id="references-heading">{{ copy.title }}</h2>
+        <ul class="reference-list">
+            {% for block in entries %}
+                {% set source = block.data %}
+                <li>
+                    {% if source.author %}{{ source.author }}. {% endif %}
+                    {% if source.title or source.url %}
+                        <cite>{% if source.url %}<a href="{{ source.url }}">{{ source.title ?: source.url }}</a>{% else %}{{ source.title }}{% endif %}</cite>.
+                    {% endif %}
+                    {% if source.publisher and source.publisher != source.author %}
+                        {{ source.publisher }}{% if source.published_on %}, {% else %}. {% endif %}
+                    {% endif %}
+                    {% if source.published_on %}<time datetime="{{ source.published_on }}">{{ source.published_on|date(copy.date, false) }}</time>. {% endif %}
+                    {% if source.accessed_on %}{{ copy.accessed }} <time datetime="{{ source.accessed_on }}">{{ source.accessed_on|date(copy.date, false) }}</time>.{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}

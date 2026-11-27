@@ -1,0 +1,11 @@
+// Keep the same metadata keys and calendar inputs in the page and reusable artifact editors.
+// Mantém as mesmas chaves de metadados e os mesmos campos de calendário nos editores de páginas e artefatos.
+{% set labels = editor_form_labels[reader_preferences.language] %}
+const referenceFields = {{ [
+    [labels.reference_title, 'title', 'text'],
+    ['URL', 'url', 'text'],
+    [labels.reference_author, 'author', 'text'],
+    [labels.reference_publisher, 'publisher', 'text'],
+    [labels.reference_published_on, 'published_on', 'date'],
+    [labels.reference_accessed_on, 'accessed_on', 'date']
+]|json_encode|raw }};
