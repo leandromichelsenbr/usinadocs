@@ -183,6 +183,7 @@ Tipos iniciais:
 | --- | --- | --- |
 | `text` | `title` opcional, `body` | Texto editorial em Markdown. |
 | `code` | `code`, `language` opcional | Código-fonte ou trecho técnico. |
+| `article_tags` | `tags` | Lista opcional de objetos com `key` (chave em minúsculas) e `label` (grafia para exibição). A revisão publicada em português define as hashtags de todas as edições. |
 | `reference` | `citation_key` ou `text` | Chamada editorial para uma referência estruturada. |
 | `media` | `media_id`, `alt` | Imagem, áudio, vídeo ou arquivo sob demanda. |
 | `callout` | `tone`, `body` | Aviso, dica, cuidado ou informação complementar. |

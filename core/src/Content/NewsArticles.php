@@ -9,7 +9,7 @@ use PDO;
 /**
  * EN: Read model for the optional news homepage (USINADOCS_NEWS_HOME=1). It lists
  * published articles for the reader's language, newest first, optionally limited
- * to one editorial section. It only reads: publication, sections, covers and
+ * to one editorial section or hashtag. It only reads: publication, sections, covers and
  * alerts are managed by their own services.
  *
  * PT: Modelo de leitura da página inicial de notícias opcional
@@ -24,8 +24,7 @@ final class NewsArticles
     {
     }
 
-    /** @return list<array<string, string|int|null>> */
-    public function latest(int $limit, ?string $section = null, string $language = 'pt'): array
+    public function latest(int $limit, ?string $section = null, string $language = 'pt', ?string $tag = null, int $offset = 0): array
     {
         // The localization points to the revision that readers can see. Joining
         // through that pointer keeps drafts out of the homepage and section lists.
@@ -39,12 +38,16 @@ final class NewsArticles
         // Aplica a mesma regra de visibilidade por artigo a todas as listas da página principal.
         // A blocked section stops labeling or grouping its articles. The latest list still includes them.
         // A editoria bloqueada deixa de rotular ou agrupar artigos. Eles continuam na lista de últimas matérias.
+        // Read hashtags from the public Portuguese snapshot, including when a card links to a translation.
+        // Lê as hashtags da versão pública em português, inclusive quando a chamada aponta para uma tradução.
         $statement = $this->database->prepare(
             "SELECT pl.page_id, CASE WHEN translated.id IS NULL THEN pl.slug ELSE localized.slug END AS slug,
                  COALESCE(translated.title, r.title) AS title,
                  COALESCE(translated.summary, r.summary) AS summary,
                  COALESCE(translated.language_code, pl.language_code) AS language,
-                 r.published_at, s.slug AS section, c.media_id AS cover_media_id, (alert.page_id IS NOT NULL) AS is_critical
+                 r.published_at, s.slug AS section, c.media_id AS cover_media_id, (alert.page_id IS NOT NULL) AS is_critical,
+                 (SELECT b.data FROM blocks b WHERE b.page_revision_id = r.id AND b.type = 'article_tags'
+                   ORDER BY b.position LIMIT 1) AS tags_json
              FROM page_localizations pl
              JOIN page_revisions r ON r.id = pl.published_revision_id
              LEFT JOIN page_localizations localized ON localized.page_id = pl.page_id AND localized.language_code = :language
@@ -58,15 +61,25 @@ final class NewsArticles
                  AND m.content_type = 'article' AND pl.page_id <> 'page-welcome'
                  AND NOT EXISTS (SELECT 1 FROM hidden_articles h WHERE h.page_id = pl.page_id)
                  AND (:section IS NULL OR s.slug = :section)
+                 AND (:tag IS NULL OR EXISTS (
+                     SELECT 1 FROM json_each(tags_json, '$.tags') AS entry
+                     WHERE CASE WHEN entry.type = 'object' THEN json_extract(entry.value, '$.key') END = :tag
+                 ))
              ORDER BY r.published_at DESC, pl.slug ASC
-             LIMIT :limit"
+             LIMIT :limit OFFSET :offset"
         );
         $statement->bindValue('language', $language, PDO::PARAM_STR);
         $statement->bindValue('section', $section, $section === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $statement->bindValue('tag', $tag, $tag === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $statement->bindValue('limit', $limit, PDO::PARAM_INT);
+        $statement->bindValue('offset', $offset, PDO::PARAM_INT);
         $statement->execute();
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(static function (array $article): array {
+            $article['tags'] = ArticleTags::fromData(json_decode((string) $article['tags_json'], true));
+            unset($article['tags_json']);
+            return $article;
+        }, $statement->fetchAll(PDO::FETCH_ASSOC));
     }
 
 }

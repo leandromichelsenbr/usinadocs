@@ -11,6 +11,7 @@ use Slim\App;
 use Slim\Views\Twig;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\ArticleSections;
+use UsinaDocs\Core\Content\ArticleTags;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Media\MediaLibrary;
@@ -34,12 +35,17 @@ final class PageEditorRoutes
             if ($id !== null && $page === null) return $response->withStatus(404);
             $query = $request->getQueryParams();
             $missing = is_string($query['missing'] ?? null) ? $query['missing'] : '';
-            $failed = $submitted !== [] || ($query['section_error'] ?? null) === '1';
+            $failed = ($submitted !== [] && !isset($submitted['tags_error'])) || ($query['section_error'] ?? null) === '1';
+            $blocks = $submitted['blocks'] ?? ($id === null ? [] : $editorial->blocksForDraft($id, $language));
+            // Tags have their own field and are shared by the three published editions.
+            // As hashtags têm campo próprio e são compartilhadas pelas três edições publicadas.
+            $tags = array_column(ArticleTags::fromBlocks($blocks), 'label');
 
             return $twig->render($response, 'page-form.twig', [
                 'page' => $page, 'media' => $media->all(), 'models' => $editorial->editorialModels(),
                 'reusable_artifacts' => $artifacts->publishedCatalog($language),
-                'blocks' => $submitted['blocks'] ?? ($id === null ? [] : $editorial->blocksForDraft($id, $language)),
+                'blocks' => array_values(array_filter($blocks, static fn ($block): bool => ($block['type'] ?? null) !== ArticleTags::BLOCK)),
+                'tag_input' => $submitted['tag_input'] ?? ($tags === [] ? '' : '#'.implode(' #', $tags)),
                 'submitted' => $submitted,
                 'missing' => $missing, 'section_error' => $failed,
                 'sections' => $sections->availableFor($id), 'selected_section' => $id === null ? null : $sections->sectionFor($id),
@@ -58,19 +64,38 @@ final class PageEditorRoutes
             $summary = trim((string) ($input['summary'] ?? ''));
             $contentType = (string) ($input['content_type'] ?? 'reference');
             $section = $input['article_section'] ?? $input['news_section'] ?? null;
+            $tagInput = $input['article_tags'] ?? null;
             $slug = trim((string) ($input['slug'] ?? ''));
             $blocks = json_decode((string) ($input['blocks_json'] ?? '[]'), true);
             $editPath = static fn (?string $pageId): string => $pageId === null ? '/admin/pages/new'
                 : '/admin/pages/'.$pageId.(isset($args['language']) ? '/'.$language : '').'/edit';
 
+            $submitted = [
+                'title' => $title, 'summary' => $summary, 'slug' => $slug,
+                'content_type' => $contentType, 'blocks' => is_array($blocks) ? $blocks : [],
+            ];
+            if (is_string($tagInput)) {
+                $submitted['tag_input'] = $tagInput;
+            }
+            $tags = [];
+            if ($contentType === 'article' && $language === 'pt') {
+                try {
+                    if ($tagInput !== null && !is_string($tagInput)) {
+                        throw new InvalidArgumentException('Invalid hashtags.');
+                    }
+                    $tags = $tagInput === null
+                        ? ArticleTags::fromBlocks($id === null ? [] : $editorial->blocksForDraft($id, $language))
+                        : ArticleTags::parse($tagInput);
+                } catch (InvalidArgumentException) {
+                    return $form($request, $response->withStatus(422), $args, $submitted + ['tags_error' => true]);
+                }
+            }
+
             // An unavailable section must not cause an otherwise normal submission to overwrite the current section.
             // Uma editoria indisponível não deve fazer um envio normal substituir o vínculo atual.
             if ($contentType === 'article' && $section !== null
                 && (!is_string($section) || !$sections->canAssign($id, $section))) {
-                return $form($request, $response->withStatus(422), $args, [
-                    'title' => $title, 'summary' => $summary, 'slug' => $slug,
-                    'content_type' => $contentType, 'blocks' => is_array($blocks) ? $blocks : [],
-                ]);
+                return $form($request, $response->withStatus(422), $args, $submitted);
             }
 
             if ($id === null) {
@@ -79,7 +104,16 @@ final class PageEditorRoutes
                 $editorial->setContentType($id, $contentType);
                 $editorial->updateLocalizedDraft($id, $language, $title, $summary, '', '');
             }
-            if (is_array($blocks)) $editorial->replaceDraftBlocks($id, $language, $blocks);
+            if (is_array($blocks) || $tags !== []) {
+                // Only the dedicated field can produce a tag block. Localized editors edit body blocks only.
+                // Só o campo dedicado produz um bloco de hashtags. Editores de tradução alteram apenas blocos do corpo.
+                $blocks = array_values(array_filter(is_array($blocks) ? $blocks : [],
+                    static fn ($block): bool => ($block['type'] ?? null) !== ArticleTags::BLOCK));
+                if ($tags !== []) {
+                    $blocks[] = ['type' => ArticleTags::BLOCK, 'data' => ['tags' => $tags]];
+                }
+                $editorial->replaceDraftBlocks($id, $language, $blocks);
+            }
 
             if ($contentType === 'article' && is_string($section)) {
                 try {

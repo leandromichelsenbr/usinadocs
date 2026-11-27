@@ -36,6 +36,7 @@
     {% include 'reader-language.twig' with {query: preference_query, preference_path: preference_path} only %}
     <h1>{{ heading }}</h1>
     {% if missing %}<p class="warning"><strong>{{ fields.publication_blocked }}</strong> {{ fields.required_artifacts }}: {{ missing }}.</p>{% endif %}
+    {% if submitted.tags_error %}<p class="warning" role="alert">{{ fields.article_tags_error }}</p>{% endif %}
     {% if section_error %}<p class="warning" role="alert">{{ fields.unavailable_section }}</p>{% endif %}
     <form id="editor" method="post" data-warn-unsaved="{{ submitted ? 'dirty' : '' }}" action="{{ page and page.language is defined ? '/admin/pages/' ~ page.page_id ~ '/' ~ page.language : (page ? '/admin/pages/' ~ page.page_id : '/admin/pages') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
         <label>{{ fields.model }} <select name="content_type" id="content-type">
@@ -51,6 +52,15 @@
                 {% endfor %}
             </select>
         </label>
+        {# The original edition owns hashtag changes, which are published with its body and title.
+           A edição original controla as alterações de hashtags, publicadas junto com o corpo e o título. #}
+        {% if news_hashtags and edition == 'pt' %}
+            <label id="article-tags-editor"{% if content_type != 'article' %} hidden{% endif %}>
+                {{ fields.article_tags }}
+                <input name="article_tags" value="{{ tag_input }}" aria-describedby="article-tags-hint"{% if content_type != 'article' %} disabled{% endif %}>
+                <small id="article-tags-hint" class="hint">{{ fields.article_tags_hint }}</small>
+            </label>
+        {% endif %}
         <label>{{ labels.title }} <input name="title" required value="{{ submitted.title ?? page.title|default('') }}"></label>
         {% if not page %}<label>{{ fields.address }} <input name="slug" value="{{ submitted.slug|default('') }}" required pattern="[a-z0-9-]+"></label>{% endif %}
         <label>{{ fields.summary }} <textarea name="summary">{{ submitted.summary ?? page.summary|default('') }}</textarea></label>
@@ -83,6 +93,13 @@ function refreshModel(){
     const isArticle = typeSelect.value === 'article';
     sectionInput.hidden = !isArticle;
     sectionInput.querySelector('select').disabled = !isArticle;
+    // Tag editing follows the same model selector and is available only in the original edition.
+    // A edição das hashtags acompanha o seletor de modelo e só está disponível na edição original.
+    const tagsInput = document.querySelector('#article-tags-editor');
+    if (tagsInput) {
+        tagsInput.hidden = !isArticle;
+        tagsInput.querySelector('input').disabled = !isArticle;
+    }
     const model=currentModel();document.querySelector('#model-note').textContent=model.description||'';modelTools.replaceChildren();model.artifacts.forEach(artifact=>{const button=document.createElement('button');button.type='button';button.dataset.add=artifact.type;button.textContent=editorCopy.add+' '+artifact.label+(artifact.required?' · '+editorCopy.required:'');button.onclick=()=>{blocks.push({type:artifact.type,data:{}});render()};modelTools.append(button)});if(typeSelect.value==='article'){const video=document.createElement('button');video.type='button';video.dataset.add='youtube';video.textContent=editorCopy.add_youtube;video.onclick=()=>{blocks.push({type:'youtube',data:{}});render()};modelTools.append(video)}if(reusableArtifacts.length){const button=document.createElement('button');button.type='button';button.textContent=editorCopy.insert_artifact;button.onclick=()=>{blocks.push({type:'reusable_artifact',data:{artifact_id:reusableArtifacts[0].id}});render()};modelTools.append(button)}if(!blocks.length){const required=model.artifacts.filter(artifact=>artifact.required);blocks=(required.length?required:[model.artifacts[0]||{type:'text'}]).map(artifact=>({type:artifact.type,data:{}}))}render()}
 function control(label,key,value,tag='textarea'){const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement(tag);input.dataset.key=key;input.value=value||'';wrapper.append(input);return wrapper}
 function tableEditor(card,data){const lineBreak=String.fromCharCode(10);data.headers=Array.isArray(data.headers)?data.headers:(data.headers||'').split('|').map(value=>value.trim()).filter(Boolean);data.rows=Array.isArray(data.rows)?data.rows:(data.rows||'').split(lineBreak).filter(Boolean).map(line=>line.split('|').map(value=>value.trim()));if(!data.headers.length)data.headers=[editorCopy.column+' 1',editorCopy.column+' 2'];if(!data.rows.length)data.rows=[['','']];const headers=control(editorCopy.table_headers,'headers',data.headers.join(' | '),'input'),rows=control(editorCopy.table_rows,'rows',data.rows.map(row=>row.join(' | ')).join(lineBreak));delete headers.querySelector('input').dataset.key;delete rows.querySelector('textarea').dataset.key;const hint=document.createElement('p');hint.className='hint';hint.textContent=editorCopy.table_example;headers.querySelector('input').oninput=e=>data.headers=e.target.value.split('|').map(value=>value.trim()).filter(Boolean);rows.querySelector('textarea').oninput=e=>data.rows=e.target.value.split(lineBreak).filter(Boolean).map(line=>line.split('|').map(value=>value.trim()));card.append(headers,rows,hint)}
