@@ -112,6 +112,19 @@ final class PublishedPageRepository
             throw new \RuntimeException('A published block contains invalid JSON.', 0, $exception);
         }
 
+        if ($page['content_type'] === 'article') {
+            // The Portuguese revision owns the tags for all editions. Its draft preview can preview changes.
+            // A revisão em português define as hashtags das três edições. A prévia em português mostra as alterações.
+            $page['tags'] = ArticleTags::fromBlocks($page['blocks']);
+            if ($page['language_code'] !== 'pt') {
+                $tags = $this->database->prepare("SELECT b.data FROM page_localizations l
+                    JOIN blocks b ON b.page_revision_id = l.published_revision_id AND b.type = 'article_tags'
+                    WHERE l.page_id = ? AND l.language_code = 'pt' ORDER BY b.position LIMIT 1");
+                $tags->execute([$page['page_id']]);
+                $page['tags'] = ArticleTags::fromData(json_decode((string) $tags->fetchColumn(), true));
+            }
+        }
+
         $translationStatement = $this->database->prepare(
             'SELECT pl.language_code, l.native_name, pl.slug '
             .'FROM page_localizations pl '

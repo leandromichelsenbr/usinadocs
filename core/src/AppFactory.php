@@ -20,6 +20,7 @@ use UsinaDocs\Core\Authentication\OAuthRoutes;
 use UsinaDocs\Core\Authentication\Roles;
 use UsinaDocs\Core\Content\EditorialService;
 use UsinaDocs\Core\Content\ArticleSections;
+use UsinaDocs\Core\Content\ArticleTags;
 use UsinaDocs\Core\Content\EditorialMaintenance;
 use UsinaDocs\Core\Content\ReusableArtifactService;
 use UsinaDocs\Core\Content\ContentPackageService;
@@ -74,6 +75,9 @@ final class AppFactory
         $covers = new PageCovers($database, $media);
         $appearance = new SiteAppearance($database, $media);
         $twig = Twig::create($root.'/templates', ['cache' => false]);
+        // Hashtag links point to the news archive, which is available when the news homepage is enabled.
+        // Links de hashtags apontam para o arquivo de notícias, disponível quando a capa de notícias está ativa.
+        $twig->getEnvironment()->addGlobal('news_hashtags', $news !== null);
         if ($news !== null) {
             // EN: The newspaper's name and newsroom time zone are installation settings, so the same
             // core can power other publications. The defaults keep the current Usina News behavior.
@@ -184,10 +188,15 @@ final class AppFactory
                 $language = $request->getAttribute(ReaderPreferences::class)->language;
                 $translations = require $root.'/config/news-reader-copy.php';
                 $copy = $translations[$language];
+                $query = $request->getQueryParams();
+                $tag = is_string($query['tag'] ?? null) ? ArticleTags::key($query['tag']) : null;
+                $pageSize = 24;
+                $pageNumber = $tag === null ? 1 : (filter_var($query['page'] ?? null, FILTER_VALIDATE_INT,
+                    ['options' => ['min_range' => 1, 'max_range' => intdiv(PHP_INT_MAX, $pageSize)]]) ?: 1);
                 // EN: Use published section names from the directory so edits and blocks take effect on the homepage.
                 // PT: Usa os nomes do cadastro para refletir as alterações e os bloqueios na página inicial.
                 $channels = [];
-                foreach ($sections->all() as $section) {
+                foreach ($tag === null ? $sections->all() : [] as $section) {
                     if ($section['blocked']) continue;
                     $slug = $section['slug'];
                     $channels[$slug] = ['name' => $section['title_'.$language], 'articles' => $news->latest(3, $slug, $language)];
@@ -195,7 +204,15 @@ final class AppFactory
 
                 // EN: Fetch one snapshot of counts for all cards, including articles repeated in a section.
                 // PT: Busca os totais de todas as chamadas de uma vez, inclusive de artigos repetidos numa editoria.
-                $latest = $news->latest(6, null, $language);
+                // Fetch one additional result to tell readers whether another archive page exists.
+                // Busca um resultado a mais para informar se existe outra página do arquivo.
+                $latest = $tag === null ? $news->latest(6, null, $language)
+                    : $news->latest($pageSize + 1, null, $language, $tag, ($pageNumber - 1) * $pageSize);
+                $hasNext = count($latest) > $pageSize;
+                if ($hasNext) {
+                    array_pop($latest);
+                }
+                $tagLabel = $tag === null ? null : (array_column($latest[0]['tags'] ?? [], 'label', 'key')[$tag] ?? $tag);
                 $listedArticles = array_merge($latest, ...array_column($channels, 'articles'));
                 $counts = $engagement->countsForArticles(array_column($listedArticles, 'page_id'));
 
@@ -204,6 +221,10 @@ final class AppFactory
                     'engagement_counts' => $counts,
                     'news_copy' => $copy,
                     'sections' => $channels,
+                    'active_tag' => $tag,
+                    'tag_label' => $tagLabel,
+                    'tag_page' => $pageNumber,
+                    'tag_has_next' => $hasNext,
                 ]);
             };
             $app->map(['GET', 'HEAD'], '/', $homepage);

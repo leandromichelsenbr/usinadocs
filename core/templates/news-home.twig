@@ -18,13 +18,14 @@
         {{ _self.cover(item, featured) }}
         <div class="article-card-body">
             <div class="story-meta">
-                {% if item.section %}<a href="#editoria-{{ item.section }}">{{ sections[item.section].name }}</a>{% endif %}
+                {% if item.section and sections[item.section] is defined %}<a href="#editoria-{{ item.section }}">{{ sections[item.section].name }}</a>{% endif %}
                 {% if item.published_at %}<time datetime="{{ item.published_at }}">{{ item.published_at|date(date_format, site_timezone|default('UTC')) }}</time>{% endif %}
             </div>
             <h3 lang="{{ item.language }}"><a href="/{{ item.language }}/p/{{ item.slug|url_encode }}">{{ item.title }}</a></h3>
             {% if item.is_critical %}<p>{% include 'article-critical-label.twig' with {locale: locale} only %}</p>{% endif %}
             {% if item.summary %}<p class="article-card-summary" lang="{{ item.language }}">{{ item.summary }}</p>{% endif %}
             {{ _self.counts(item, engagement_counts, locale) }}
+            {% include 'article-tags.twig' with {tags: item.tags, language: locale} only %}
         </div>
     </article>
 {% endmacro %}
@@ -34,6 +35,9 @@
    PT: O nome vem da Aparência e depois de USINADOCS_SITE_NAME; o logotipo em dois tons é mantido para o nome padrão. #}
 {% set site_label = site_appearance.display_name ?: site_default_name|default('Usina News') %}
 {% set date_format = reader_preferences.language == 'en' ? 'M j, Y' : 'd/m/Y' %}
+{# Preserve the archive filter when choosing another interface language or theme.
+   Preserva o filtro do arquivo ao escolher outro idioma ou tema. #}
+{% set tag_query = active_tag is not null ? {tag: active_tag, page: tag_page} : {} %}
 <!doctype html>
 <html lang="{{ reader_preferences.language_tag }}" data-theme="{{ reader_preferences.theme }}">
 <head>
@@ -41,7 +45,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="{{ news_copy.description }}">
     <meta name="theme-color" content="#12382b">
-    <title>{{ site_label }} · {{ news_copy.title }}</title>
+    <title>{{ site_label }} · {{ tag_label is not null ? '#' ~ tag_label : news_copy.title }}</title>
     {% include 'site-favicon.twig' %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,6 +54,7 @@
         {% include 'site-logo-style.twig' %}
         {% include 'article-critical-style.twig' %}
         {% include 'article-card-layout.twig' %}
+        {% include 'article-tags-style.twig' %}
         :root {
             color-scheme: light;
             --paper: #f5f4ec;
@@ -164,7 +169,7 @@
                     <a href="https://advpl.usinabr.com.br/{{ reader_preferences.language }}">{{ news_copy.guide }}</a>
                     <a href="/{{ reader_preferences.language }}/p/autores">{{ copy.authors }}</a>
                     {% if oauth_enabled %}<a href="/login">{{ account ? copy.account : copy.login }}</a>{% endif %}
-                    {% include 'reader-language.twig' only %}
+                    {% include 'reader-language.twig' with {query: tag_query} only %}
                 </div>
             </div>
             <div class="identity">
@@ -178,15 +183,24 @@
                 <p>{{ news_copy.tagline }}</p>
             </div>
             <nav class="section-nav" aria-label="{{ news_copy.navigation }}">
-                <a href="#ultimas">{{ news_copy.latest }}</a>
+                <a href="{{ active_tag is not null ? '/?' ~ {lang: reader_preferences.language}|url_encode : '#ultimas' }}">{{ active_tag is not null ? news_copy.tag_clear : news_copy.latest }}</a>
                 {% for slug, section in sections %}<a href="#editoria-{{ slug }}">{{ section.name }}</a>{% endfor %}
             </nav>
         </div>
     </header>
     <main class="shell" id="conteudo">
         <section id="ultimas" aria-labelledby="titulo-ultimas">
-            <h2 class="section-heading" id="titulo-ultimas">{{ news_copy.latest }}</h2>
+            <h2 class="section-heading" id="titulo-ultimas">{{ tag_label is not null ? '#' ~ tag_label : news_copy.latest }}</h2>
             {% if latest %}
+                {% if active_tag is not null %}
+                    {# Archive cards all have equal editorial weight. The first result is not a lead story.
+                       As chamadas do arquivo têm o mesmo peso editorial. O primeiro resultado não recebe destaque. #}
+                    <div class="latest-grid">
+                        <div class="story-list article-card-grid">
+                            {% for item in latest %}{{ news.article(item, sections, date_format, engagement_counts, reader_preferences.language) }}{% endfor %}
+                        </div>
+                    </div>
+                {% else %}
                 <div class="latest-grid">
                     {{ news.article(latest|first, sections, date_format, engagement_counts, reader_preferences.language, true) }}
                     {% if latest|length > 1 %}
@@ -195,8 +209,16 @@
                         </div>
                     {% endif %}
                 </div>
+                {% endif %}
             {% else %}
-                <p class="empty">{{ news_copy.empty }}</p>
+                <p class="empty">{{ active_tag is not null ? news_copy.tag_empty : news_copy.empty }}</p>
+            {% endif %}
+            {% if active_tag is not null and (tag_page > 1 or tag_has_next) %}
+                <nav class="section-nav" aria-label="#{{ tag_label }}">
+                    {% set archive_query = tag_query|merge({lang: reader_preferences.language}) %}
+                    {% if tag_page > 1 %}<a rel="prev" href="/?{{ archive_query|merge({page: tag_page - 1})|url_encode }}">{{ news_copy.previous }}</a>{% endif %}
+                    {% if tag_has_next %}<a rel="next" href="/?{{ archive_query|merge({page: tag_page + 1})|url_encode }}">{{ news_copy.next }}</a>{% endif %}
+                </nav>
             {% endif %}
         </section>
         {% if sections %}
@@ -216,6 +238,7 @@
                                             <h4 lang="{{ item.language }}"><a href="/{{ item.language }}/p/{{ item.slug|url_encode }}">{{ item.title }}</a></h4>
                                             {% if item.is_critical %}<p>{% include 'article-critical-label.twig' with {locale: reader_preferences.language} only %}</p>{% endif %}
                                             {{ news.counts(item, engagement_counts, reader_preferences.language) }}
+                                            {% include 'article-tags.twig' with {tags: item.tags, language: reader_preferences.language} only %}
                                         </div>
                                     </article>
                                 {% endfor %}
@@ -238,6 +261,6 @@
             <a href="https://www.usinabr.com.br/">Usina.BR Tecnologia e Informação</a>
         </div>
     </footer>
-    {% include 'reader-theme.twig' only %}
+    {% include 'reader-theme.twig' with {query: tag_query} only %}
 </body>
 </html>

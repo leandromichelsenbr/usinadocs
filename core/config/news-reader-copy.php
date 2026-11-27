@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// Localize the archive controls without translating the editorial spelling of each hashtag.
+// Traduz os controles do arquivo e preserva a grafia editorial de cada hashtag.
 return [
     'pt' => [
         'title' => 'Notícias de tecnologia',
@@ -13,6 +15,10 @@ return [
         'latest' => 'Últimas matérias',
         'sections' => 'Editorias',
         'empty' => 'Ainda sem matérias publicadas.',
+        'tag_empty' => 'Nenhuma matéria publicada com esta hashtag.',
+        'tag_clear' => 'Todas as notícias',
+        'previous' => 'Página anterior',
+        'next' => 'Próxima página',
     ],
     'en' => [
         'title' => 'Technology news',
@@ -24,6 +30,10 @@ return [
         'latest' => 'Latest articles',
         'sections' => 'Sections',
         'empty' => 'No articles published yet.',
+        'tag_empty' => 'No published articles with this hashtag.',
+        'tag_clear' => 'All news',
+        'previous' => 'Previous page',
+        'next' => 'Next page',
     ],
     'es' => [
         'title' => 'Noticias de tecnología',
@@ -35,5 +45,9 @@ return [
         'latest' => 'Últimos artículos',
         'sections' => 'Secciones',
         'empty' => 'Todavía no hay artículos publicados.',
+        'tag_empty' => 'No hay artículos publicados con esta hashtag.',
+        'tag_clear' => 'Todas las noticias',
+        'previous' => 'Página anterior',
+        'next' => 'Página siguiente',
     ],
 ];
